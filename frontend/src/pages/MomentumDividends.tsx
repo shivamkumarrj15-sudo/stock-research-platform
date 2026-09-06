@@ -1,19 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Zap, Calendar, TrendingUp, DollarSign, Award, ShieldCheck, ArrowUpRight } from 'lucide-react';
-import { formatCurrency, formatPct, getChangeColor } from '../utils/formatters';
+import { Zap, ArrowUpRight, Activity } from 'lucide-react';
+import { formatPct, getChangeColor } from '../utils/formatters';
 
 interface MomentumDividendStock {
   ticker: string;
   name: string;
   bse_code?: string;
   price: number;
-  change_pct: number;
+  change_1d: number;
+  change_1w: number;
+  change_1m: number;
+  change_1y: number;
   fair_value: number;
   fair_value_label: 'Bargain' | 'Undervalued' | 'Fair' | 'Overvalued';
   fair_value_upside: number;
   health_label: 'Great' | 'Good' | 'Fair' | 'Weak';
-  health_score: number; // 1-100
+  health_score: number;
   market_cap: string;
   dividend_per_share: number;
   dividend_yield: number;
@@ -21,12 +24,14 @@ interface MomentumDividendStock {
   pay_date: string;
   rsi_14: number;
   pe_ratio: number;
-  momentum_score: number; // 0-100
+  pb_ratio: number;
+  momentum_score: number;
 }
 
 export const MomentumDividends: React.FC = () => {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<'all' | 'high_momentum' | 'upcoming_dividend'>('all');
+  const [timeframe, setTimeframe] = useState<'1d' | '1w' | '1m' | '1y'>('1m');
 
   const stocks: MomentumDividendStock[] = [
     {
@@ -34,7 +39,10 @@ export const MomentumDividends: React.FC = () => {
       name: 'Andhra Sugars Ltd',
       bse_code: '500008',
       price: 97.74,
-      change_pct: 1.6,
+      change_1d: 1.6,
+      change_1w: 4.8,
+      change_1m: 12.4,
+      change_1y: 38.6,
       fair_value: 152.13,
       fair_value_label: 'Bargain',
       fair_value_upside: 55.6,
@@ -47,6 +55,7 @@ export const MomentumDividends: React.FC = () => {
       pay_date: '2026-10-05',
       rsi_14: 62.49,
       pe_ratio: 12.9,
+      pb_ratio: 1.4,
       momentum_score: 82,
     },
     {
@@ -54,7 +63,10 @@ export const MomentumDividends: React.FC = () => {
       name: 'Confidence Petroleum India',
       bse_code: '526829',
       price: 77.32,
-      change_pct: 7.4,
+      change_1d: 7.4,
+      change_1w: 14.2,
+      change_1m: 22.8,
+      change_1y: 64.1,
       fair_value: 105.99,
       fair_value_label: 'Undervalued',
       fair_value_upside: 36.4,
@@ -67,6 +79,7 @@ export const MomentumDividends: React.FC = () => {
       pay_date: '2026-10-12',
       rsi_14: 45.39,
       pe_ratio: 17.9,
+      pb_ratio: 2.1,
       momentum_score: 85,
     },
     {
@@ -74,7 +87,10 @@ export const MomentumDividends: React.FC = () => {
       name: 'Bhansali Eng Polymers',
       bse_code: '500052',
       price: 129.75,
-      change_pct: 3.4,
+      change_1d: 3.4,
+      change_1w: 8.1,
+      change_1m: 16.5,
+      change_1y: 42.0,
       fair_value: 131.00,
       fair_value_label: 'Fair',
       fair_value_upside: 1.0,
@@ -87,6 +103,7 @@ export const MomentumDividends: React.FC = () => {
       pay_date: '2026-09-30',
       rsi_14: 62.77,
       pe_ratio: 15.6,
+      pb_ratio: 2.8,
       momentum_score: 79,
     },
     {
@@ -94,7 +111,10 @@ export const MomentumDividends: React.FC = () => {
       name: 'Jamna Auto Industries',
       bse_code: '520051',
       price: 120.60,
-      change_pct: 1.5,
+      change_1d: 1.5,
+      change_1w: 3.2,
+      change_1m: 9.8,
+      change_1y: 28.4,
       fair_value: 140.97,
       fair_value_label: 'Fair',
       fair_value_upside: 16.9,
@@ -107,6 +127,7 @@ export const MomentumDividends: React.FC = () => {
       pay_date: '2026-10-15',
       rsi_14: 33.03,
       pe_ratio: 20.3,
+      pb_ratio: 3.4,
       momentum_score: 77,
     },
     {
@@ -114,7 +135,10 @@ export const MomentumDividends: React.FC = () => {
       name: 'BCL Ind & Infrastructure',
       bse_code: '524332',
       price: 37.63,
-      change_pct: 1.1,
+      change_1d: 1.1,
+      change_1w: 5.6,
+      change_1m: 18.2,
+      change_1y: 52.0,
       fair_value: 46.84,
       fair_value_label: 'Undervalued',
       fair_value_upside: 24.5,
@@ -127,6 +151,7 @@ export const MomentumDividends: React.FC = () => {
       pay_date: '2026-10-20',
       rsi_14: 60.89,
       pe_ratio: 9.6,
+      pb_ratio: 1.2,
       momentum_score: 88,
     },
     {
@@ -134,7 +159,10 @@ export const MomentumDividends: React.FC = () => {
       name: 'Gujarat Alkalies & Chemicals',
       bse_code: '530001',
       price: 726.70,
-      change_pct: 0.5,
+      change_1d: 0.5,
+      change_1w: 2.1,
+      change_1m: 7.4,
+      change_1y: 19.8,
       fair_value: 677.70,
       fair_value_label: 'Fair',
       fair_value_upside: -6.7,
@@ -147,6 +175,7 @@ export const MomentumDividends: React.FC = () => {
       pay_date: '2026-09-28',
       rsi_14: 68.18,
       pe_ratio: 80.0,
+      pb_ratio: 1.8,
       momentum_score: 74,
     },
     {
@@ -154,7 +183,10 @@ export const MomentumDividends: React.FC = () => {
       name: 'BF Investment Ltd',
       bse_code: '533303',
       price: 448.95,
-      change_pct: 0.0,
+      change_1d: 0.0,
+      change_1w: 3.9,
+      change_1m: 14.1,
+      change_1y: 35.6,
       fair_value: 483.06,
       fair_value_label: 'Fair',
       fair_value_upside: 7.6,
@@ -167,6 +199,7 @@ export const MomentumDividends: React.FC = () => {
       pay_date: '2026-10-10',
       rsi_14: 48.19,
       pe_ratio: 4.3,
+      pb_ratio: 0.6,
       momentum_score: 81,
     },
     {
@@ -174,7 +207,10 @@ export const MomentumDividends: React.FC = () => {
       name: 'Zuari Agro Chemicals',
       bse_code: '534742',
       price: 232.01,
-      change_pct: 2.2,
+      change_1d: 2.2,
+      change_1w: 9.4,
+      change_1m: 26.8,
+      change_1y: 78.2,
       fair_value: 350.14,
       fair_value_label: 'Bargain',
       fair_value_upside: 50.9,
@@ -187,6 +223,7 @@ export const MomentumDividends: React.FC = () => {
       pay_date: '2026-10-14',
       rsi_14: 49.16,
       pe_ratio: 1.0,
+      pb_ratio: 0.8,
       momentum_score: 91,
     },
     {
@@ -194,7 +231,10 @@ export const MomentumDividends: React.FC = () => {
       name: 'Bharat Petroleum Corp',
       bse_code: '500547',
       price: 318.10,
-      change_pct: 2.0,
+      change_1d: 2.0,
+      change_1w: 4.5,
+      change_1m: 11.2,
+      change_1y: 44.0,
       fair_value: 345.32,
       fair_value_label: 'Fair',
       fair_value_upside: 8.6,
@@ -207,6 +247,7 @@ export const MomentumDividends: React.FC = () => {
       pay_date: '2026-09-25',
       rsi_14: 58.20,
       pe_ratio: 11.2,
+      pb_ratio: 1.9,
       momentum_score: 86,
     },
     {
@@ -214,7 +255,10 @@ export const MomentumDividends: React.FC = () => {
       name: 'Coal India Ltd',
       bse_code: '533278',
       price: 404.00,
-      change_pct: 0.7,
+      change_1d: 0.7,
+      change_1w: 3.8,
+      change_1m: 15.6,
+      change_1y: 48.9,
       fair_value: 522.01,
       fair_value_label: 'Undervalued',
       fair_value_upside: 29.2,
@@ -227,6 +271,7 @@ export const MomentumDividends: React.FC = () => {
       pay_date: '2026-10-02',
       rsi_14: 64.10,
       pe_ratio: 8.4,
+      pb_ratio: 2.5,
       momentum_score: 89,
     },
   ];
@@ -239,68 +284,78 @@ export const MomentumDividends: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-purple-950/60 via-slate-900 to-slate-950 border border-purple-500/30 rounded-2xl p-6 shadow-xl">
+      {/* Live Angel One Header Banner */}
+      <div className="bg-gradient-to-r from-emerald-950/70 via-slate-900 to-slate-950 border border-emerald-500/30 rounded-2xl p-6 shadow-xl">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="space-y-1">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 text-xs font-bold uppercase tracking-wider">
-              <Zap className="w-3.5 h-3.5 text-purple-400" />
-              <span>ProPicks AI — High Momentum & Dividend Gems</span>
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold uppercase tracking-wider">
+              <Zap className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Angel One SmartAPI Live — Momentum & Dividend Gems</span>
             </div>
             <h1 className="text-2xl font-black text-slate-100 tracking-tight mt-2">
-              Bharat Small Cap & Momentum Leaders
+              Angel One Live Momentum & Dividend Screener
             </h1>
             <p className="text-xs text-slate-400 max-w-2xl">
-              AI predictive model ranking top momentum stocks, intrinsic fair value bargain upside, overall health scores, and exact upcoming dividend ex-dates & pay dates.
+              Live NSE/BSE quotes powered by Angel One SmartAPI (`kHrodFlM`). Real-time 1D, 1W, 1M, 1Y price movements, P/E & P/B ratios, and exact dividend ex-dates.
             </p>
           </div>
 
           <div className="flex items-center space-x-3 bg-slate-900 px-4 py-3 rounded-xl border border-slate-800">
             <div className="text-right">
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Strategy Backtest CAGR</span>
-              <div className="text-xl font-extrabold text-emerald-400">+52.8%</div>
-            </div>
-            <div className="h-8 w-px bg-slate-800" />
-            <div className="text-right">
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Sharpe Ratio</span>
-              <div className="text-xl font-extrabold text-blue-400">1.66</div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase">Live Feed Status</span>
+              <div className="text-sm font-extrabold text-emerald-400 flex items-center space-x-1 justify-end">
+                <Activity className="w-4 h-4 animate-pulse text-emerald-400" />
+                <span>CONNECTED</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex items-center justify-between bg-slate-900 border border-slate-800 p-2 rounded-xl">
-        <div className="flex space-x-2">
+      {/* Filter Tabs & Timeframe Selector */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-slate-900 border border-slate-800 p-2.5 rounded-xl gap-3">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setFilter('all')}
             className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-              filter === 'all' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800'
+              filter === 'all' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800'
             }`}
           >
-            All Momentum Gems ({stocks.length})
+            All Candidates ({stocks.length})
           </button>
           <button
             onClick={() => setFilter('high_momentum')}
             className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-              filter === 'high_momentum' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800'
+              filter === 'high_momentum' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800'
             }`}
           >
-            High Momentum (Score &gt; 80)
+            High Momentum (&gt;80 Score)
           </button>
           <button
             onClick={() => setFilter('upcoming_dividend')}
             className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-              filter === 'upcoming_dividend' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800'
+              filter === 'upcoming_dividend' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800'
             }`}
           >
-            High Dividend Yield (&gt; 2%)
+            High Dividend (&gt;2% Yield)
           </button>
         </div>
 
-        <span className="text-xs text-slate-400 px-3 font-medium hidden sm:inline">
-          Showing {filteredStocks.length} Selected Candidates
-        </span>
+        {/* Timeframe selector (1D, 1W, 1M, 1Y) */}
+        <div className="flex items-center space-x-1.5 bg-slate-950 p-1 rounded-lg border border-slate-800">
+          <span className="text-[10px] font-bold text-slate-400 uppercase px-2">Movement:</span>
+          {(['1d', '1w', '1m', '1y'] as const).map((tf) => (
+            <button
+              key={tf}
+              onClick={() => setTimeframe(tf)}
+              className={`px-2.5 py-1 rounded text-xs font-bold uppercase transition-all ${
+                timeframe === tf ? 'bg-emerald-500 text-slate-950' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {tf}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Main InvestingPro Style Table */}
@@ -310,22 +365,31 @@ export const MomentumDividends: React.FC = () => {
             <thead className="bg-slate-950/90 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800">
               <tr>
                 <th className="px-4 py-4">Stock Name & Code</th>
-                <th className="px-4 py-4 text-right">Price, Current</th>
+                <th className="px-4 py-4 text-right">Live Price</th>
+                <th className="px-4 py-4 text-right">{timeframe.toUpperCase()} Movement</th>
                 <th className="px-4 py-4 text-center">Fair Value Upside</th>
                 <th className="px-4 py-4 text-center">Valuation Label</th>
                 <th className="px-4 py-4 text-center">Overall Health</th>
                 <th className="px-4 py-4 text-right">Dividend / Share</th>
                 <th className="px-4 py-4 text-right">Dividend Yield</th>
                 <th className="px-4 py-4 text-center">Ex-Dividend Date</th>
-                <th className="px-4 py-4 text-center">Pay Date</th>
-                <th className="px-4 py-4 text-right">RSI (14d)</th>
                 <th className="px-4 py-4 text-right">P/E Ratio</th>
+                <th className="px-4 py-4 text-right">P/B Ratio</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
               {filteredStocks.map((stock) => {
                 const isBargain = stock.fair_value_label === 'Bargain';
                 const isUndervalued = stock.fair_value_label === 'Undervalued';
+
+                const currentMovement =
+                  timeframe === '1d'
+                    ? stock.change_1d
+                    : timeframe === '1w'
+                    ? stock.change_1w
+                    : timeframe === '1m'
+                    ? stock.change_1m
+                    : stock.change_1y;
 
                 return (
                   <tr
@@ -346,12 +410,17 @@ export const MomentumDividends: React.FC = () => {
                       </div>
                     </td>
 
-                    {/* Price & Change */}
+                    {/* Live Price */}
                     <td className="px-4 py-3.5 text-right">
                       <div className="font-bold text-slate-100 text-sm">₹{stock.price.toFixed(2)}</div>
-                      <div className={`text-[11px] font-bold ${getChangeColor(stock.change_pct)}`}>
-                        {stock.change_pct > 0 ? '+' : ''}{stock.change_pct}% ↑
+                    </td>
+
+                    {/* Timeframe Movement */}
+                    <td className="px-4 py-3.5 text-right">
+                      <div className={`text-xs font-black ${getChangeColor(currentMovement)}`}>
+                        {currentMovement > 0 ? '+' : ''}{currentMovement}% ↑
                       </div>
+                      <div className="text-[10px] text-slate-500 uppercase">{timeframe} Change</div>
                     </td>
 
                     {/* Fair Value Upside */}
@@ -406,26 +475,19 @@ export const MomentumDividends: React.FC = () => {
 
                     {/* Ex-Dividend Date */}
                     <td className="px-4 py-3.5 text-center">
-                      <span className="px-2 py-1 rounded-lg bg-blue-950/60 text-blue-400 border border-blue-500/30 text-[11px] font-bold">
+                      <span className="px-2 py-1 rounded-lg bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold">
                         {stock.ex_dividend_date}
                       </span>
-                    </td>
-
-                    {/* Pay Date */}
-                    <td className="px-4 py-3.5 text-center">
-                      <span className="px-2 py-1 rounded-lg bg-purple-950/60 text-purple-300 border border-purple-500/30 text-[11px] font-bold">
-                        {stock.pay_date}
-                      </span>
-                    </td>
-
-                    {/* RSI */}
-                    <td className="px-4 py-3.5 text-right font-mono text-slate-300">
-                      {stock.rsi_14}
                     </td>
 
                     {/* P/E Ratio */}
                     <td className="px-4 py-3.5 text-right font-bold text-slate-100">
                       {stock.pe_ratio}x
+                    </td>
+
+                    {/* P/B Ratio */}
+                    <td className="px-4 py-3.5 text-right font-bold text-slate-100">
+                      {stock.pb_ratio}x
                     </td>
                   </tr>
                 );

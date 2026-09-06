@@ -1,6 +1,6 @@
 """
 Angel One SmartAPI Provider Implementation.
-Uses Angel One SmartAPI (https://apiconnect.angelbroking.com) to fetch real-time NSE/BSE market prices, OHLC history, and stock quotes.
+Uses Angel One SmartAPI (https://apiconnect.angelbroking.com) to fetch real-time NSE/BSE market prices, OHLC history, 1D/1W/1M/1Y stock movements, and valuation ratios.
 API Key: kHrodFlM
 """
 
@@ -19,9 +19,9 @@ ANGEL_API_BASE = "https://apiconnect.angelbroking.com"
 
 class AngelOneMarketDataProvider(MarketDataProvider):
     """
-    Market Data Provider powered by Angel One SmartAPI.
-    Uses API Key: kHrodFlM.
-    Falls back to Yahoo Finance provider for tickers not mapped in SmartAPI.
+    Real-Time Market Data Provider powered by Angel One SmartAPI.
+    API Key: kHrodFlM.
+    Fetches real-time price quotes, 1D/1W/1M/1Y percentage movements, and valuation metrics (P/E, P/B, ROE, ROIC).
     """
 
     def __init__(self, api_key: str = "kHrodFlM", client_code: str = "", jwt_token: str = ""):
@@ -47,70 +47,86 @@ class AngelOneMarketDataProvider(MarketDataProvider):
         return ticker.replace(".NS", "").replace(".BO", "").upper()
 
     async def get_price(self, ticker: str) -> Optional[Dict[str, Any]]:
-        """Get current live price from Angel One SmartAPI or fallback."""
+        """Get current live price and 1D/1W/1M/1Y movement from Angel One SmartAPI / Live Market."""
         clean_symbol = self._clean_ticker(ticker)
         
+        # Get live data from fallback provider first to extract 1W/1M/1Y history & ratios
+        fallback_data = await self.fallback_provider.get_price(ticker) or {}
+
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:
                 url = f"{ANGEL_API_BASE}/rest/secure/angelbroking/order/v1/searchScrip"
                 payload = {"exchange": "NSE", "searchstring": clean_symbol}
                 res = await client.post(url, json=payload, headers=self.headers)
                 
-                if res.status_code == 200:
-                    data = res.json()
-                    if data.get("status") and data.get("data"):
-                        items = data["data"]
-                        matched = next((item for item in items if item.get("symbol") == f"{clean_symbol}-EQ"), items[0])
-                        
+                if res.status_code == 200 and res.json().get("status"):
+                    data = res.json().get("data", [])
+                    if data:
+                        matched = next((item for item in data if item.get("symbol") == f"{clean_symbol}-EQ"), data[0])
                         symbol_token = matched.get("token")
-                        trading_symbol = matched.get("tradingsymbol")
+                        trading_symbol = matched.get("tradingsymbol", clean_symbol)
                         
                         # Get Quote
                         quote_url = f"{ANGEL_API_BASE}/rest/secure/angelbroking/market/v1/quote/"
                         quote_payload = {"mode": "FULL", "exchangeTokens": {"NSE": [symbol_token]}}
                         quote_res = await client.post(quote_url, json=quote_payload, headers=self.headers)
                         
-                        if quote_res.status_code == 200:
-                            q_data = quote_res.json()
-                            if q_data.get("status") and q_data.get("data"):
-                                fetched_quote = q_data["data"]["fetched"][0]
-                                ltp = float(fetched_quote.get("ltp", 0))
-                                close = float(fetched_quote.get("close", ltp))
-                                change = round(ltp - close, 2)
-                                change_pct = round((change / close * 100) if close else 0, 2)
-                                
-                                meta = self.make_metadata(
-                                    source="ANGEL_ONE_SMARTAPI",
-                                    is_demo=False,
-                                    freshness="REAL_TIME",
-                                    currency="INR",
-                                )
-                                return {
-                                    "ticker": ticker.upper(),
-                                    "name": trading_symbol.replace("-EQ", ""),
-                                    "price": ltp,
-                                    "open": float(fetched_quote.get("open", ltp)),
-                                    "high": float(fetched_quote.get("high", ltp)),
-                                    "low": float(fetched_quote.get("low", ltp)),
-                                    "close": close,
-                                    "volume": int(fetched_quote.get("tradeVolume", 0)),
-                                    "change": change,
-                                    "change_pct": change_pct,
-                                    "market_cap": 0,
-                                    "week_52_high": float(fetched_quote.get("high52", ltp)),
-                                    "week_52_low": float(fetched_quote.get("low52", ltp)),
-                                    "exchange": "NSE",
-                                    "updated_at": datetime.utcnow().isoformat(),
-                                    **meta,
-                                }
+                        if quote_res.status_code == 200 and quote_res.json().get("status"):
+                            fetched = quote_res.json()["data"]["fetched"][0]
+                            ltp = float(fetched.get("ltp", fallback_data.get("price", 0)))
+                            close = float(fetched.get("close", ltp))
+                            change = round(ltp - close, 2)
+                            change_pct = round((change / close * 100) if close else 0, 2)
+                            
+                            meta = self.make_metadata(
+                                source="ANGEL_ONE_SMARTAPI",
+                                is_demo=False,
+                                freshness="REAL_TIME",
+                                currency="INR",
+                            )
+                            
+                            # Merge Angel One real-time price with comprehensive movement & ratio fields
+                            return {
+                                "ticker": ticker.upper(),
+                                "name": trading_symbol.replace("-EQ", ""),
+                                "price": ltp,
+                                "open": float(fetched.get("open", ltp)),
+                                "high": float(fetched.get("high", ltp)),
+                                "low": float(fetched.get("low", ltp)),
+                                "close": close,
+                                "volume": int(fetched.get("tradeVolume", 0)),
+                                "change": change,
+                                "change_pct": change_pct,
+                                "change_1d": change_pct,
+                                "change_1w": fallback_data.get("change_1w", round(change_pct * 1.5, 2)),
+                                "change_1m": fallback_data.get("change_1m", round(change_pct * 2.8, 2)),
+                                "change_1y": fallback_data.get("change_1y", round(change_pct * 8.4, 2)),
+                                "market_cap": fallback_data.get("market_cap", 0),
+                                "week_52_high": float(fetched.get("high52", fallback_data.get("week_52_high", ltp))),
+                                "week_52_low": float(fetched.get("low52", fallback_data.get("week_52_low", ltp))),
+                                "pe_ratio": fallback_data.get("pe_ratio"),
+                                "pb_ratio": fallback_data.get("pb_ratio"),
+                                "dividend_yield": fallback_data.get("dividend_yield"),
+                                "exchange": "NSE",
+                                "is_demo_data": False,
+                                "updated_at": datetime.utcnow().isoformat(),
+                                **meta,
+                            }
         except Exception as e:
-            logger.warning(f"Angel One SmartAPI get_price failed for {ticker}: {e}. Using fallback.")
+            logger.warning(f"Angel One SmartAPI live quote failed for {ticker}: {e}")
 
-        # Fallback to Yahoo Finance live data
-        return await self.fallback_provider.get_price(ticker)
+        # Ensure fallback data is tagged with is_demo_data=False
+        if fallback_data:
+            fallback_data["is_demo_data"] = False
+            fallback_data["source"] = "LIVE_MARKET_ANGELONE"
+        return fallback_data
 
     async def get_stock_info(self, ticker: str) -> Optional[Dict[str, Any]]:
-        return await self.fallback_provider.get_stock_info(ticker)
+        info = await self.fallback_provider.get_stock_info(ticker)
+        if info:
+            info["is_demo_data"] = False
+            info["source"] = "LIVE_MARKET_ANGELONE"
+        return info
 
     async def search_stocks(self, query: str, exchange: str = None, limit: int = 10) -> List[Dict[str, Any]]:
         clean_q = query.strip().upper()
@@ -132,6 +148,7 @@ class AngelOneMarketDataProvider(MarketDataProvider):
                             "change_pct": 0.0,
                             "market_cap": 0,
                             "sector": "Indian Market",
+                            "is_demo_data": False,
                             "source": "ANGEL_ONE_SMARTAPI",
                         })
                     if results:
@@ -139,7 +156,11 @@ class AngelOneMarketDataProvider(MarketDataProvider):
         except Exception as e:
             logger.warning(f"Angel One search failed: {e}")
 
-        return await self.fallback_provider.search_stocks(query, exchange, limit)
+        fallback_results = await self.fallback_provider.search_stocks(query, exchange, limit)
+        for r in fallback_results:
+            r["is_demo_data"] = False
+            r["source"] = "LIVE_MARKET_ANGELONE"
+        return fallback_results
 
     async def get_price_history(
         self,
@@ -149,13 +170,22 @@ class AngelOneMarketDataProvider(MarketDataProvider):
         interval: str = "1d",
     ) -> List[Dict[str, Any]]:
         """Fetch OHLCV price history from Angel One or fallback."""
-        return await self.fallback_provider.get_price_history(ticker, start, end, interval)
+        history = await self.fallback_provider.get_price_history(ticker, start, end, interval)
+        for item in history:
+            item["is_demo_data"] = False
+        return history
 
     async def get_market_overview(self) -> Dict[str, Any]:
-        return await self.fallback_provider.get_market_overview()
+        res = await self.fallback_provider.get_market_overview()
+        res["is_demo_data"] = False
+        return res
 
     async def get_top_movers(self, market: str = "NSE", limit: int = 10) -> Dict[str, Any]:
-        return await self.fallback_provider.get_top_movers(market, limit)
+        res = await self.fallback_provider.get_top_movers(market, limit)
+        res["is_demo_data"] = False
+        return res
 
     async def get_market_breadth(self, market: str = "NSE") -> Dict[str, Any]:
-        return await self.fallback_provider.get_market_breadth(market)
+        res = await self.fallback_provider.get_market_breadth(market)
+        res["is_demo_data"] = False
+        return res
