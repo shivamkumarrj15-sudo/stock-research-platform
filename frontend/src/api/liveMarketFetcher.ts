@@ -61,6 +61,81 @@ export async function searchLiveSymbols(query: string): Promise<SymbolSearchResu
   return [];
 }
 
+export async function fetchTimeframeChart(
+  ticker: string,
+  timeframe: '1min' | '1h' | '1d' | '1w' | '1m'
+): Promise<Array<{ date: string; close: number }>> {
+  if (!ticker) return [];
+  const cleanTicker = ticker.trim().toUpperCase().replace('.NS', '').replace('.BO', '');
+  const symbolsToTry = [`${cleanTicker}.NS`, `${cleanTicker}.BO`, cleanTicker];
+
+  let interval = '1d';
+  let range = '1mo';
+
+  if (timeframe === '1min') {
+    interval = '1m';
+    range = '1d';
+  } else if (timeframe === '1h') {
+    interval = '60m';
+    range = '1mo';
+  } else if (timeframe === '1d') {
+    interval = '15m';
+    range = '1d';
+  } else if (timeframe === '1w') {
+    interval = '1d';
+    range = '5d';
+  } else if (timeframe === '1m') {
+    interval = '1d';
+    range = '1mo';
+  }
+
+  for (const symbol of symbolsToTry) {
+    const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=${interval}&range=${range}`;
+
+    const processJson = (json: any) => {
+      const result = json?.chart?.result?.[0];
+      if (!result) return null;
+      const timestamps: number[] = result.timestamp || [];
+      const closes: (number | null)[] = result.indicators?.quote?.[0]?.close || [];
+
+      return timestamps
+        .map((ts, idx) => {
+          const val = closes[idx];
+          if (val == null || isNaN(val)) return null;
+          const d = new Date(ts * 1000);
+          const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const dateStr = d.toISOString().split('T')[0];
+          return {
+            date: timeframe === '1min' || timeframe === '1d' ? timeStr : dateStr,
+            close: Math.round(val * 100) / 100,
+          };
+        })
+        .filter((item): item is { date: string; close: number } => item !== null);
+    };
+
+    try {
+      const res = await fetch(targetUrl);
+      if (res.ok) {
+        const json = await res.json();
+        const chartData = processJson(json);
+        if (chartData && chartData.length > 0) return chartData;
+      }
+    } catch (e) {}
+
+    try {
+      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+      const res = await fetch(proxyUrl);
+      if (res.ok) {
+        const json = await res.json();
+        const chartData = processJson(json);
+        if (chartData && chartData.length > 0) return chartData;
+      }
+    } catch (e) {}
+  }
+
+  return [];
+}
+
 export async function fetchLiveMarketQuote(ticker: string): Promise<LiveQuoteResult | null> {
   if (!ticker) return null;
   const cleanTicker = ticker.trim().toUpperCase().replace('.NS', '').replace('.BO', '');
