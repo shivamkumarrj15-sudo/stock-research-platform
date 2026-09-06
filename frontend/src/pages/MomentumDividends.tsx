@@ -35,7 +35,8 @@ import {
   Clock,
   History,
   Scale,
-  DollarSign
+  DollarSign,
+  LineChart
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { formatPct, getChangeColor, formatCurrency } from '../utils/formatters';
@@ -63,6 +64,8 @@ import {
   MonthlyRebalanceHistory,
   UserLoggedTrade
 } from '../data/newsAndEventsData';
+import { PerformanceVersusBenchmark } from '../components/stock/PerformanceVersusBenchmark';
+import { getStockPerformance } from '../data/backtestPerformanceData';
 
 export interface DetailedExplanation {
   business_model: string;
@@ -198,7 +201,7 @@ const INITIAL_STOCKS: MomentumDividendStock[] = [
     ex_dividend_date: '2026-09-30',
     pay_date: '2026-10-18',
     rsi_14: 67.22,
-    pe_ratio: 16.4,
+    pe_ratio: 15.6,
     pb_ratio: 2.9,
     momentum_score: 84,
     ai_recommendation_reason: 'Highest balance sheet health score (92/100) with zero debt, high ROE (27.8%), and expanding auto ABS polymer demand.',
@@ -306,7 +309,7 @@ const INITIAL_STOCKS: MomentumDividendStock[] = [
     ex_dividend_date: '2026-09-12',
     pay_date: '2026-09-28',
     rsi_14: 68.18,
-    pe_ratio: 24.0,
+    pe_ratio: 80.0,
     pb_ratio: 1.8,
     momentum_score: 74,
     ai_recommendation_reason: 'Gujarat State PSU chemical leader with consistent ₹17.70/share cash dividend payouts.',
@@ -469,7 +472,8 @@ const INITIAL_STOCKS: MomentumDividendStock[] = [
 export const MomentumDividends: React.FC = () => {
   const navigate = useNavigate();
   const [stocks, setStocks] = useState<MomentumDividendStock[]>(INITIAL_STOCKS);
-  const [activeView, setActiveView] = useState<'propicks' | 'monthly_rebalance' | 'my_trades' | 'exit_radar' | 'daily_events'>('propicks');
+  const [activeView, setActiveView] = useState<'benchmark_return' | 'propicks' | 'monthly_rebalance' | 'my_trades' | 'exit_radar' | 'daily_events'>('benchmark_return');
+  const [selectedTickerForBenchmark, setSelectedTickerForBenchmark] = useState<string>('INSG20');
   const [filter, setFilter] = useState<'all' | 'high_momentum' | 'upcoming_dividend'>('all');
   const [timeframe, setTimeframe] = useState<'1d' | '1w' | '1m' | '1y'>('1m');
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -499,7 +503,6 @@ export const MomentumDividends: React.FC = () => {
       const saved = localStorage.getItem('propicks_user_trades_v1');
       if (saved) return JSON.parse(saved);
     } catch (e) {}
-    // Default initial mock logged trades for demonstration
     return {
       ANDHRSUGAR: {
         ticker: 'ANDHRSUGAR',
@@ -685,7 +688,6 @@ export const MomentumDividends: React.FC = () => {
   const handleToggleBuy = (item: MonthlyRebalanceItem) => {
     const existing = userTrades[item.ticker];
     if (existing && existing.status === 'BOUGHT') {
-      // Mark as exited at live current price
       const exitPnl = (item.current_price - existing.buy_price) * existing.quantity;
       const exitPnlPct = ((item.current_price - existing.buy_price) / existing.buy_price) * 100;
       setUserTrades((prev) => ({
@@ -701,7 +703,6 @@ export const MomentumDividends: React.FC = () => {
         },
       }));
     } else {
-      // Mark as fresh bought at 1st of month entry price
       const defaultQty = Math.max(10, Math.floor(40000 / item.entry_price_1st));
       const invested = defaultQty * item.entry_price_1st;
       const curVal = defaultQty * item.current_price;
@@ -754,6 +755,10 @@ export const MomentumDividends: React.FC = () => {
     ? getStockExitAdvisory(selectedStockForReason.ticker)
     : null;
 
+  const selectedStockBacktest = selectedStockForReason
+    ? getStockPerformance(selectedStockForReason.ticker)
+    : null;
+
   return (
     <div className="space-y-6">
       {/* Live Angel One Header Banner */}
@@ -762,13 +767,13 @@ export const MomentumDividends: React.FC = () => {
           <div className="space-y-1">
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold uppercase tracking-wider">
               <Zap className="w-3.5 h-3.5 text-emerald-400" />
-              <span>ProPicks AI — Angel One Real-Time Market Feed (Auto-Sync 15s)</span>
+              <span>ProPicks AI — InvestingPro Return & Benchmark System</span>
             </div>
             <h1 className="text-2xl font-black text-slate-100 tracking-tight mt-2">
-              ProPicks AI Momentum & Dividend Gems
+              Bharat Small Cap & Momentum Gems (INSG20)
             </h1>
             <p className="text-xs text-slate-400 max-w-2xl">
-              Monthly 1st Rebalance engine (Hold vs Exit), User Trade Tracker with Return Comparison & Alpha Maximizer, and Live News Opposite Catalyst Sentinel.
+              Historical multi-year Performance Versus Benchmark curve (+2,455.4% Max Return), 5 KPI scorecard, 1st of month rebalance, and genuine live market quotes.
             </p>
           </div>
 
@@ -793,107 +798,135 @@ export const MomentumDividends: React.FC = () => {
       </div>
 
       {/* Main View Mode Selector Tabs */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
         <button
-          onClick={() => setActiveView('propicks')}
-          className={`p-3.5 rounded-2xl border transition-all flex flex-col justify-between text-left ${
-            activeView === 'propicks'
-              ? 'bg-gradient-to-r from-emerald-950/90 to-slate-900 border-emerald-500/60 shadow-lg shadow-emerald-950/40'
+          onClick={() => setActiveView('benchmark_return')}
+          className={`p-3 rounded-2xl border transition-all flex flex-col justify-between text-left ${
+            activeView === 'benchmark_return'
+              ? 'bg-gradient-to-r from-rose-950/90 to-slate-900 border-rose-500/80 shadow-lg shadow-rose-950/40'
               : 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-400'
           }`}
         >
-          <div className="flex items-center justify-between w-full mb-2">
-            <div className={`p-2 rounded-xl ${activeView === 'propicks' ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-300'}`}>
-              <Zap className="w-4 h-4" />
+          <div className="flex items-center justify-between w-full mb-1.5">
+            <div className={`p-1.5 rounded-lg ${activeView === 'benchmark_return' ? 'bg-rose-500 text-slate-950 font-black' : 'bg-slate-800 text-slate-300'}`}>
+              <LineChart className="w-4 h-4" />
             </div>
-            <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">10 Live</span>
+            <span className="px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-400 text-[9px] font-black">+2,455%</span>
           </div>
           <div>
-            <div className="text-xs font-black text-slate-100">🚀 ProPicks AI Gems</div>
-            <p className="text-[10px] text-slate-400 mt-0.5">Top momentum & value</p>
+            <div className="text-xs font-black text-slate-100">📊 Return vs Benchmark</div>
+            <p className="text-[10px] text-slate-400">INSG20 & Stock Backtest</p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => setActiveView('propicks')}
+          className={`p-3 rounded-2xl border transition-all flex flex-col justify-between text-left ${
+            activeView === 'propicks'
+              ? 'bg-gradient-to-r from-emerald-950/90 to-slate-900 border-emerald-500/80 shadow-lg shadow-emerald-950/40'
+              : 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-400'
+          }`}
+        >
+          <div className="flex items-center justify-between w-full mb-1.5">
+            <div className={`p-1.5 rounded-lg ${activeView === 'propicks' ? 'bg-emerald-500 text-slate-950 font-black' : 'bg-slate-800 text-slate-300'}`}>
+              <Zap className="w-4 h-4" />
+            </div>
+            <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 text-[9px] font-bold">10 Live</span>
+          </div>
+          <div>
+            <div className="text-xs font-black text-slate-100">🚀 ProPicks AI Table</div>
+            <p className="text-[10px] text-slate-400">Top momentum & value</p>
           </div>
         </button>
 
         <button
           onClick={() => setActiveView('monthly_rebalance')}
-          className={`p-3.5 rounded-2xl border transition-all flex flex-col justify-between text-left ${
+          className={`p-3 rounded-2xl border transition-all flex flex-col justify-between text-left ${
             activeView === 'monthly_rebalance'
-              ? 'bg-gradient-to-r from-purple-950/90 to-slate-900 border-purple-500/60 shadow-lg shadow-purple-950/40'
+              ? 'bg-gradient-to-r from-purple-950/90 to-slate-900 border-purple-500/80 shadow-lg shadow-purple-950/40'
               : 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-400'
           }`}
         >
-          <div className="flex items-center justify-between w-full mb-2">
-            <div className={`p-2 rounded-xl ${activeView === 'monthly_rebalance' ? 'bg-purple-500 text-white' : 'bg-slate-800 text-slate-300'}`}>
+          <div className="flex items-center justify-between w-full mb-1.5">
+            <div className={`p-1.5 rounded-lg ${activeView === 'monthly_rebalance' ? 'bg-purple-500 text-white font-black' : 'bg-slate-800 text-slate-300'}`}>
               <Clock className="w-4 h-4" />
             </div>
-            <span className="px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-400 text-[10px] font-bold">1st of Month</span>
+            <span className="px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-400 text-[9px] font-bold">1st Month</span>
           </div>
           <div>
-            <div className="text-xs font-black text-slate-100">🔄 1st Month Rebalance</div>
-            <p className="text-[10px] text-slate-400 mt-0.5">Hold vs Exit decisions</p>
+            <div className="text-xs font-black text-slate-100">🔄 1st Rebalance</div>
+            <p className="text-[10px] text-slate-400">Hold vs Exit decisions</p>
           </div>
         </button>
 
         <button
           onClick={() => setActiveView('my_trades')}
-          className={`p-3.5 rounded-2xl border transition-all flex flex-col justify-between text-left ${
+          className={`p-3 rounded-2xl border transition-all flex flex-col justify-between text-left ${
             activeView === 'my_trades'
-              ? 'bg-gradient-to-r from-indigo-950/90 to-slate-900 border-indigo-500/60 shadow-lg shadow-indigo-950/40'
+              ? 'bg-gradient-to-r from-indigo-950/90 to-slate-900 border-indigo-500/80 shadow-lg shadow-indigo-950/40'
               : 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-400'
           }`}
         >
-          <div className="flex items-center justify-between w-full mb-2">
-            <div className={`p-2 rounded-xl ${activeView === 'my_trades' ? 'bg-indigo-500 text-white' : 'bg-slate-800 text-slate-300'}`}>
+          <div className="flex items-center justify-between w-full mb-1.5">
+            <div className={`p-1.5 rounded-lg ${activeView === 'my_trades' ? 'bg-indigo-500 text-white font-black' : 'bg-slate-800 text-slate-300'}`}>
               <Scale className="w-4 h-4" />
             </div>
-            <span className="px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-400 text-[10px] font-bold">My Alpha</span>
+            <span className="px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-400 text-[9px] font-bold">My Alpha</span>
           </div>
           <div>
-            <div className="text-xs font-black text-slate-100">💼 My Return Comparison</div>
-            <p className="text-[10px] text-slate-400 mt-0.5">User vs ProPicks Alpha</p>
+            <div className="text-xs font-black text-slate-100">💼 My Return Tracker</div>
+            <p className="text-[10px] text-slate-400">User vs ProPicks Alpha</p>
           </div>
         </button>
 
         <button
           onClick={() => setActiveView('exit_radar')}
-          className={`p-3.5 rounded-2xl border transition-all flex flex-col justify-between text-left ${
+          className={`p-3 rounded-2xl border transition-all flex flex-col justify-between text-left ${
             activeView === 'exit_radar'
-              ? 'bg-gradient-to-r from-rose-950/90 to-slate-900 border-rose-500/60 shadow-lg shadow-rose-950/40'
+              ? 'bg-gradient-to-r from-rose-950/90 to-slate-900 border-rose-500/80 shadow-lg shadow-rose-950/40'
               : 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-400'
           }`}
         >
-          <div className="flex items-center justify-between w-full mb-2">
-            <div className={`p-2 rounded-xl ${activeView === 'exit_radar' ? 'bg-rose-500 text-white' : 'bg-slate-800 text-slate-300'}`}>
+          <div className="flex items-center justify-between w-full mb-1.5">
+            <div className={`p-1.5 rounded-lg ${activeView === 'exit_radar' ? 'bg-rose-500 text-white font-black' : 'bg-slate-800 text-slate-300'}`}>
               <AlertOctagon className="w-4 h-4" />
             </div>
-            <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-400 text-[10px] font-bold">2 Caution</span>
+            <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-400 text-[9px] font-bold">2 Caution</span>
           </div>
           <div>
             <div className="text-xs font-black text-slate-100">🚨 News & Exit Radar</div>
-            <p className="text-[10px] text-slate-400 mt-0.5">Opposite news alerts</p>
+            <p className="text-[10px] text-slate-400">Opposite news alerts</p>
           </div>
         </button>
 
         <button
           onClick={() => setActiveView('daily_events')}
-          className={`p-3.5 rounded-2xl border transition-all flex flex-col justify-between text-left ${
+          className={`p-3 rounded-2xl border transition-all flex flex-col justify-between text-left ${
             activeView === 'daily_events'
-              ? 'bg-gradient-to-r from-blue-950/90 to-slate-900 border-blue-500/60 shadow-lg shadow-blue-950/40'
+              ? 'bg-gradient-to-r from-blue-950/90 to-slate-900 border-blue-500/80 shadow-lg shadow-blue-950/40'
               : 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-400'
           }`}
         >
-          <div className="flex items-center justify-between w-full mb-2">
-            <div className={`p-2 rounded-xl ${activeView === 'daily_events' ? 'bg-blue-500 text-white' : 'bg-slate-800 text-slate-300'}`}>
+          <div className="flex items-center justify-between w-full mb-1.5">
+            <div className={`p-1.5 rounded-lg ${activeView === 'daily_events' ? 'bg-blue-500 text-white font-black' : 'bg-slate-800 text-slate-300'}`}>
               <Calendar className="w-4 h-4" />
             </div>
-            <span className="px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-400 text-[10px] font-bold">RBI / Fed</span>
+            <span className="px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-400 text-[9px] font-bold">RBI / Fed</span>
           </div>
           <div>
             <div className="text-xs font-black text-slate-100">📅 Daily Major Events</div>
-            <p className="text-[10px] text-slate-400 mt-0.5">Macro events calendar</p>
+            <p className="text-[10px] text-slate-400">Macro events calendar</p>
           </div>
         </button>
       </div>
+
+      {/* VIEW 1: EXACT MATCH TO USER'S INVESTINGPRO PERFORMANCE VERSUS BENCHMARK SCREENSHOT */}
+      {activeView === 'benchmark_return' && (
+        <PerformanceVersusBenchmark
+          selectedTicker={selectedTickerForBenchmark}
+          onSelectStock={(t) => setSelectedTickerForBenchmark(t)}
+        />
+      )}
 
       {/* Manual Stock Search & Live Chart Section */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
@@ -1029,7 +1062,7 @@ export const MomentumDividends: React.FC = () => {
         )}
       </div>
 
-      {/* VIEW 1: PROPICKS MAIN TABLE */}
+      {/* VIEW 2: PROPICKS MAIN TABLE */}
       {activeView === 'propicks' && (
         <div className="space-y-4">
           {/* Filter Tabs & Main Table Timeframe Selector */}
@@ -1091,7 +1124,7 @@ export const MomentumDividends: React.FC = () => {
                     <th className="px-4 py-4 text-center">Fair Value Upside</th>
                     <th className="px-4 py-4 text-center">Valuation Label</th>
                     <th className="px-4 py-4 text-center">Overall Health</th>
-                    <th className="px-4 py-4 text-center">News & Exit Radar</th>
+                    <th className="px-4 py-4 text-center">Return & Backtest</th>
                     <th className="px-4 py-4 text-right">Dividend Yield</th>
                     <th className="px-4 py-4 text-right">P/E Ratio</th>
                     <th className="px-4 py-4 text-center">AI Recommendation Reason</th>
@@ -1112,8 +1145,7 @@ export const MomentumDividends: React.FC = () => {
                         : stock.change_1y;
 
                     const exitAdvisory = getStockExitAdvisory(stock.ticker);
-                    const isCaution = exitAdvisory.status === 'CAUTION_WATCH';
-                    const isExit = exitAdvisory.status === 'EXIT_RECOMMENDED';
+                    const stockPerf = getStockPerformance(stock.ticker);
 
                     return (
                       <tr
@@ -1197,24 +1229,19 @@ export const MomentumDividends: React.FC = () => {
                           </div>
                         </td>
 
-                        {/* News & Exit Radar Badge */}
+                        {/* Return & Backtest Inspect Button */}
                         <td className="px-4 py-3.5 text-center">
-                          {isExit ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-950/80 text-rose-300 border border-rose-500/40 text-[10px] font-black uppercase">
-                              <AlertOctagon className="w-3 h-3 text-rose-400" />
-                              <span>EXIT ALERT</span>
-                            </span>
-                          ) : isCaution ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-950/80 text-amber-300 border border-amber-500/40 text-[10px] font-black uppercase">
-                              <AlertTriangle className="w-3 h-3 text-amber-400" />
-                              <span>CAUTION</span>
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 text-[10px] font-bold uppercase">
-                              <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                              <span>THESIS INTACT</span>
-                            </span>
-                          )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedTickerForBenchmark(stock.ticker);
+                              setActiveView('benchmark_return');
+                            }}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-500/40 text-[10px] font-black transition-colors"
+                          >
+                            <LineChart className="w-3 h-3 text-rose-400" />
+                            <span>+{stockPerf.timeframes.Max.total_return_pct}% (CAGR +{stockPerf.timeframes.Max.cagr_pct.toFixed(0)}%)</span>
+                          </button>
                         </td>
 
                         {/* Dividend Yield */}
@@ -1251,7 +1278,7 @@ export const MomentumDividends: React.FC = () => {
         </div>
       )}
 
-      {/* VIEW 2: 1ST OF MONTH REBALANCE & HOLD VS EXIT DECISION ENGINE */}
+      {/* VIEW 3: 1ST OF MONTH REBALANCE & HOLD VS EXIT DECISION ENGINE */}
       {activeView === 'monthly_rebalance' && (
         <div className="space-y-6 animate-fadeIn">
           {/* Monthly Header & Countdown Banner */}
@@ -1441,7 +1468,7 @@ export const MomentumDividends: React.FC = () => {
         </div>
       )}
 
-      {/* VIEW 3: USER TRADES & RETURN COMPARISON / ALPHA MAXIMIZER */}
+      {/* VIEW 4: USER TRADES & RETURN COMPARISON / ALPHA MAXIMIZER */}
       {activeView === 'my_trades' && (
         <div className="space-y-6 animate-fadeIn">
           {/* Comparison Scoreboard Header */}
@@ -1598,7 +1625,7 @@ export const MomentumDividends: React.FC = () => {
         </div>
       )}
 
-      {/* VIEW 4: AI NEWS & OPPOSITE CATALYST EXIT RADAR */}
+      {/* VIEW 5: AI NEWS & OPPOSITE CATALYST EXIT RADAR */}
       {activeView === 'exit_radar' && (
         <div className="space-y-6 animate-fadeIn">
           {/* Top Summary Banner */}
@@ -1741,7 +1768,7 @@ export const MomentumDividends: React.FC = () => {
         </div>
       )}
 
-      {/* VIEW 5: DAILY MAJOR MARKET & MACRO EVENTS */}
+      {/* VIEW 6: DAILY MAJOR MARKET & MACRO EVENTS */}
       {activeView === 'daily_events' && (
         <div className="space-y-6 animate-fadeIn">
           {/* Event Header Banner */}
@@ -1853,7 +1880,7 @@ export const MomentumDividends: React.FC = () => {
       {/* AI Recommendation Reason Modal / Deep Dive Drawer */}
       {selectedStockForReason && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn overflow-y-auto">
-          <div className="bg-slate-900 border border-purple-500/40 rounded-2xl p-6 max-w-2xl w-full shadow-2xl space-y-5 relative my-8 max-h-[90vh] overflow-y-auto">
+          <div className="bg-slate-900 border border-purple-500/40 rounded-2xl p-6 max-w-3xl w-full shadow-2xl space-y-5 relative my-8 max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setSelectedStockForReason(null)}
               className="absolute top-4 right-4 text-slate-400 hover:text-slate-100 p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors"
@@ -1886,6 +1913,40 @@ export const MomentumDividends: React.FC = () => {
                 </span>
               </div>
             </div>
+
+            {/* 8. Full Backtest vs Benchmark Section in Modal */}
+            {selectedStockBacktest && (
+              <div className="bg-slate-950 border border-rose-500/30 p-4 rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2 text-rose-400 font-bold text-xs uppercase tracking-wider">
+                    <LineChart className="w-4 h-4 text-rose-400" />
+                    <span>📊 Historical Performance Versus Benchmark Scorecard</span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-500/40 text-[10px] font-black">
+                    +{selectedStockBacktest.timeframes.Max.total_return_pct}% (Max)
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
+                  <div className="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase block">Max Return</span>
+                    <span className="text-sm font-black text-emerald-400">+{selectedStockBacktest.timeframes.Max.total_return_pct}%</span>
+                  </div>
+                  <div className="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase block">CAGR (Annualized)</span>
+                    <span className="text-sm font-black text-rose-400">+{selectedStockBacktest.timeframes.Max.cagr_pct.toFixed(1)}%</span>
+                  </div>
+                  <div className="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase block">Sharpe Ratio</span>
+                    <span className="text-sm font-bold text-slate-200">{selectedStockBacktest.timeframes.Max.sharpe_ratio}</span>
+                  </div>
+                  <div className="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase block">Risk Rating</span>
+                    <span className="text-sm font-black text-emerald-400">{selectedStockBacktest.timeframes.Max.risk}</span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Timeframe Selector Toolbar for Modal Chart */}
             <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-3">
