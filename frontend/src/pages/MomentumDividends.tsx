@@ -36,7 +36,8 @@ import {
   History,
   Scale,
   DollarSign,
-  LineChart
+  LineChart,
+  FileText
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { formatPct, getChangeColor, formatCurrency } from '../utils/formatters';
@@ -65,6 +66,7 @@ import {
   UserLoggedTrade
 } from '../data/newsAndEventsData';
 import { PerformanceVersusBenchmark } from '../components/stock/PerformanceVersusBenchmark';
+import { ProResearchReportView } from '../components/stock/ProResearchReportView';
 import { getStockPerformance } from '../data/backtestPerformanceData';
 
 export interface DetailedExplanation {
@@ -472,8 +474,9 @@ const INITIAL_STOCKS: MomentumDividendStock[] = [
 export const MomentumDividends: React.FC = () => {
   const navigate = useNavigate();
   const [stocks, setStocks] = useState<MomentumDividendStock[]>(INITIAL_STOCKS);
-  const [activeView, setActiveView] = useState<'benchmark_return' | 'propicks' | 'monthly_rebalance' | 'my_trades' | 'exit_radar' | 'daily_events'>('benchmark_return');
+  const [activeView, setActiveView] = useState<'pro_research' | 'benchmark_return' | 'propicks' | 'monthly_rebalance' | 'my_trades' | 'exit_radar' | 'daily_events'>('pro_research');
   const [selectedTickerForBenchmark, setSelectedTickerForBenchmark] = useState<string>('INSG20');
+  const [selectedTickerForProResearch, setSelectedTickerForProResearch] = useState<string>('ELEO');
   const [filter, setFilter] = useState<'all' | 'high_momentum' | 'upcoming_dividend'>('all');
   const [timeframe, setTimeframe] = useState<'1d' | '1w' | '1m' | '1y'>('1m');
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -798,7 +801,27 @@ export const MomentumDividends: React.FC = () => {
       </div>
 
       {/* Main View Mode Selector Tabs */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
+        <button
+          onClick={() => setActiveView('pro_research')}
+          className={`p-3 rounded-2xl border transition-all flex flex-col justify-between text-left ${
+            activeView === 'pro_research'
+              ? 'bg-gradient-to-r from-blue-950/90 to-slate-900 border-blue-500/80 shadow-lg shadow-blue-950/40'
+              : 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-400'
+          }`}
+        >
+          <div className="flex items-center justify-between w-full mb-1.5">
+            <div className={`p-1.5 rounded-lg ${activeView === 'pro_research' ? 'bg-blue-500 text-slate-950 font-black' : 'bg-slate-800 text-slate-300'}`}>
+              <FileText className="w-4 h-4" />
+            </div>
+            <span className="px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-400 text-[9px] font-black">ELEO & 10+</span>
+          </div>
+          <div>
+            <div className="text-xs font-black text-slate-100">📄 Pro Research Dossier</div>
+            <p className="text-[10px] text-slate-400">Institutional Reports & Charts</p>
+          </div>
+        </button>
+
         <button
           onClick={() => setActiveView('benchmark_return')}
           className={`p-3 rounded-2xl border transition-all flex flex-col justify-between text-left ${
@@ -920,6 +943,13 @@ export const MomentumDividends: React.FC = () => {
         </button>
       </div>
 
+      {/* VIEW 0: PRO RESEARCH DOSSIER VIEW (EXACT MATCH TO USER'S ELEO SCREENSHOTS) */}
+      {activeView === 'pro_research' && (
+        <ProResearchReportView
+          initialTicker={selectedTickerForProResearch}
+        />
+      )}
+
       {/* VIEW 1: EXACT MATCH TO USER'S INVESTINGPRO PERFORMANCE VERSUS BENCHMARK SCREENSHOT */}
       {activeView === 'benchmark_return' && (
         <PerformanceVersusBenchmark
@@ -1018,22 +1048,33 @@ export const MomentumDividends: React.FC = () => {
                 </div>
               </div>
 
-              {/* Timeframe Selector Buttons for Manual Search Chart */}
-              <div className="flex items-center space-x-1.5 bg-slate-900 p-1.5 rounded-xl border border-slate-800">
-                <span className="text-[10px] font-bold text-slate-400 uppercase px-2">Timeframe:</span>
-                {(['1min', '1h', '1d', '1w', '1m'] as const).map((tf) => (
-                  <button
-                    key={tf}
-                    onClick={() => setSearchTimeframe(tf)}
-                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                      searchTimeframe === tf
-                        ? 'bg-emerald-500 text-slate-950 shadow-md'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-                    }`}
-                  >
-                    {tf}
-                  </button>
-                ))}
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => {
+                    setSelectedTickerForProResearch(searchedStock.ticker);
+                    setActiveView('pro_research');
+                  }}
+                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center space-x-1"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>📄 View Pro Research Dossier</span>
+                </button>
+                <div className="flex items-center space-x-1.5 bg-slate-900 p-1.5 rounded-xl border border-slate-800">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase px-2">Timeframe:</span>
+                  {(['1min', '1h', '1d', '1w', '1m'] as const).map((tf) => (
+                    <button
+                      key={tf}
+                      onClick={() => setSearchTimeframe(tf)}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                        searchTimeframe === tf
+                          ? 'bg-emerald-500 text-slate-950 shadow-md'
+                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                      }`}
+                    >
+                      {tf}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -1254,19 +1295,33 @@ export const MomentumDividends: React.FC = () => {
                           {stock.pe_ratio}x
                         </td>
 
-                        {/* AI Recommendation Reason Button */}
+                        {/* Action Buttons: Why Recommended & Pro Report */}
                         <td className="px-4 py-3.5 text-center">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedStockForReason(stock);
-                              handleStockSearch(stock.ticker);
-                            }}
-                            className="px-3 py-1.5 bg-purple-950/80 hover:bg-purple-900 border border-purple-500/40 text-purple-300 text-[11px] font-bold rounded-lg transition-all flex items-center space-x-1 justify-center mx-auto"
-                          >
-                            <Sparkles className="w-3 h-3 text-purple-400" />
-                            <span>Why Recommended?</span>
-                          </button>
+                          <div className="flex items-center justify-center space-x-1.5">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedTickerForProResearch(stock.ticker);
+                                setActiveView('pro_research');
+                              }}
+                              className="px-2.5 py-1.5 bg-blue-950/80 hover:bg-blue-900 border border-blue-500/40 text-blue-300 text-[11px] font-bold rounded-lg transition-all flex items-center space-x-1"
+                              title="Open Full Pro Research Report"
+                            >
+                              <FileText className="w-3 h-3 text-blue-400" />
+                              <span>📄 Pro Report</span>
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedStockForReason(stock);
+                                handleStockSearch(stock.ticker);
+                              }}
+                              className="px-2.5 py-1.5 bg-purple-950/80 hover:bg-purple-900 border border-purple-500/40 text-purple-300 text-[11px] font-bold rounded-lg transition-all flex items-center space-x-1"
+                            >
+                              <Sparkles className="w-3 h-3 text-purple-400" />
+                              <span>Why?</span>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -1906,11 +1961,25 @@ export const MomentumDividends: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-baseline space-x-2">
-                <span className="text-2xl font-black text-emerald-400">₹{selectedStockForReason.price.toFixed(2)}</span>
-                <span className={`text-xs font-extrabold ${getChangeColor(selectedStockForReason.change_1d)}`}>
-                  {selectedStockForReason.change_1d >= 0 ? '+' : ''}{selectedStockForReason.change_1d}% ↑
-                </span>
+              <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+                <button
+                  onClick={() => {
+                    const t = selectedStockForReason.ticker;
+                    setSelectedStockForReason(null);
+                    setSelectedTickerForProResearch(t);
+                    setActiveView('pro_research');
+                  }}
+                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center space-x-1"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>📄 Open Full Pro Dossier</span>
+                </button>
+                <div className="flex items-baseline space-x-2">
+                  <span className="text-2xl font-black text-emerald-400">₹{selectedStockForReason.price.toFixed(2)}</span>
+                  <span className={`text-xs font-extrabold ${getChangeColor(selectedStockForReason.change_1d)}`}>
+                    {selectedStockForReason.change_1d >= 0 ? '+' : ''}{selectedStockForReason.change_1d}% ↑
+                  </span>
+                </div>
               </div>
             </div>
 

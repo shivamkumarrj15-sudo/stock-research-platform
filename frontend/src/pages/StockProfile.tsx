@@ -14,6 +14,8 @@ import { DividendsTab } from '../components/stock/DividendsTab';
 import { NewsTab } from '../components/stock/NewsTab';
 import { PeersTab } from '../components/stock/PeersTab';
 import { AIAnalysisTab } from '../components/stock/AIAnalysisTab';
+import { ProResearchReportView } from '../components/stock/ProResearchReportView';
+import { PerformanceVersusBenchmark } from '../components/stock/PerformanceVersusBenchmark';
 import { LoadingSkeleton } from '../components/common/LoadingSkeleton';
 import { ErrorState } from '../components/common/ErrorState';
 
@@ -54,6 +56,8 @@ export const StockProfile: React.FC = () => {
 
       <div>
         {activeTab === 'overview' && <OverviewTab priceData={priceData} scoreData={scoreData || undefined} />}
+        {activeTab === 'pro-research' && <ProResearchReportView initialTicker={ticker} />}
+        {activeTab === 'benchmark-return' && <PerformanceVersusBenchmark selectedTicker={ticker} />}
         {activeTab === 'financials' && <FinancialsTab ticker={ticker} />}
         {activeTab === 'valuation' && <ValuationTab ticker={ticker} />}
         {activeTab === 'health' && <HealthTab ticker={ticker} />}

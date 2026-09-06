@@ -8,6 +8,8 @@ interface StockTabsProps {
 export const StockTabs: React.FC<StockTabsProps> = ({ activeTab, onTabChange }) => {
   const tabs = [
     { id: 'overview', label: 'Overview' },
+    { id: 'pro-research', label: '📄 Pro Research Report' },
+    { id: 'benchmark-return', label: '📊 Return vs Benchmark' },
     { id: 'financials', label: 'Financials' },
     { id: 'valuation', label: 'Valuation' },
     { id: 'health', label: 'Financial Health' },
