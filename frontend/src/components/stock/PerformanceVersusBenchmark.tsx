@@ -31,6 +31,7 @@ import {
   PerformanceDataPoint,
   INSG20_STRATEGY_PERFORMANCE
 } from '../../data/backtestPerformanceData';
+import { InvestingProPortfolioTable } from './InvestingProPortfolioTable';
 
 interface Props {
   selectedTicker?: string;
@@ -468,65 +469,15 @@ export const PerformanceVersusBenchmark: React.FC<Props> = ({
 
       {/* SUB-TAB 2: PORTFOLIO HOLDINGS & METRICS */}
       {subTab === 'portfolio' && (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h3 className="text-sm font-extrabold text-slate-100 uppercase tracking-wider">
-              INSG20 Current Asset Allocation & P/E Breakdown
-            </h3>
-            <span className="text-xs text-slate-400">11 Equities • Monthly Rebalanced</span>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-300">
-              <thead className="bg-slate-950 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800">
-                <tr>
-                  <th className="px-4 py-3">Stock Name</th>
-                  <th className="px-4 py-3">BSE Code</th>
-                  <th className="px-4 py-3 text-right">P/E Ratio</th>
-                  <th className="px-4 py-3 text-right">7Y Backtest Return</th>
-                  <th className="px-4 py-3 text-right">CAGR %</th>
-                  <th className="px-4 py-3 text-center">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800">
-                {stockList.map((stk) => {
-                  const stockProf = getStockPerformance(stk.ticker);
-                  return (
-                    <tr
-                      key={stk.ticker}
-                      onClick={() => handleStockClick(stk.ticker)}
-                      className="hover:bg-slate-800 cursor-pointer transition-colors"
-                    >
-                      <td className="px-4 py-3 font-bold text-slate-100">{stk.name}</td>
-                      <td className="px-4 py-3 font-mono text-slate-400">{stk.bse}</td>
-                      <td className="px-4 py-3 text-right font-mono font-bold text-slate-200">
-                        {stk.pe.toFixed(1)}x
-                      </td>
-                      <td className="px-4 py-3 text-right font-black text-emerald-400">
-                        +{stockProf.timeframes.Max.total_return_pct}%
-                      </td>
-                      <td className="px-4 py-3 text-right font-bold text-rose-400">
-                        +{stockProf.timeframes.Max.cagr_pct.toFixed(1)}%
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleStockClick(stk.ticker);
-                            setSubTab('overview');
-                          }}
-                          className="px-2.5 py-1 bg-rose-950 text-rose-300 border border-rose-500/40 rounded text-[10px] font-bold"
-                        >
-                          Inspect Return Chart →
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <InvestingProPortfolioTable
+          onSelectStockForReturn={(t) => {
+            setCurrentTicker(t);
+            setSubTab('overview');
+          }}
+          onSelectStockForProReport={(t) => {
+            if (onSelectStock) onSelectStock(t);
+          }}
+        />
       )}
 
       {/* SUB-TAB 3: ABOUT THE STRATEGY & AI SIGNALS */}
