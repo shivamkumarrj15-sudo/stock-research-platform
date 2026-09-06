@@ -27,10 +27,18 @@ import {
   Radio,
   ExternalLink,
   ChevronRight,
-  Filter
+  Filter,
+  Layers,
+  Check,
+  PlusCircle,
+  XCircle,
+  Clock,
+  History,
+  Scale,
+  DollarSign
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
-import { formatPct, getChangeColor } from '../utils/formatters';
+import { formatPct, getChangeColor, formatCurrency } from '../utils/formatters';
 import { stocksApi } from '../api';
 import {
   resolveSymbolAndQuote,
@@ -41,11 +49,19 @@ import {
 import {
   STOCK_EXIT_RADAR,
   DAILY_MAJOR_MARKET_EVENTS,
+  MONTHLY_REBALANCE_CYCLE,
+  MONTHLY_REBALANCE_ITEMS,
+  MONTHLY_REBALANCE_HISTORY,
   getStockExitAdvisory,
   getAllExitAlerts,
   getDailyMajorEvents,
+  getMonthlyRebalanceItems,
+  getMonthlyRebalanceHistory,
   DailyMarketEvent,
-  StockExitAdvisory
+  StockExitAdvisory,
+  MonthlyRebalanceItem,
+  MonthlyRebalanceHistory,
+  UserLoggedTrade
 } from '../data/newsAndEventsData';
 
 export interface DetailedExplanation {
@@ -453,7 +469,7 @@ const INITIAL_STOCKS: MomentumDividendStock[] = [
 export const MomentumDividends: React.FC = () => {
   const navigate = useNavigate();
   const [stocks, setStocks] = useState<MomentumDividendStock[]>(INITIAL_STOCKS);
-  const [activeView, setActiveView] = useState<'propicks' | 'exit_radar' | 'daily_events'>('propicks');
+  const [activeView, setActiveView] = useState<'propicks' | 'monthly_rebalance' | 'my_trades' | 'exit_radar' | 'daily_events'>('propicks');
   const [filter, setFilter] = useState<'all' | 'high_momentum' | 'upcoming_dividend'>('all');
   const [timeframe, setTimeframe] = useState<'1d' | '1w' | '1m' | '1y'>('1m');
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -476,6 +492,60 @@ export const MomentumDividends: React.FC = () => {
 
   // Events Category Filter State
   const [eventCategoryFilter, setEventCategoryFilter] = useState<string>('ALL');
+
+  // User Logged Trades in localStorage
+  const [userTrades, setUserTrades] = useState<Record<string, UserLoggedTrade>>(() => {
+    try {
+      const saved = localStorage.getItem('propicks_user_trades_v1');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    // Default initial mock logged trades for demonstration
+    return {
+      ANDHRSUGAR: {
+        ticker: 'ANDHRSUGAR',
+        name: 'Andhra Sugars Ltd',
+        status: 'BOUGHT',
+        buy_price: 88.50,
+        buy_date: '2026-09-01',
+        quantity: 500,
+        invested_amount: 44250,
+        current_value: 49750,
+        pnl_amount: 5500,
+        pnl_pct: 12.4,
+      },
+      CONFIPET: {
+        ticker: 'CONFIPET',
+        name: 'Confidence Petroleum',
+        status: 'BOUGHT',
+        buy_price: 67.00,
+        buy_date: '2026-09-01',
+        quantity: 600,
+        invested_amount: 40200,
+        current_value: 49380,
+        pnl_amount: 9180,
+        pnl_pct: 22.8,
+      },
+      ZUARI: {
+        ticker: 'ZUARI',
+        name: 'Zuari Agro Chemicals',
+        status: 'BOUGHT',
+        buy_price: 178.30,
+        buy_date: '2026-09-01',
+        quantity: 250,
+        invested_amount: 44575,
+        current_value: 56525,
+        pnl_amount: 11950,
+        pnl_pct: 26.8,
+      },
+    };
+  });
+
+  // Save user trades to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('propicks_user_trades_v1', JSON.stringify(userTrades));
+    } catch (e) {}
+  }, [userTrades]);
 
   // Debounced search suggestions as user types
   useEffect(() => {
@@ -611,6 +681,51 @@ export const MomentumDividends: React.FC = () => {
     }
   };
 
+  // Toggle user Buy / Exit action for a stock
+  const handleToggleBuy = (item: MonthlyRebalanceItem) => {
+    const existing = userTrades[item.ticker];
+    if (existing && existing.status === 'BOUGHT') {
+      // Mark as exited at live current price
+      const exitPnl = (item.current_price - existing.buy_price) * existing.quantity;
+      const exitPnlPct = ((item.current_price - existing.buy_price) / existing.buy_price) * 100;
+      setUserTrades((prev) => ({
+        ...prev,
+        [item.ticker]: {
+          ...existing,
+          status: 'EXITED',
+          exit_price: item.current_price,
+          exit_date: new Date().toISOString().split('T')[0],
+          current_value: item.current_price * existing.quantity,
+          pnl_amount: exitPnl,
+          pnl_pct: exitPnlPct,
+        },
+      }));
+    } else {
+      // Mark as fresh bought at 1st of month entry price
+      const defaultQty = Math.max(10, Math.floor(40000 / item.entry_price_1st));
+      const invested = defaultQty * item.entry_price_1st;
+      const curVal = defaultQty * item.current_price;
+      const pnlAmt = curVal - invested;
+      const pnlPct = ((item.current_price - item.entry_price_1st) / item.entry_price_1st) * 100;
+
+      setUserTrades((prev) => ({
+        ...prev,
+        [item.ticker]: {
+          ticker: item.ticker,
+          name: item.name,
+          status: 'BOUGHT',
+          buy_price: item.entry_price_1st,
+          buy_date: item.entry_date_1st,
+          quantity: defaultQty,
+          invested_amount: invested,
+          current_value: curVal,
+          pnl_amount: pnlAmt,
+          pnl_pct: pnlPct,
+        },
+      }));
+    }
+  };
+
   const round1 = (v: number) => Math.round(v * 10) / 10;
 
   const filteredStocks = stocks.filter((s) => {
@@ -624,6 +739,16 @@ export const MomentumDividends: React.FC = () => {
     if (eventCategoryFilter === 'ALL') return true;
     return ev.category === eventCategoryFilter;
   });
+
+  const rebalanceItems = getMonthlyRebalanceItems();
+  const rebalanceHistory = getMonthlyRebalanceHistory();
+
+  // User Performance Calculations
+  const userTradesList = Object.values(userTrades);
+  const totalInvestedByUser = userTradesList.reduce((acc, t) => acc + (t.invested_amount || 0), 0);
+  const totalCurrentValueOfUser = userTradesList.reduce((acc, t) => acc + (t.current_value || 0), 0);
+  const totalUserPnlAmt = totalCurrentValueOfUser - totalInvestedByUser;
+  const userOverallReturnPct = totalInvestedByUser > 0 ? (totalUserPnlAmt / totalInvestedByUser) * 100 : 0;
 
   const selectedStockAdvisory = selectedStockForReason
     ? getStockExitAdvisory(selectedStockForReason.ticker)
@@ -643,7 +768,7 @@ export const MomentumDividends: React.FC = () => {
               ProPicks AI Momentum & Dividend Gems
             </h1>
             <p className="text-xs text-slate-400 max-w-2xl">
-              AI ranking top momentum stocks, intrinsic fair value, live news tracking with opposite catalyst exit alerts, and daily major market events calendar.
+              Monthly 1st Rebalance engine (Hold vs Exit), User Trade Tracker with Return Comparison & Alpha Maximizer, and Live News Opposite Catalyst Sentinel.
             </p>
           </div>
 
@@ -668,64 +793,104 @@ export const MomentumDividends: React.FC = () => {
       </div>
 
       {/* Main View Mode Selector Tabs */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <button
           onClick={() => setActiveView('propicks')}
-          className={`p-4 rounded-2xl border transition-all flex items-center space-x-3.5 text-left ${
+          className={`p-3.5 rounded-2xl border transition-all flex flex-col justify-between text-left ${
             activeView === 'propicks'
-              ? 'bg-gradient-to-r from-emerald-950/80 to-slate-900 border-emerald-500/60 shadow-lg shadow-emerald-950/40'
+              ? 'bg-gradient-to-r from-emerald-950/90 to-slate-900 border-emerald-500/60 shadow-lg shadow-emerald-950/40'
               : 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-400'
           }`}
         >
-          <div className={`p-2.5 rounded-xl ${activeView === 'propicks' ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-300'}`}>
-            <Zap className="w-5 h-5" />
+          <div className="flex items-center justify-between w-full mb-2">
+            <div className={`p-2 rounded-xl ${activeView === 'propicks' ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-300'}`}>
+              <Zap className="w-4 h-4" />
+            </div>
+            <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">10 Live</span>
           </div>
           <div>
-            <div className="text-xs font-black text-slate-100 flex items-center gap-1.5">
-              <span>🚀 ProPicks AI Gems</span>
-              <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">10 Live</span>
+            <div className="text-xs font-black text-slate-100">🚀 ProPicks AI Gems</div>
+            <p className="text-[10px] text-slate-400 mt-0.5">Top momentum & value</p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => setActiveView('monthly_rebalance')}
+          className={`p-3.5 rounded-2xl border transition-all flex flex-col justify-between text-left ${
+            activeView === 'monthly_rebalance'
+              ? 'bg-gradient-to-r from-purple-950/90 to-slate-900 border-purple-500/60 shadow-lg shadow-purple-950/40'
+              : 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-400'
+          }`}
+        >
+          <div className="flex items-center justify-between w-full mb-2">
+            <div className={`p-2 rounded-xl ${activeView === 'monthly_rebalance' ? 'bg-purple-500 text-white' : 'bg-slate-800 text-slate-300'}`}>
+              <Clock className="w-4 h-4" />
             </div>
-            <p className="text-[11px] text-slate-400 mt-0.5">Top momentum, deep value & dividend winners</p>
+            <span className="px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-400 text-[10px] font-bold">1st of Month</span>
+          </div>
+          <div>
+            <div className="text-xs font-black text-slate-100">🔄 1st Month Rebalance</div>
+            <p className="text-[10px] text-slate-400 mt-0.5">Hold vs Exit decisions</p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => setActiveView('my_trades')}
+          className={`p-3.5 rounded-2xl border transition-all flex flex-col justify-between text-left ${
+            activeView === 'my_trades'
+              ? 'bg-gradient-to-r from-indigo-950/90 to-slate-900 border-indigo-500/60 shadow-lg shadow-indigo-950/40'
+              : 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-400'
+          }`}
+        >
+          <div className="flex items-center justify-between w-full mb-2">
+            <div className={`p-2 rounded-xl ${activeView === 'my_trades' ? 'bg-indigo-500 text-white' : 'bg-slate-800 text-slate-300'}`}>
+              <Scale className="w-4 h-4" />
+            </div>
+            <span className="px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-400 text-[10px] font-bold">My Alpha</span>
+          </div>
+          <div>
+            <div className="text-xs font-black text-slate-100">💼 My Return Comparison</div>
+            <p className="text-[10px] text-slate-400 mt-0.5">User vs ProPicks Alpha</p>
           </div>
         </button>
 
         <button
           onClick={() => setActiveView('exit_radar')}
-          className={`p-4 rounded-2xl border transition-all flex items-center space-x-3.5 text-left ${
+          className={`p-3.5 rounded-2xl border transition-all flex flex-col justify-between text-left ${
             activeView === 'exit_radar'
-              ? 'bg-gradient-to-r from-rose-950/80 to-slate-900 border-rose-500/60 shadow-lg shadow-rose-950/40'
+              ? 'bg-gradient-to-r from-rose-950/90 to-slate-900 border-rose-500/60 shadow-lg shadow-rose-950/40'
               : 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-400'
           }`}
         >
-          <div className={`p-2.5 rounded-xl ${activeView === 'exit_radar' ? 'bg-rose-500 text-slate-950' : 'bg-slate-800 text-slate-300'}`}>
-            <AlertOctagon className="w-5 h-5" />
+          <div className="flex items-center justify-between w-full mb-2">
+            <div className={`p-2 rounded-xl ${activeView === 'exit_radar' ? 'bg-rose-500 text-white' : 'bg-slate-800 text-slate-300'}`}>
+              <AlertOctagon className="w-4 h-4" />
+            </div>
+            <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-400 text-[10px] font-bold">2 Caution</span>
           </div>
           <div>
-            <div className="text-xs font-black text-slate-100 flex items-center gap-1.5">
-              <span>🚨 News & Exit Radar</span>
-              <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-400 text-[10px] font-bold">2 Caution</span>
-            </div>
-            <p className="text-[11px] text-slate-400 mt-0.5">Opposite news alerts & stop-loss triggers</p>
+            <div className="text-xs font-black text-slate-100">🚨 News & Exit Radar</div>
+            <p className="text-[10px] text-slate-400 mt-0.5">Opposite news alerts</p>
           </div>
         </button>
 
         <button
           onClick={() => setActiveView('daily_events')}
-          className={`p-4 rounded-2xl border transition-all flex items-center space-x-3.5 text-left ${
+          className={`p-3.5 rounded-2xl border transition-all flex flex-col justify-between text-left ${
             activeView === 'daily_events'
-              ? 'bg-gradient-to-r from-blue-950/80 to-slate-900 border-blue-500/60 shadow-lg shadow-blue-950/40'
+              ? 'bg-gradient-to-r from-blue-950/90 to-slate-900 border-blue-500/60 shadow-lg shadow-blue-950/40'
               : 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-400'
           }`}
         >
-          <div className={`p-2.5 rounded-xl ${activeView === 'daily_events' ? 'bg-blue-500 text-slate-950' : 'bg-slate-800 text-slate-300'}`}>
-            <Calendar className="w-5 h-5" />
+          <div className="flex items-center justify-between w-full mb-2">
+            <div className={`p-2 rounded-xl ${activeView === 'daily_events' ? 'bg-blue-500 text-white' : 'bg-slate-800 text-slate-300'}`}>
+              <Calendar className="w-4 h-4" />
+            </div>
+            <span className="px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-400 text-[10px] font-bold">RBI / Fed</span>
           </div>
           <div>
-            <div className="text-xs font-black text-slate-100 flex items-center gap-1.5">
-              <span>📅 Daily Major Events</span>
-              <span className="px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-400 text-[10px] font-bold">RBI / Fed / CPI</span>
-            </div>
-            <p className="text-[11px] text-slate-400 mt-0.5">High-impact daily macro & policy calendar</p>
+            <div className="text-xs font-black text-slate-100">📅 Daily Major Events</div>
+            <p className="text-[10px] text-slate-400 mt-0.5">Macro events calendar</p>
           </div>
         </button>
       </div>
@@ -1086,7 +1251,354 @@ export const MomentumDividends: React.FC = () => {
         </div>
       )}
 
-      {/* VIEW 2: AI NEWS & OPPOSITE CATALYST EXIT RADAR */}
+      {/* VIEW 2: 1ST OF MONTH REBALANCE & HOLD VS EXIT DECISION ENGINE */}
+      {activeView === 'monthly_rebalance' && (
+        <div className="space-y-6 animate-fadeIn">
+          {/* Monthly Header & Countdown Banner */}
+          <div className="bg-gradient-to-r from-purple-950/80 via-slate-900 to-slate-950 border border-purple-500/40 p-6 rounded-2xl shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="space-y-1.5">
+              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 text-xs font-bold uppercase tracking-wider">
+                <Clock className="w-4 h-4 text-purple-400" />
+                <span>Har Mahine Ki 1st Tarikh Ka AI Rebalance System</span>
+              </div>
+              <h2 className="text-xl font-black text-slate-100">Current Cycle: {MONTHLY_REBALANCE_CYCLE.current_cycle}</h2>
+              <p className="text-xs text-slate-400 max-w-xl">
+                Every month on the 1st, AI re-evaluates all stocks, confirms which stocks to <strong>HOLD</strong>, which new gems to <strong>BUY</strong>, and which to <strong>EXIT</strong> or <strong>PROFIT BOOK</strong> to maximize returns.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="bg-slate-950 border border-purple-500/30 p-3 rounded-xl text-center min-w-[120px]">
+                <span className="text-[10px] text-slate-400 font-bold uppercase block">Next Rebalance</span>
+                <span className="text-xs font-black text-purple-400">{MONTHLY_REBALANCE_CYCLE.next_rebalance_date}</span>
+                <span className="text-[10px] text-emerald-400 font-semibold block mt-0.5">({MONTHLY_REBALANCE_CYCLE.days_until_next_rebalance} Days Left)</span>
+              </div>
+              <div className="bg-slate-950 border border-emerald-500/30 p-3 rounded-xl text-center min-w-[120px]">
+                <span className="text-[10px] text-slate-400 font-bold uppercase block">Strategy Return (MTD)</span>
+                <span className="text-xl font-black text-emerald-400">+{MONTHLY_REBALANCE_CYCLE.strategy_month_return_pct}%</span>
+                <span className="text-[10px] text-slate-400 block font-medium">vs Nifty +{MONTHLY_REBALANCE_CYCLE.nifty_month_return_pct}%</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Rebalance Items Grid */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-extrabold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                <Layers className="w-4 h-4 text-purple-400" />
+                <span>Active 1st of Month Holdings & Decision Status</span>
+              </h3>
+              <span className="text-xs text-slate-400 font-medium">12 Monitored Assets</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {rebalanceItems.map((item) => {
+                const userTrade = userTrades[item.ticker];
+                const isBought = userTrade?.status === 'BOUGHT';
+                const isExited = userTrade?.status === 'EXITED';
+
+                return (
+                  <div
+                    key={item.ticker}
+                    className={`bg-slate-900 border rounded-2xl p-5 shadow-xl flex flex-col justify-between space-y-4 transition-all ${
+                      item.decision === 'NEW_BUY'
+                        ? 'border-emerald-500/50 hover:border-emerald-400 bg-gradient-to-b from-emerald-950/20 to-slate-900'
+                        : item.decision === 'PROFIT_BOOK'
+                        ? 'border-amber-500/50 hover:border-amber-400 bg-gradient-to-b from-amber-950/20 to-slate-900'
+                        : 'border-slate-800 hover:border-purple-500/40'
+                    }`}
+                  >
+                    <div className="space-y-3">
+                      {/* Card Header */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h4 className="text-sm font-black text-slate-100">{item.name}</h4>
+                          <span className="text-[10px] font-mono text-slate-400">{item.ticker} • {item.sector}</span>
+                        </div>
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${
+                          item.decision === 'NEW_BUY'
+                            ? 'bg-emerald-950 text-emerald-300 border-emerald-500/40'
+                            : item.decision === 'PROFIT_BOOK'
+                            ? 'bg-amber-950 text-amber-300 border-amber-500/40'
+                            : 'bg-purple-950 text-purple-300 border-purple-500/40'
+                        }`}>
+                          {item.decision_badge}
+                        </span>
+                      </div>
+
+                      {/* Movement Since 1st */}
+                      <div className="grid grid-cols-3 gap-2 bg-slate-950 p-2.5 rounded-xl border border-slate-800/80 text-center">
+                        <div>
+                          <span className="text-[9px] text-slate-500 uppercase font-bold block">1st Entry</span>
+                          <span className="text-xs font-bold text-slate-300">₹{item.entry_price_1st.toFixed(2)}</span>
+                        </div>
+                        <div>
+                          <span className="text-[9px] text-slate-500 uppercase font-bold block">Live Price</span>
+                          <span className="text-xs font-black text-emerald-400">₹{item.current_price.toFixed(2)}</span>
+                        </div>
+                        <div>
+                          <span className="text-[9px] text-slate-500 uppercase font-bold block">Move Since 1st</span>
+                          <span className={`text-xs font-black ${item.month_move_pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                            +{item.month_move_pct}% ↑
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Rationale */}
+                      <p className="text-xs text-slate-300 leading-relaxed">{item.rationale}</p>
+
+                      <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-800/60">
+                        <span>Target: <strong className="text-emerald-400">₹{item.target_price.toFixed(2)}</strong></span>
+                        <span>Trailing SL: <strong className="text-rose-400">₹{item.stop_loss.toFixed(2)}</strong></span>
+                        <span>Weight: <strong className="text-purple-300">{item.allocation_weight_pct}%</strong></span>
+                      </div>
+                    </div>
+
+                    {/* Interactive User Trade Action Buttons */}
+                    <div className="pt-2 border-t border-slate-800 flex items-center justify-between gap-2">
+                      <button
+                        onClick={() => handleToggleBuy(item)}
+                        className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 shadow-md ${
+                          isBought
+                            ? 'bg-emerald-600 hover:bg-rose-700 text-white'
+                            : isExited
+                            ? 'bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white'
+                            : 'bg-slate-800 hover:bg-emerald-600 text-slate-200 hover:text-white'
+                        }`}
+                      >
+                        {isBought ? (
+                          <>
+                            <Check className="w-3.5 h-3.5" />
+                            <span>In My Portfolio (Click to Exit)</span>
+                          </>
+                        ) : isExited ? (
+                          <>
+                            <History className="w-3.5 h-3.5" />
+                            <span>Exited (Click to Re-Buy)</span>
+                          </>
+                        ) : (
+                          <>
+                            <PlusCircle className="w-3.5 h-3.5" />
+                            <span>+ I Bought This</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Past Monthly Rebalance Archive Log */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+            <div className="flex items-center space-x-2 border-b border-slate-800 pb-3">
+              <History className="w-5 h-5 text-purple-400" />
+              <h3 className="text-sm font-extrabold text-slate-100 uppercase tracking-wider">
+                Past Monthly Rebalance Log & Outperformance History
+              </h3>
+            </div>
+
+            <div className="space-y-3">
+              {rebalanceHistory.map((hist) => (
+                <div
+                  key={hist.rebalance_date}
+                  className="bg-slate-950 p-4 rounded-xl border border-slate-800/80 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs font-black text-slate-100">{hist.cycle_name}</span>
+                      <span className="px-2 py-0.2 rounded bg-purple-950 text-purple-300 border border-purple-500/30 text-[10px] font-bold">
+                        {hist.stocks_held_count} Stocks Basket
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400">{hist.summary_notes}</p>
+                    <div className="flex flex-wrap gap-2 text-[10px] text-slate-500 pt-1">
+                      <span><strong>New Buys:</strong> {hist.new_buys.join(', ')}</span>
+                      <span>•</span>
+                      <span><strong>Exits:</strong> {hist.exits.join(', ')}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-4 bg-slate-900 p-3 rounded-xl border border-slate-800 shrink-0">
+                    <div className="text-center">
+                      <span className="text-[9px] text-slate-400 uppercase font-bold block">Strategy Gain</span>
+                      <span className="text-sm font-black text-emerald-400">+{hist.month_total_return_pct}%</span>
+                    </div>
+                    <div className="text-center">
+                      <span className="text-[9px] text-slate-400 uppercase font-bold block">Nifty Benchmark</span>
+                      <span className="text-sm font-bold text-slate-300">+{hist.nifty_benchmark_return_pct}%</span>
+                    </div>
+                    <div className="text-center">
+                      <span className="text-[9px] text-purple-400 uppercase font-bold block">Alpha Outperformance</span>
+                      <span className="text-sm font-black text-purple-400">+{hist.alpha_generated_pct}%</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* VIEW 3: USER TRADES & RETURN COMPARISON / ALPHA MAXIMIZER */}
+      {activeView === 'my_trades' && (
+        <div className="space-y-6 animate-fadeIn">
+          {/* Comparison Scoreboard Header */}
+          <div className="bg-gradient-to-r from-indigo-950/80 via-slate-900 to-slate-950 border border-indigo-500/40 p-6 rounded-2xl shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="space-y-1.5">
+              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 text-xs font-bold uppercase tracking-wider">
+                <Scale className="w-4 h-4 text-indigo-400" />
+                <span>ProPicks vs Your Portfolio Return Comparison Engine</span>
+              </div>
+              <h2 className="text-xl font-black text-slate-100">Compare Returns & Maximize High-Alpha Gains</h2>
+              <p className="text-xs text-slate-400 max-w-xl">
+                Compare your actual logged buys/exits against the AI Strategy return and benchmark index. AI provides personalized optimization tips to capture the highest possible returns.
+              </p>
+            </div>
+
+            {/* Performance Comparison KPI Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full md:w-auto">
+              <div className="bg-slate-950 p-3 rounded-xl border border-emerald-500/40 text-center">
+                <span className="text-[10px] text-slate-400 font-bold uppercase block">ProPicks Return</span>
+                <span className="text-xl font-black text-emerald-400">+{MONTHLY_REBALANCE_CYCLE.strategy_month_return_pct}%</span>
+                <span className="text-[9px] text-emerald-300 block font-medium">Ideal Rebalance</span>
+              </div>
+              <div className="bg-slate-950 p-3 rounded-xl border border-indigo-500/40 text-center">
+                <span className="text-[10px] text-slate-400 font-bold uppercase block">Your Return</span>
+                <span className="text-xl font-black text-indigo-300">+{userOverallReturnPct.toFixed(1)}%</span>
+                <span className="text-[9px] text-slate-400 block font-medium">({userTradesList.length} Logged)</span>
+              </div>
+              <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 text-center">
+                <span className="text-[10px] text-slate-400 font-bold uppercase block">Nifty 50 Index</span>
+                <span className="text-xl font-black text-slate-300">+{MONTHLY_REBALANCE_CYCLE.nifty_month_return_pct}%</span>
+                <span className="text-[9px] text-slate-500 block font-medium">Market Baseline</span>
+              </div>
+              <div className="bg-slate-950 p-3 rounded-xl border border-purple-500/40 text-center">
+                <span className="text-[10px] text-purple-400 font-bold uppercase block">Your Alpha</span>
+                <span className="text-xl font-black text-purple-400">+{(userOverallReturnPct - MONTHLY_REBALANCE_CYCLE.nifty_month_return_pct).toFixed(1)}%</span>
+                <span className="text-[9px] text-purple-300 block font-medium">Beating Nifty</span>
+              </div>
+            </div>
+          </div>
+
+          {/* User Portfolio Logged Trades Table */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center space-x-2">
+                <Briefcase className="w-5 h-5 text-indigo-400" />
+                <h3 className="text-sm font-extrabold text-slate-100 uppercase tracking-wider">
+                  Your Logged Trades & Stock Movement Status
+                </h3>
+              </div>
+              <span className="text-xs text-slate-400">Total Invested: ₹{totalInvestedByUser.toLocaleString()} • Value: ₹{totalCurrentValueOfUser.toLocaleString()}</span>
+            </div>
+
+            {userTradesList.length === 0 ? (
+              <div className="text-center py-8 text-xs text-slate-400 space-y-2">
+                <p>No trades logged yet. Click on <strong>"+ I Bought This"</strong> in the 1st of Month Rebalance tab to track your personal portfolio.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-300">
+                  <thead className="bg-slate-950 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                    <tr>
+                      <th className="px-4 py-3">Stock</th>
+                      <th className="px-4 py-3 text-center">Status</th>
+                      <th className="px-4 py-3 text-right">Buy Price</th>
+                      <th className="px-4 py-3 text-right">Current / Exit Price</th>
+                      <th className="px-4 py-3 text-right">Quantity</th>
+                      <th className="px-4 py-3 text-right">Total Invested</th>
+                      <th className="px-4 py-3 text-right">Current Value</th>
+                      <th className="px-4 py-3 text-right">Profit / Loss</th>
+                      <th className="px-4 py-3 text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60">
+                    {userTradesList.map((t) => {
+                      const isProfit = t.pnl_amount >= 0;
+                      return (
+                        <tr key={t.ticker} className="hover:bg-slate-800/60 transition-colors">
+                          <td className="px-4 py-3">
+                            <span className="font-bold text-slate-100">{t.name}</span>
+                            <span className="text-[10px] font-mono text-slate-400 block">{t.ticker}</span>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                              t.status === 'BOUGHT' ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/40' : 'bg-slate-800 text-slate-300'
+                            }`}>
+                              {t.status === 'BOUGHT' ? '🟢 Active Holding' : '✕ Exited'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-right font-semibold text-slate-200">₹{t.buy_price.toFixed(2)}</td>
+                          <td className="px-4 py-3 text-right font-black text-emerald-400">
+                            ₹{(t.exit_price || t.current_value / t.quantity).toFixed(2)}
+                          </td>
+                          <td className="px-4 py-3 text-right text-slate-300">{t.quantity}</td>
+                          <td className="px-4 py-3 text-right text-slate-300">₹{t.invested_amount.toLocaleString()}</td>
+                          <td className="px-4 py-3 text-right font-bold text-slate-100">₹{t.current_value.toLocaleString()}</td>
+                          <td className="px-4 py-3 text-right">
+                            <div className={`font-black ${isProfit ? 'text-emerald-400' : 'text-rose-400'}`}>
+                              {isProfit ? '+' : ''}₹{t.pnl_amount.toFixed(0)} ({isProfit ? '+' : ''}{t.pnl_pct.toFixed(1)}%)
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <button
+                              onClick={() => {
+                                const updated = { ...userTrades };
+                                delete updated[t.ticker];
+                                setUserTrades(updated);
+                              }}
+                              className="px-2 py-1 rounded bg-slate-800 hover:bg-rose-950 hover:text-rose-400 text-slate-400 text-[10px] transition-colors"
+                            >
+                              Remove
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* AI Strategy High-Return Optimizer Box ("High Return Dilvaye") */}
+          <div className="bg-gradient-to-r from-emerald-950/80 via-slate-900 to-slate-950 border border-emerald-500/40 p-6 rounded-2xl shadow-xl space-y-4">
+            <div className="flex items-center space-x-2">
+              <Sparkles className="w-5 h-5 text-emerald-400" />
+              <h3 className="text-base font-black text-slate-100">
+                🎯 AI Strategy Optimizer — Maximum Return Hasil Karne Ki Strategy
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+                <div className="font-extrabold text-emerald-400">1. Rebalance on 1st of Every Month</div>
+                <p className="text-slate-300 leading-relaxed">
+                  Har mahine ki 1st tarikh ko jo naye momentum stocks (e.g. Zuari +26.8%, BCL Ind +18.2%) add hote hain, unme 10-12% weight allocate karein. Stagnant stocks se capital automatically rotate ho jata hai.
+                </p>
+              </div>
+
+              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+                <div className="font-extrabold text-amber-400">2. Execute 50% Profit Booking on Caution</div>
+                <p className="text-slate-300 leading-relaxed">
+                  Jab kisi stock (jaise BEPL) par opposite news ya input cost spike ka caution alert aaye, tab 50% capital book karein aur baaki trailing stop-loss (₹136) par hold karein taaki profits lock ho sakein.
+                </p>
+              </div>
+
+              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+                <div className="font-extrabold text-purple-400">3. Ride High-Conviction Multibaggers</div>
+                <p className="text-slate-300 leading-relaxed">
+                  Andhra Sugars (Target ₹152.13), Confidence Petroleum (Target ₹105.99), aur Coal India (Target ₹522) jaise high FCF stocks ko unke intrinsic fair value tak hold karein for maximum compounding.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* VIEW 4: AI NEWS & OPPOSITE CATALYST EXIT RADAR */}
       {activeView === 'exit_radar' && (
         <div className="space-y-6 animate-fadeIn">
           {/* Top Summary Banner */}
@@ -1229,7 +1741,7 @@ export const MomentumDividends: React.FC = () => {
         </div>
       )}
 
-      {/* VIEW 3: DAILY MAJOR MARKET & MACRO EVENTS */}
+      {/* VIEW 5: DAILY MAJOR MARKET & MACRO EVENTS */}
       {activeView === 'daily_events' && (
         <div className="space-y-6 animate-fadeIn">
           {/* Event Header Banner */}
@@ -1241,7 +1753,7 @@ export const MomentumDividends: React.FC = () => {
               </div>
               <h2 className="text-xl font-black text-slate-100">Today & Upcoming Major Market Triggers</h2>
               <p className="text-xs text-slate-400 max-w-xl">
-                Tracks RBI Monetary Policy, US Fed interest rate decisions, CPI inflation, GST Council announcements, and OPEC energy meetings affecting your stock portfolio.
+                Tracks RBI Monetary Policy, US Fed interest rate decisions, CPI inflation, GST Council announcements, and OPEC energy meetings with linked affected stocks.
               </p>
             </div>
 
@@ -1300,28 +1812,25 @@ export const MomentumDividends: React.FC = () => {
                   <h3 className="text-base font-black text-slate-100 leading-snug">{evt.title}</h3>
                   <p className="text-xs text-slate-400 leading-relaxed">{evt.summary}</p>
 
-                  {/* Affected Sectors & Stocks Badges */}
-                  <div className="space-y-1.5 pt-1">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase">Impacted Sectors:</span>
-                      <div className="flex flex-wrap gap-1">
-                        {evt.affected_sectors.map((sec, i) => (
-                          <span key={i} className="px-2 py-0.5 rounded bg-slate-950 text-slate-300 border border-slate-800 text-[10px] font-medium">
-                            {sec}
+                  {/* Impacted ProPicks Stock Badges with live price & ticker */}
+                  <div className="space-y-2 pt-1">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                      📌 Linked Impacted Stocks:
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {evt.affected_stocks.map((stk) => (
+                        <div
+                          key={stk.ticker}
+                          className="px-2.5 py-1.5 rounded-xl bg-slate-950 border border-blue-500/30 flex items-center space-x-2"
+                        >
+                          <span className="text-xs font-bold text-slate-100">{stk.name}</span>
+                          <span className="text-[10px] font-mono text-blue-400">({stk.ticker})</span>
+                          <span className="text-[10px] font-bold text-emerald-400">₹{stk.price.toFixed(2)}</span>
+                          <span className={`text-[10px] font-bold ${stk.change_pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                            {stk.change_pct >= 0 ? '+' : ''}{stk.change_pct}%
                           </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase">ProPicks Stocks:</span>
-                      <div className="flex flex-wrap gap-1">
-                        {evt.affected_stocks.map((stk, i) => (
-                          <span key={i} className="px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-500/30 text-[10px] font-bold">
-                            {stk}
-                          </span>
-                        ))}
-                      </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>

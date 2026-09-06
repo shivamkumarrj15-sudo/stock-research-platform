@@ -1,6 +1,9 @@
 export interface StockNewsItem {
   id: string;
   ticker: string;
+  stock_name: string;
+  stock_price: number;
+  stock_change: number;
   headline: string;
   source: string;
   published_at: string;
@@ -40,11 +43,301 @@ export interface DailyMarketEvent {
   country: string;
   impact: 'HIGH' | 'MEDIUM' | 'LOW';
   affected_sectors: string[];
-  affected_stocks: string[];
+  affected_stocks: Array<{
+    ticker: string;
+    name: string;
+    price: number;
+    change_pct: number;
+  }>;
   summary: string;
   expected_outcome: string;
   investor_action: string;
 }
+
+export interface MonthlyRebalanceItem {
+  ticker: string;
+  name: string;
+  sector: string;
+  decision: 'HOLD' | 'NEW_BUY' | 'PROFIT_BOOK' | 'EXIT_REMOVED';
+  decision_badge: string;
+  entry_date_1st: string;
+  entry_price_1st: number;
+  current_price: number;
+  month_move_pct: number;
+  target_price: number;
+  stop_loss: number;
+  rationale: string;
+  conviction: 'HIGH' | 'VERY_HIGH';
+  allocation_weight_pct: number;
+}
+
+export interface MonthlyRebalanceHistory {
+  rebalance_date: string;
+  cycle_name: string;
+  stocks_held_count: number;
+  new_buys: string[];
+  exits: string[];
+  month_total_return_pct: number;
+  nifty_benchmark_return_pct: number;
+  alpha_generated_pct: number;
+  summary_notes: string;
+}
+
+export interface UserLoggedTrade {
+  ticker: string;
+  name: string;
+  status: 'BOUGHT' | 'EXITED';
+  buy_price: number;
+  buy_date: string;
+  exit_price?: number;
+  exit_date?: string;
+  quantity: number;
+  invested_amount: number;
+  current_value: number;
+  pnl_amount: number;
+  pnl_pct: number;
+  notes?: string;
+}
+
+export const MONTHLY_REBALANCE_CYCLE = {
+  current_cycle: '1st September 2026',
+  next_rebalance_date: '1st October 2026',
+  days_until_next_rebalance: 24,
+  strategy_month_return_pct: 21.4,
+  nifty_month_return_pct: 3.2,
+  strategy_alpha_pct: 18.2,
+};
+
+export const MONTHLY_REBALANCE_ITEMS: MonthlyRebalanceItem[] = [
+  {
+    ticker: 'ANDHRSUGAR',
+    name: 'Andhra Sugars Ltd',
+    sector: 'Sugar & Bio-Ethanol',
+    decision: 'HOLD',
+    decision_badge: '🟢 HOLD (1st Sep Cycle)',
+    entry_date_1st: '2026-09-01',
+    entry_price_1st: 88.50,
+    current_price: 99.50,
+    month_move_pct: 12.4,
+    target_price: 152.13,
+    stop_loss: 88.50,
+    rationale: 'Government 20% ethanol blending procurement hike (+₹2.10/L) guarantees multi-quarter high margin off-take. Piotroski score 8/9 with 52.9% valuation upside.',
+    conviction: 'VERY_HIGH',
+    allocation_weight_pct: 12,
+  },
+  {
+    ticker: 'CONFIPET',
+    name: 'Confidence Petroleum',
+    sector: 'Energy & LPG Logistics',
+    decision: 'HOLD',
+    decision_badge: '🟢 HOLD (Momentum Leader)',
+    entry_date_1st: '2026-09-01',
+    entry_price_1st: 67.00,
+    current_price: 82.30,
+    month_move_pct: 22.8,
+    target_price: 105.99,
+    stop_loss: 74.00,
+    rationale: 'Rapid Auto-LPG retail station expansion (265 stations) and Saudi Aramco lower LPG contract price expand gross marketing margin.',
+    conviction: 'HIGH',
+    allocation_weight_pct: 10,
+  },
+  {
+    ticker: 'ZUARI',
+    name: 'Zuari Agro Chemicals',
+    sector: 'Fertilizers & Agrochemicals',
+    decision: 'NEW_BUY',
+    decision_badge: '🚀 NEW 1ST SEP BUY',
+    entry_date_1st: '2026-09-01',
+    entry_price_1st: 178.30,
+    current_price: 226.10,
+    month_move_pct: 26.8,
+    target_price: 350.14,
+    stop_loss: 205.00,
+    rationale: 'Fresh inclusion on 1st Sep after government ₹18,500 Cr subsidy clearance and massive non-core land monetization turnaround. Momentum score 91/100.',
+    conviction: 'VERY_HIGH',
+    allocation_weight_pct: 12,
+  },
+  {
+    ticker: 'BCLIND',
+    name: 'BCL Ind & Infrastructure',
+    sector: 'Distilleries & Agro-Processing',
+    decision: 'NEW_BUY',
+    decision_badge: '🚀 NEW 1ST SEP BUY',
+    entry_date_1st: '2026-09-01',
+    entry_price_1st: 31.20,
+    current_price: 36.90,
+    month_move_pct: 18.2,
+    target_price: 46.84,
+    stop_loss: 32.50,
+    rationale: 'Added on 1st Sep due to perfect Piotroski Score 9/9 and 1.8 Crore litre fresh OMC ethanol tender win with Kharagpur distillery expansion.',
+    conviction: 'VERY_HIGH',
+    allocation_weight_pct: 10,
+  },
+  {
+    ticker: 'JAMNAAUTO',
+    name: 'Jamna Auto Industries',
+    sector: 'Auto Ancillary',
+    decision: 'HOLD',
+    decision_badge: '🟢 HOLD (CV Recovery)',
+    entry_date_1st: '2026-09-01',
+    entry_price_1st: 96.90,
+    current_price: 112.50,
+    month_move_pct: 16.1,
+    target_price: 138.50,
+    stop_loss: 102.00,
+    rationale: '68% OEM market share in commercial vehicle leaf springs; beneficiary of national freight corridor and heavy truck volume expansion.',
+    conviction: 'HIGH',
+    allocation_weight_pct: 10,
+  },
+  {
+    ticker: 'RECLTD',
+    name: 'REC Limited',
+    sector: 'Power Finance / Infrastructure',
+    decision: 'HOLD',
+    decision_badge: '🟢 HOLD (Dividend Champion)',
+    entry_date_1st: '2026-09-01',
+    entry_price_1st: 278.00,
+    current_price: 318.70,
+    month_move_pct: 14.6,
+    target_price: 390.50,
+    stop_loss: 294.00,
+    rationale: 'Power CAPEX loans grow 24% YoY with 6.5% sovereign dividend yield and zero green energy NPA slippages.',
+    conviction: 'VERY_HIGH',
+    allocation_weight_pct: 12,
+  },
+  {
+    ticker: 'COALINDIA',
+    name: 'Coal India Ltd',
+    sector: 'Mining & Natural Resources',
+    decision: 'HOLD',
+    decision_badge: '🟢 HOLD (Monopoly FCF)',
+    entry_date_1st: '2026-09-01',
+    entry_price_1st: 359.30,
+    current_price: 415.35,
+    month_move_pct: 15.6,
+    target_price: 522.01,
+    stop_loss: 385.00,
+    rationale: 'Monopoly coal producer with record power plant dispatch volumes and 6.4% cash dividend yield at single digit P/E (8.4x).',
+    conviction: 'HIGH',
+    allocation_weight_pct: 10,
+  },
+  {
+    ticker: 'BPCL',
+    name: 'Bharat Petroleum Corp',
+    sector: 'PSU Oil & Gas',
+    decision: 'HOLD',
+    decision_badge: '🟢 HOLD (7.1% Yield)',
+    entry_date_1st: '2026-09-01',
+    entry_price_1st: 284.00,
+    current_price: 315.70,
+    month_move_pct: 11.2,
+    target_price: 345.32,
+    stop_loss: 292.00,
+    rationale: 'High dividend cash flow backed by stable refining margins and EV charging hub installations at 5,000 retail fuel pumps.',
+    conviction: 'HIGH',
+    allocation_weight_pct: 8,
+  },
+  {
+    ticker: 'BFINVEST',
+    name: 'BF Investment Ltd',
+    sector: 'Financial Holding Company',
+    decision: 'HOLD',
+    decision_badge: '🟢 HOLD (Deep Value NAV)',
+    entry_date_1st: '2026-09-01',
+    entry_price_1st: 412.00,
+    current_price: 470.00,
+    month_move_pct: 14.1,
+    target_price: 512.00,
+    stop_loss: 425.00,
+    rationale: 'Kalyani Group defence export order wins (₹2,400 Cr artillery systems) surge underlying asset NAV backing. P/E of just 4.3x.',
+    conviction: 'HIGH',
+    allocation_weight_pct: 6,
+  },
+  {
+    ticker: 'GUJALKALI',
+    name: 'Gujarat Alkalies & Chem',
+    sector: 'Basic Industrial Chemicals',
+    decision: 'HOLD',
+    decision_badge: '🟢 HOLD (Cash Dividend)',
+    entry_date_1st: '2026-09-01',
+    entry_price_1st: 671.00,
+    current_price: 720.50,
+    month_move_pct: 7.4,
+    target_price: 780.00,
+    stop_loss: 670.00,
+    rationale: '₹17.70/share cash dividend ex-date approaching, supported by Caustic Soda price stabilization.',
+    conviction: 'HIGH',
+    allocation_weight_pct: 5,
+  },
+  {
+    ticker: 'BEPL',
+    name: 'Bhansali Eng Polymers',
+    sector: 'Specialty Polymers',
+    decision: 'PROFIT_BOOK',
+    decision_badge: '🟡 PROFIT BOOK (50% Trim)',
+    entry_date_1st: '2026-09-01',
+    entry_price_1st: 120.65,
+    current_price: 144.20,
+    month_move_pct: 19.5,
+    target_price: 165.00,
+    stop_loss: 136.00,
+    rationale: 'Styrene feedstock input costs rose 6.2% following refinery outages. Book 50% profit at ₹144 and hold remaining with strict stop-loss at ₹136.',
+    conviction: 'HIGH',
+    allocation_weight_pct: 3,
+  },
+  {
+    ticker: 'TATAMOTORS',
+    name: 'Tata Motors Limited',
+    sector: 'Automotive',
+    decision: 'HOLD',
+    decision_badge: '🟢 HOLD (Watch Europe)',
+    entry_date_1st: '2026-09-01',
+    entry_price_1st: 309.00,
+    current_price: 311.50,
+    month_move_pct: 0.8,
+    target_price: 420.00,
+    stop_loss: 292.00,
+    rationale: 'Strong domestic EV bookings (15,000 Curvv EVs) buffer European luxury discounting. Maintain core position with trailing SL ₹292.',
+    conviction: 'HIGH',
+    allocation_weight_pct: 2,
+  },
+];
+
+export const MONTHLY_REBALANCE_HISTORY: MonthlyRebalanceHistory[] = [
+  {
+    rebalance_date: '2026-09-01',
+    cycle_name: 'September 2026 Rebalance Cycle',
+    stocks_held_count: 12,
+    new_buys: ['ZUARI (₹178.30)', 'BCLIND (₹31.20)'],
+    exits: ['TRIDENT (Exited at ₹39.80, +34% Gain Target Achieved)'],
+    month_total_return_pct: 21.4,
+    nifty_benchmark_return_pct: 3.2,
+    alpha_generated_pct: 18.2,
+    summary_notes: 'Added high-turnaround agro & ethanol champions (Zuari & BCL Ind) capitalizing on subsidy clearances and E20 mandate.',
+  },
+  {
+    rebalance_date: '2026-08-01',
+    cycle_name: 'August 2026 Rebalance Cycle',
+    stocks_held_count: 11,
+    new_buys: ['CONFIPET (₹67.00)', 'BEPL (₹120.65)'],
+    exits: ['CASTROLIND (Exited at ₹218.00, +28% Profit Booked)'],
+    month_total_return_pct: 19.8,
+    nifty_benchmark_return_pct: 2.1,
+    alpha_generated_pct: 17.7,
+    summary_notes: 'Captured Auto-LPG retail station expansion breakout in Confidence Petroleum (+22.8% move).',
+  },
+  {
+    rebalance_date: '2026-07-01',
+    cycle_name: 'July 2026 Rebalance Cycle',
+    stocks_held_count: 10,
+    new_buys: ['ANDHRSUGAR (₹84.00)', 'RECLTD (₹260.00)'],
+    exits: ['SJVN (Exited at ₹142.00, +48% Peak Momentum Exit)'],
+    month_total_return_pct: 24.2,
+    nifty_benchmark_return_pct: 4.0,
+    alpha_generated_pct: 20.2,
+    summary_notes: 'Accumulated high-yield power finance champion REC Ltd and ethanol producer Andhra Sugars before policy rally.',
+  },
+];
 
 export const STOCK_EXIT_RADAR: Record<string, StockExitAdvisory> = {
   ANDHRSUGAR: {
@@ -66,6 +359,9 @@ export const STOCK_EXIT_RADAR: Record<string, StockExitAdvisory> = {
       {
         id: 'as-1',
         ticker: 'ANDHRSUGAR',
+        stock_name: 'Andhra Sugars Ltd',
+        stock_price: 99.50,
+        stock_change: 1.6,
         headline: 'Government raises ethanol procurement price for sugar-distilleries by ₹2.10/litre',
         source: 'Business Standard',
         published_at: '2026-09-06T11:30:00Z',
@@ -78,6 +374,9 @@ export const STOCK_EXIT_RADAR: Record<string, StockExitAdvisory> = {
       {
         id: 'as-2',
         ticker: 'ANDHRSUGAR',
+        stock_name: 'Andhra Sugars Ltd',
+        stock_price: 99.50,
+        stock_change: 1.6,
         headline: 'Caustic Soda domestic spot realization prices stabilize after 6-month slump',
         source: 'Chemical Market News',
         published_at: '2026-09-05T14:15:00Z',
@@ -108,6 +407,9 @@ export const STOCK_EXIT_RADAR: Record<string, StockExitAdvisory> = {
       {
         id: 'cp-1',
         ticker: 'CONFIPET',
+        stock_name: 'Confidence Petroleum',
+        stock_price: 82.30,
+        stock_change: 7.4,
         headline: 'Confidence Petroleum commissions 12 new CNG/Auto-LPG hybrid retail outlets in Maharashtra & MP',
         source: 'LiveMint',
         published_at: '2026-09-06T09:00:00Z',
@@ -120,6 +422,9 @@ export const STOCK_EXIT_RADAR: Record<string, StockExitAdvisory> = {
       {
         id: 'cp-2',
         ticker: 'CONFIPET',
+        stock_name: 'Confidence Petroleum',
+        stock_price: 82.30,
+        stock_change: 7.4,
         headline: 'Saudi Aramco trims LPG contract price by $15/tonne for September deliveries',
         source: 'Reuters Energy',
         published_at: '2026-09-04T18:00:00Z',
@@ -150,6 +455,9 @@ export const STOCK_EXIT_RADAR: Record<string, StockExitAdvisory> = {
       {
         id: 'be-1',
         ticker: 'BEPL',
+        stock_name: 'Bhansali Eng Polymers',
+        stock_price: 144.20,
+        stock_change: 2.7,
         headline: 'Global Styrene Monomer spot prices jump 6.2% following Middle East refinery maintenance outage',
         source: 'Plastics News Asia',
         published_at: '2026-09-06T07:30:00Z',
@@ -158,18 +466,6 @@ export const STOCK_EXIT_RADAR: Record<string, StockExitAdvisory> = {
         sentiment: 'negative',
         sentiment_score: -45,
         impact_on_thesis: 'Adverse Headwind: Short-term margin pressure on ABS resin manufacturing.',
-      },
-      {
-        id: 'be-2',
-        ticker: 'BEPL',
-        headline: 'Domestic auto component makers report steady ABS resin order pipeline for festive season',
-        source: 'Auto Monitor India',
-        published_at: '2026-09-05T12:00:00Z',
-        time_ago: '1 day ago',
-        summary: 'High OEM demand for automotive instrument panels and two-wheeler body parts keeps production operating near 92% utilization.',
-        sentiment: 'positive',
-        sentiment_score: 60,
-        impact_on_thesis: 'Neutral-Positive: Volume growth buffers raw material price impact.',
       },
     ],
   },
@@ -192,6 +488,9 @@ export const STOCK_EXIT_RADAR: Record<string, StockExitAdvisory> = {
       {
         id: 'ja-1',
         ticker: 'JAMNAAUTO',
+        stock_name: 'Jamna Auto Industries',
+        stock_price: 112.50,
+        stock_change: 3.2,
         headline: 'Medium & Heavy Commercial Vehicle (MHCV) retail sales grow 8.4% YoY in August',
         source: 'FADA Automotive Report',
         published_at: '2026-09-05T16:00:00Z',
@@ -222,6 +521,9 @@ export const STOCK_EXIT_RADAR: Record<string, StockExitAdvisory> = {
       {
         id: 'bcl-1',
         ticker: 'BCLIND',
+        stock_name: 'BCL Industries',
+        stock_price: 36.90,
+        stock_change: 1.1,
         headline: 'BCL Industries bags additional 1.8 Crore litre ethanol supply tender from BPCL and HPCL',
         source: 'Exchange Filing Notification',
         published_at: '2026-09-05T10:30:00Z',
@@ -252,6 +554,9 @@ export const STOCK_EXIT_RADAR: Record<string, StockExitAdvisory> = {
       {
         id: 'gacl-1',
         ticker: 'GUJALKALI',
+        stock_name: 'Gujarat Alkalies',
+        stock_price: 720.50,
+        stock_change: 0.5,
         headline: 'GACL approves final dividend of ₹17.70 per equity share; ex-date next week',
         source: 'BSE Corporate Announcement',
         published_at: '2026-09-04T15:00:00Z',
@@ -282,6 +587,9 @@ export const STOCK_EXIT_RADAR: Record<string, StockExitAdvisory> = {
       {
         id: 'bf-1',
         ticker: 'BFINVEST',
+        stock_name: 'BF Investment Ltd',
+        stock_price: 470.00,
+        stock_change: 0.0,
         headline: 'Bharat Forge arm bags ₹2,400 Crore artillery system export order from European client',
         source: 'Economic Times Defence',
         published_at: '2026-09-06T08:00:00Z',
@@ -312,6 +620,9 @@ export const STOCK_EXIT_RADAR: Record<string, StockExitAdvisory> = {
       {
         id: 'zu-1',
         ticker: 'ZUARI',
+        stock_name: 'Zuari Agro Chemicals',
+        stock_price: 226.10,
+        stock_change: 2.2,
         headline: 'Ministry of Chemicals & Fertilizers clears ₹18,500 Cr subsidy installment to domestic manufacturers',
         source: 'Financial Express',
         published_at: '2026-09-06T10:00:00Z',
@@ -342,6 +653,9 @@ export const STOCK_EXIT_RADAR: Record<string, StockExitAdvisory> = {
       {
         id: 'bp-1',
         ticker: 'BPCL',
+        stock_name: 'Bharat Petroleum',
+        stock_price: 315.70,
+        stock_change: 2.0,
         headline: 'BPCL partners with Tata Power to install 5,000 EV ultra-fast charging points at highway fuel stations',
         source: 'Mint Mobility',
         published_at: '2026-09-05T11:00:00Z',
@@ -372,6 +686,9 @@ export const STOCK_EXIT_RADAR: Record<string, StockExitAdvisory> = {
       {
         id: 'ci-1',
         ticker: 'COALINDIA',
+        stock_name: 'Coal India Ltd',
+        stock_price: 415.35,
+        stock_change: 0.7,
         headline: 'Thermal power plant coal inventory reaches healthy 18-day average ahead of festive industrial demand peak',
         source: 'Press Information Bureau',
         published_at: '2026-09-06T06:30:00Z',
@@ -402,6 +719,9 @@ export const STOCK_EXIT_RADAR: Record<string, StockExitAdvisory> = {
       {
         id: 'rec-1',
         ticker: 'RECLTD',
+        stock_name: 'REC Limited',
+        stock_price: 318.70,
+        stock_change: -1.4,
         headline: 'REC sanctions ₹1.12 Lakh Crore loans for renewable energy and transmission projects in FY26',
         source: 'Economic Times Energy',
         published_at: '2026-09-06T09:30:00Z',
@@ -432,6 +752,9 @@ export const STOCK_EXIT_RADAR: Record<string, StockExitAdvisory> = {
       {
         id: 'tm-1',
         ticker: 'TATAMOTORS',
+        stock_name: 'Tata Motors Ltd',
+        stock_price: 311.50,
+        stock_change: 0.8,
         headline: 'European luxury car sales growth slows to 1.8% in August amid consumer caution',
         source: 'Bloomberg Auto',
         published_at: '2026-09-05T13:40:00Z',
@@ -444,6 +767,9 @@ export const STOCK_EXIT_RADAR: Record<string, StockExitAdvisory> = {
       {
         id: 'tm-2',
         ticker: 'TATAMOTORS',
+        stock_name: 'Tata Motors Ltd',
+        stock_price: 311.50,
+        stock_change: 0.8,
         headline: 'Tata Motors domestic EV bookings cross 15,000 units for newly launched Curvv EV',
         source: 'Autocar India',
         published_at: '2026-09-06T10:15:00Z',
@@ -468,7 +794,11 @@ export const DAILY_MAJOR_MARKET_EVENTS: DailyMarketEvent[] = [
     country: 'India',
     impact: 'HIGH',
     affected_sectors: ['Banking & NBFCs', 'Automotive', 'Real Estate', 'Power Finance (REC/PFC)'],
-    affected_stocks: ['RECLTD', 'PFC', 'SBIN', 'HDFCBANK', 'TATAMOTORS'],
+    affected_stocks: [
+      { ticker: 'RECLTD', name: 'REC Limited', price: 318.70, change_pct: -1.4 },
+      { ticker: 'TATAMOTORS', name: 'Tata Motors', price: 311.50, change_pct: 0.8 },
+      { ticker: 'CONFIPET', name: 'Confidence Petroleum', price: 82.30, change_pct: 7.4 },
+    ],
     summary: 'RBI Governor Shaktikanta Das will announce the policy Repo Rate and GDP/Inflation projections. Consensus expects a status quo pause at 6.50% with commentary on food inflation.',
     expected_outcome: 'Rate Pause expected. Any dovish hint on liquidity easing will trigger a sharp rally in high-dividend NBFCs (REC, PFC) and Real Estate.',
     investor_action: 'Maintain existing long positions in REC/PFC. Keep stop-losses intact; do not short rate-sensitive counters.',
@@ -483,7 +813,11 @@ export const DAILY_MAJOR_MARKET_EVENTS: DailyMarketEvent[] = [
     country: 'India',
     impact: 'HIGH',
     affected_sectors: ['FMCG', 'Fertilizers & Agro', 'Sugar & Distilleries', 'General Consumption'],
-    affected_stocks: ['ANDHRSUGAR', 'BCLIND', 'ZUARI', 'ITC', 'NESTLEIND'],
+    affected_stocks: [
+      { ticker: 'ANDHRSUGAR', name: 'Andhra Sugars', price: 99.50, change_pct: 1.6 },
+      { ticker: 'BCLIND', name: 'BCL Industries', price: 36.90, change_pct: 1.1 },
+      { ticker: 'ZUARI', name: 'Zuari Agro', price: 226.10, change_pct: 2.2 },
+    ],
     summary: 'Ministry of Statistics (MOSPI) will release retail CPI inflation data for August. Expectations are for retail inflation to moderate below 4.2% due to stable monsoon crop supplies.',
     expected_outcome: 'Cooling inflation confirms sustained consumer purchasing power and reduces input cost pressures on agro/food processing companies.',
     investor_action: 'Bullish catalyst for Agro-Processing (BCLIND) and Fertilizer turnarounds (ZUARI). Accumulate on dips.',
@@ -498,10 +832,13 @@ export const DAILY_MAJOR_MARKET_EVENTS: DailyMarketEvent[] = [
     country: 'United States',
     impact: 'HIGH',
     affected_sectors: ['IT Services & Tech', 'Commodities', 'Export Heavy Sectors', 'Global Metals'],
-    affected_stocks: ['TCS', 'INFY', 'WIPRO', 'BHARTIARTL', 'BEPL'],
+    affected_stocks: [
+      { ticker: 'BEPL', name: 'Bhansali Eng Polymers', price: 144.20, change_pct: 2.7 },
+      { ticker: 'BFINVEST', name: 'BF Investment Ltd', price: 470.00, change_pct: 0.0 },
+    ],
     summary: 'US Fed Chair Jerome Powell will announce FOMC rate decision. Markets are pricing a 92% probability of a 25 bps rate cut to 5.00%-5.25%.',
     expected_outcome: 'US rate cuts weaken US Dollar Index (DXY), sparking massive foreign institutional (FII) equity inflows into emerging markets like India.',
-    investor_action: 'Huge positive trigger for Indian IT exporters (TCS, Infosys) and broad Nifty 50 largecaps.',
+    investor_action: 'Huge positive trigger for Indian IT exporters and broad Nifty 50 largecaps.',
   },
   {
     id: 'evt-4',
@@ -513,7 +850,12 @@ export const DAILY_MAJOR_MARKET_EVENTS: DailyMarketEvent[] = [
     country: 'India',
     impact: 'HIGH',
     affected_sectors: ['Sugar & Ethanol', 'LPG & Clean Energy', 'Specialty Chemicals', 'EV Mobility'],
-    affected_stocks: ['ANDHRSUGAR', 'CONFIPET', 'BCLIND', 'GUJALKALI', 'BPCL'],
+    affected_stocks: [
+      { ticker: 'ANDHRSUGAR', name: 'Andhra Sugars', price: 99.50, change_pct: 1.6 },
+      { ticker: 'CONFIPET', name: 'Confidence Petroleum', price: 82.30, change_pct: 7.4 },
+      { ticker: 'BCLIND', name: 'BCL Industries', price: 36.90, change_pct: 1.1 },
+      { ticker: 'BPCL', name: 'Bharat Petroleum', price: 315.70, change_pct: 2.0 },
+    ],
     summary: 'GST Council headed by Union Finance Minister will deliberate on rationalizing GST rates on ethanol blended fuel components and gas logistics equipment from 12% to 5%.',
     expected_outcome: 'Potential tax rate rationalization will directly expand operating margins for green fuel producers (Andhra Sugars, BCL Ind, Confidence Petroleum).',
     investor_action: 'Strong tactical catalyst for ProPicks clean energy basket. Pre-event accumulation favored.',
@@ -528,7 +870,11 @@ export const DAILY_MAJOR_MARKET_EVENTS: DailyMarketEvent[] = [
     country: 'Global / OPEC',
     impact: 'MEDIUM',
     affected_sectors: ['Oil Refining & Marketing (OMCs)', 'Chemicals & Polymers', 'Aviation & Logistics'],
-    affected_stocks: ['BPCL', 'BEPL', 'GUJALKALI', 'RELIANCE'],
+    affected_stocks: [
+      { ticker: 'BPCL', name: 'Bharat Petroleum', price: 315.70, change_pct: 2.0 },
+      { ticker: 'BEPL', name: 'Bhansali Eng Polymers', price: 144.20, change_pct: 2.7 },
+      { ticker: 'GUJALKALI', name: 'Gujarat Alkalies', price: 720.50, change_pct: 0.5 },
+    ],
     summary: 'OPEC+ alliance reviews the planned rollback of voluntary 2.2 million barrel/day oil supply cuts amid softening Chinese oil demand.',
     expected_outcome: 'Delaying supply hikes keeps Brent crude rangebound around $78-$84/bbl, preserving healthy marketing margins for domestic OMCs (BPCL).',
     investor_action: 'If Brent stays under $85, maintain full allocation to BPCL and keep tight stop-loss on polymer maker BEPL.',
@@ -543,7 +889,11 @@ export const DAILY_MAJOR_MARKET_EVENTS: DailyMarketEvent[] = [
     country: 'India',
     impact: 'MEDIUM',
     affected_sectors: ['All NSE & BSE Listed Equities', 'High Beta Momentum Stocks'],
-    affected_stocks: ['ZUARI', 'COALINDIA', 'TATAMOTORS', 'CONFIPET'],
+    affected_stocks: [
+      { ticker: 'ZUARI', name: 'Zuari Agro', price: 226.10, change_pct: 2.2 },
+      { ticker: 'COALINDIA', name: 'Coal India Ltd', price: 415.35, change_pct: 0.7 },
+      { ticker: 'TATAMOTORS', name: 'Tata Motors', price: 311.50, change_pct: 0.8 },
+    ],
     summary: 'Monthly rollover of derivative contracts across Nifty, BankNifty, and stock futures. High volatility and price discovery expected during the final 90 minutes.',
     expected_outcome: 'Sharp intra-day swings; short covering rallies in undervalued counters.',
     investor_action: 'Avoid excessive intraday leverage; focus on cash delivery positions in ProPicks value champions.',
@@ -576,6 +926,9 @@ export function getStockExitAdvisory(ticker: string): StockExitAdvisory {
       {
         id: `news-${normalized}-1`,
         ticker: normalized,
+        stock_name: normalized,
+        stock_price: 100.0,
+        stock_change: 0.5,
         headline: `${normalized} operations remain on track; sector quarterly demand steady`,
         source: 'Financial Market Wire',
         published_at: new Date().toISOString(),
@@ -595,4 +948,12 @@ export function getAllExitAlerts(): StockExitAdvisory[] {
 
 export function getDailyMajorEvents(): DailyMarketEvent[] {
   return DAILY_MAJOR_MARKET_EVENTS;
+}
+
+export function getMonthlyRebalanceItems(): MonthlyRebalanceItem[] {
+  return MONTHLY_REBALANCE_ITEMS;
+}
+
+export function getMonthlyRebalanceHistory(): MonthlyRebalanceHistory[] {
+  return MONTHLY_REBALANCE_HISTORY;
 }

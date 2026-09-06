@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import { Bot, Send, User, Sparkles, TrendingUp, AlertCircle, RefreshCw, AlertOctagon, Calendar, Newspaper, ShieldAlert } from 'lucide-react';
+import { Bot, Send, User, Sparkles, TrendingUp, AlertCircle, RefreshCw, AlertOctagon, Calendar, Newspaper, ShieldAlert, Clock, Scale } from 'lucide-react';
 import { aiApi } from '../api';
 import { resolveSymbolAndQuote } from '../api/liveMarketFetcher';
 import {
   STOCK_EXIT_RADAR,
   DAILY_MAJOR_MARKET_EVENTS,
+  MONTHLY_REBALANCE_CYCLE,
+  MONTHLY_REBALANCE_ITEMS,
   getAllExitAlerts,
   getDailyMajorEvents,
-  getStockExitAdvisory
+  getStockExitAdvisory,
+  getMonthlyRebalanceItems
 } from '../data/newsAndEventsData';
 
 interface Message {
@@ -19,17 +22,17 @@ export const AIResearch: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       sender: 'ai',
-      text: `Hello! I am **WarrenAI**, your AI Financial Research & News Copilot.\n\nI continuously track:\n1. 📈 **Real-Time Prices & Deep Analysis** (Business model, future demand, investment thesis)\n2. 🚨 **News Sentiment & Opposite Catalyst Exit Alerts** (Automatic sell/caution warnings if negative news hits recommended stocks)\n3. 📅 **Daily Major Market Events** (RBI policy, US Fed rate cuts, CPI inflation, GST Council meetings)\n\nTry asking: *"Show exit alerts for ProPicks"*, *"Today's major market events"*, *"REC Ltd latest price"*, or *"Analyze Tata Motors news"*!`
+      text: `Hello! I am **WarrenAI**, your AI Financial Research & Rebalance Copilot.\n\nI continuously track:\n1. 🔄 **1st of Month Rebalance Updates** (Which stocks to HOLD, fresh BUYS, and EXITS)\n2. 📊 **Return & Move Comparison Engine** (Stock moves since 1st vs Strategy return vs Nifty)\n3. 🚨 **News Sentiment & Opposite Catalyst Exit Alerts** (Automatic sell/caution warnings)\n4. 📅 **Daily Major Market Events** (RBI policy, US Fed, CPI inflation, GST Council)\n\nTry asking: *"Which stocks to hold this month?"*, *"Compare stock returns and moves"*, *"Show exit alerts"*, or *"Today's major market events"*!`
     }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
 
   const quickPrompts = [
-    '🚨 Show Exit Alerts for ProPicks',
-    '📅 Today\'s Major Market Events (RBI, Fed, CPI)',
-    '📈 REC Ltd Latest Price & Analysis',
-    '🚗 Tata Motors News & Exit Status',
+    '🔄 1st of Month Rebalance (Hold vs Exit)',
+    '📊 Compare Stock Returns & Moves',
+    '🚨 Show Exit Alerts & Negative News',
+    '📅 Today\'s Major Market Events (RBI, Fed)',
   ];
 
   const generateSmartCopilotResponse = async (userMsg: string): Promise<string> => {
@@ -37,7 +40,88 @@ export const AIResearch: React.FC = () => {
 
     // Greetings
     if (['hi', 'hello', 'hey', 'namaste', 'good morning', 'good afternoon', 'help'].includes(query)) {
-      return `Hello! I am **WarrenAI**, your AI Financial Research Copilot.\n\nAsk me about any stock (e.g., *"REC Ltd latest price"*, *"Analyze Tata Motors"*, *"Why invest in Reliance?"*, *"Compare TCS vs INFY"*), **Exit Alerts** (*"Show exit alerts"*, *"Any negative news on ProPicks?"*), or **Macro Events** (*"Today's major events"*, *"RBI policy impact"*).`;
+      return `Hello! I am **WarrenAI**, your AI Financial Research Copilot.\n\nAsk me about:\n• 🔄 **1st of Month Rebalance**: *"Which stocks to hold or exit this month?"*\n• 📊 **Return Comparison**: *"How much did each stock move and how to get maximum return?"*\n• 🚨 **Exit Alerts**: *"Show exit alerts for ProPicks"*\n• 📅 **Major Events**: *"Today's major market triggers"*`;
+    }
+
+    // Monthly 1st Rebalance (Hold vs Exit Decisions)
+    if (
+      query.includes('rebalance') ||
+      query.includes('1st') ||
+      query.includes('1 tarik') ||
+      query.includes('1 tarikh') ||
+      query.includes('mahine') ||
+      query.includes('hold kare') ||
+      query.includes('hold karne') ||
+      query.includes('kon se stock') ||
+      query.includes('kaun se stock') ||
+      query.includes('update kare')
+    ) {
+      const items = getMonthlyRebalanceItems();
+      const holds = items.filter((i) => i.decision === 'HOLD');
+      const newBuys = items.filter((i) => i.decision === 'NEW_BUY');
+      const profitBooks = items.filter((i) => i.decision === 'PROFIT_BOOK');
+
+      let response = `🔄 **WarrenAI 1st of Month Portfolio Rebalance Report (${MONTHLY_REBALANCE_CYCLE.current_cycle})**\n\n`;
+      response += `📅 **Next Rebalance Date**: **${MONTHLY_REBALANCE_CYCLE.next_rebalance_date}** (${MONTHLY_REBALANCE_CYCLE.days_until_next_rebalance} Days Remaining)\n`;
+      response += `📈 **Strategy Month Return (MTD)**: **+${MONTHLY_REBALANCE_CYCLE.strategy_month_return_pct}%** (vs Nifty +${MONTHLY_REBALANCE_CYCLE.nifty_month_return_pct}%)\n\n`;
+      response += `---\n\n`;
+
+      response += `🚀 **1. FRESH 1ST OF MONTH BUYS (New Momentum Additions)**:\n`;
+      newBuys.forEach((b) => {
+        response += `• **${b.name} (${b.ticker})**: Entry ₹${b.entry_price_1st.toFixed(2)} ➔ Live ₹${b.current_price.toFixed(2)} (**+${b.month_move_pct}% Move**) | Target **₹${b.target_price.toFixed(2)}**\n  *Why Added*: ${b.rationale}\n`;
+      });
+      response += `\n`;
+
+      response += `🟢 **2. HIGH CONVICTION STOCKS TO HOLD THIS MONTH**:\n`;
+      holds.slice(0, 5).forEach((h) => {
+        response += `• **${h.name} (${h.ticker})**: 1st Entry ₹${h.entry_price_1st.toFixed(2)} ➔ Live ₹${h.current_price.toFixed(2)} (**+${h.month_move_pct}% Move**) | Stop-Loss **₹${h.stop_loss.toFixed(2)}**\n`;
+      });
+      response += `\n`;
+
+      if (profitBooks.length > 0) {
+        response += `🟡 **3. PARTIAL PROFIT BOOKING (Caution Warning)**:\n`;
+        profitBooks.forEach((pb) => {
+          response += `• **${pb.name} (${pb.ticker})**: Book 50% profit at ₹${pb.current_price.toFixed(2)} (+${pb.month_move_pct}% Move). Hold remaining with strict stop-loss at ₹${pb.stop_loss.toFixed(2)}. (*${pb.rationale}*)\n`;
+        });
+        response += `\n`;
+      }
+
+      response += `💡 **Rule for High Return**: Har mahine ki 1st tarikh ko naye recommendations check karein aur portal par **"+ I Bought This"** mark karein.`;
+      return response;
+    }
+
+    // Return & Movement Comparison Engine ("Dono ko compare kar ke high return dilvaye")
+    if (
+      query.includes('return') ||
+      query.includes('compare') ||
+      query.includes('kitna move') ||
+      query.includes('move kiya') ||
+      query.includes('high return') ||
+      query.includes('alpha') ||
+      query.includes('comparison') ||
+      query.includes('profit')
+    ) {
+      const items = getMonthlyRebalanceItems();
+      let response = `📊 **ProPicks Return & Individual Stock Movement Comparison Scoreboard**\n\n`;
+      response += `🏆 **Strategy vs Market Benchmark Performance**:\n`;
+      response += `• 🚀 **ProPicks AI Basket Return**: **+${MONTHLY_REBALANCE_CYCLE.strategy_month_return_pct}%**\n`;
+      response += `• 📊 **Nifty 50 Benchmark Return**: **+${MONTHLY_REBALANCE_CYCLE.nifty_month_return_pct}%**\n`;
+      response += `• ⚡ **Generated Alpha (Outperformance)**: **+${MONTHLY_REBALANCE_CYCLE.strategy_alpha_pct}%**\n\n`;
+      response += `---\n\n`;
+
+      response += `📈 **Individual Stock Moves Since 1st of the Month**:\n`;
+      items.forEach((stk) => {
+        const moveBadge = stk.month_move_pct >= 20 ? '🔥' : stk.month_move_pct >= 10 ? '🟢' : '⚪';
+        response += `${moveBadge} **${stk.name} (${stk.ticker})**: **+${stk.month_move_pct}%** (1st Entry: ₹${stk.entry_price_1st.toFixed(2)} ➔ Live: ₹${stk.current_price.toFixed(2)})\n`;
+      });
+      response += `\n---\n\n`;
+
+      response += `🎯 **AI High-Return Maximization Strategy (High Return Kaise Payein?)**:\n`;
+      response += `1. **Rotate Capital on 1st of Month**: Jo fresh momentum picks add hote hain (jaise Zuari +26.8% ya BCL Ind +18.2%), unme 10-12% capital allocate karein.\n`;
+      response += `2. **Protect Capital on Caution Stocks**: Jab kisi stock par caution alert aaye (jaise BEPL par crude spike), 50% profit book karein aur trailing stop-loss lagayein.\n`;
+      response += `3. **Track Your Trades**: ProPicks page par **"My Trades"** tab me apne actual buys/exits record karein to see your real-time personal alpha.`;
+
+      return response;
     }
 
     // Exit Alerts & Opposite News Query
@@ -103,7 +187,6 @@ export const AIResearch: React.FC = () => {
         response += `${badge} • **${evt.title}** (${evt.timing})\n`;
         response += `• **Impact**: 🔥 ${evt.impact} IMPACT (${evt.country})\n`;
         response += `• **Affected Sectors**: ${evt.affected_sectors.join(', ')}\n`;
-        response += `• **Impacted Stocks**: ${evt.affected_stocks.join(', ')}\n`;
         response += `• **Summary**: ${evt.summary}\n`;
         response += `• 🎯 **Investor Strategy**: ${evt.investor_action}\n\n`;
       });
@@ -162,9 +245,11 @@ ${live.name || live.ticker} operates as a key enterprise in its sector with stro
 
 Thank you for your inquiry about **"${userMsg}"**.
 
-• **Stock Lookup Hint**: For exact live market quotes, type company names or symbols like *"REC Ltd"*, *"Tata Motors"*, *"Reliance"*, *"TCS"*, or *"SBIN"*.
-• **News & Exit Radar**: Ask *"Show exit alerts"* or *"Opposite news warnings"* to see risk advisories.
-• **Daily Major Events**: Ask *"What are today's major market events?"* to see high-impact RBI, Fed, and CPI schedules.`;
+• **Stock Lookup Hint**: Type company names or symbols like *"REC Ltd"*, *"Tata Motors"*, *"Reliance"*, *"TCS"*, or *"SBIN"*.
+• **1st of Month Rebalance**: Ask *"Which stocks to hold or exit this month?"*.
+• **Return Comparison**: Ask *"Compare stock returns and moves"*.
+• **Exit Alerts**: Ask *"Show exit alerts"* to see risk advisories.
+• **Daily Major Events**: Ask *"What are today's major market events?"*.`;
   };
 
   const handleSend = async (customMsg?: string) => {
@@ -202,10 +287,10 @@ Thank you for your inquiry about **"${userMsg}"**.
             <Bot className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-slate-100">WarrenAI — Financial Research & News Copilot</h2>
+            <h2 className="text-sm font-bold text-slate-100">WarrenAI — Financial Research & Rebalance Copilot</h2>
             <span className="text-[11px] text-emerald-400 font-medium flex items-center space-x-1">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Live Market Quotes • Opposite News Exit Sentinel • Daily Macro Calendar</span>
+              <span>1st of Month Rebalance • Return Comparison • News Sentinel</span>
             </span>
           </div>
         </div>
@@ -243,7 +328,7 @@ Thank you for your inquiry about **"${userMsg}"**.
         {loading && (
           <div className="flex items-center space-x-2 text-xs text-blue-400 bg-slate-950/80 p-3 rounded-xl border border-slate-800 w-fit">
             <Sparkles className="w-4 h-4 animate-spin text-blue-400" />
-            <span>WarrenAI is scanning news sentiment, exit signals, and macro calendar...</span>
+            <span>WarrenAI is comparing stock movements, calculating alpha, and scanning rebalance decisions...</span>
           </div>
         )}
       </div>
@@ -269,7 +354,7 @@ Thank you for your inquiry about **"${userMsg}"**.
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-          placeholder="Ask e.g. 'Show exit alerts', 'Today\'s major events', 'REC Ltd latest price'..."
+          placeholder="Ask e.g. 'Which stocks to hold this month?', 'Compare returns and moves', 'REC Ltd price'..."
           className="flex-1 bg-slate-900 text-slate-200 text-xs px-4 py-3 rounded-xl border border-slate-800 focus:outline-none focus:border-blue-500"
         />
         <button
