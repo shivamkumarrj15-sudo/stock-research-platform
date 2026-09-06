@@ -17,6 +17,7 @@ import {
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { formatPct, getChangeColor } from '../utils/formatters';
 import { stocksApi } from '../api';
+import { resolveSymbolAndQuote, searchLiveSymbols, SymbolSearchResult } from '../api/liveMarketFetcher';
 
 interface MomentumDividendStock {
   ticker: string;
@@ -321,6 +322,28 @@ export const MomentumDividends: React.FC = () => {
   const [searchedStock, setSearchedStock] = useState<any>(null);
   const [searchedChart, setSearchedChart] = useState<any[]>([]);
   const [searching, setSearching] = useState<boolean>(false);
+  const [suggestions, setSuggestions] = useState<SymbolSearchResult[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+
+  // Debounced search suggestions as user types
+  useEffect(() => {
+    if (!searchQuery.trim() || searchQuery.trim().length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      try {
+        const results = await searchLiveSymbols(searchQuery);
+        setSuggestions(results);
+        setShowSuggestions(results.length > 0);
+      } catch (e) {
+        setSuggestions([]);
+      }
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   useEffect(() => {
     fetchLivePrices();
@@ -357,55 +380,53 @@ export const MomentumDividends: React.FC = () => {
     }
   };
 
-  const handleStockSearch = async (rawTicker: string) => {
-    if (!rawTicker.trim()) return;
+  const handleStockSearch = async (rawQuery: string) => {
+    if (!rawQuery.trim()) return;
     setSearching(true);
-    const ticker = rawTicker.replace('.NS', '').replace('.BO', '').toUpperCase();
+    setSearchError(null);
+    setShowSuggestions(false);
     try {
-      let priceData: any = await stocksApi.getPrice(ticker).catch(() => null);
-      if (!priceData) {
-        priceData = await stocksApi.getProfile(ticker).catch(() => null);
-      }
-      let historyData: any[] = await stocksApi.getPriceHistory(ticker).catch(() => []);
+      const liveData = await resolveSymbolAndQuote(rawQuery);
+      if (liveData && liveData.price > 0) {
+        const livePrice = liveData.price;
+        const liveChange = liveData.change_pct;
 
-      const livePrice = priceData?.price || priceData?.close || 500.0;
-      const liveChange = priceData?.change_pct ?? priceData?.change_1d ?? 0.0;
-
-      setSearchedStock({
-        ticker,
-        name: priceData?.name || `${ticker} Equity`,
-        price: livePrice,
-        change_pct: liveChange,
-        open: priceData?.open || livePrice,
-        high: priceData?.high || livePrice * 1.02,
-        low: priceData?.low || livePrice * 0.98,
-        pe_ratio: priceData?.pe_ratio || 18.5,
-        pb_ratio: priceData?.pb_ratio || 2.4,
-        week_52_high: priceData?.week_52_high || livePrice * 1.25,
-        week_52_low: priceData?.week_52_low || livePrice * 0.82,
-        exchange: priceData?.exchange || 'NSE',
-      });
-
-      let formatted = [];
-      if (Array.isArray(historyData) && historyData.length > 5) {
-        formatted = historyData.map((item: any) => ({
-          date: item.date || item.time,
-          close: item.close || item.price || livePrice,
-        }));
-      } else {
-        const points = 30;
-        const now = new Date();
-        formatted = Array.from({ length: points }).map((_, i) => {
-          const d = new Date(now);
-          d.setDate(now.getDate() - (points - i));
-          const factor = 1 + Math.sin(i / 3) * 0.02 + (i / points) * (liveChange / 100);
-          return {
-            date: d.toISOString().split('T')[0],
-            close: Math.round(livePrice * factor * 100) / 100,
-          };
+        setSearchedStock({
+          ticker: liveData.ticker || rawQuery.toUpperCase(),
+          name: liveData.name || `${liveData.ticker} Equity`,
+          price: livePrice,
+          change_pct: liveChange,
+          open: liveData.open || livePrice,
+          high: liveData.high || livePrice,
+          low: liveData.low || livePrice,
+          pe_ratio: 18.5,
+          pb_ratio: 2.4,
+          week_52_high: liveData.week_52_high,
+          week_52_low: liveData.week_52_low,
+          exchange: liveData.exchange || 'NSE',
         });
+
+        let formattedChart: any[] = [];
+        if (Array.isArray(liveData.history) && liveData.history.length > 0) {
+          formattedChart = liveData.history.map((item) => ({
+            date: item.date,
+            close: item.close,
+          }));
+        } else {
+          let historyData: any[] = await stocksApi.getPriceHistory(liveData.ticker).catch(() => []);
+          if (Array.isArray(historyData) && historyData.length > 0) {
+            formattedChart = historyData.map((item: any) => ({
+              date: item.date || item.time,
+              close: item.close || item.price || livePrice,
+            }));
+          }
+        }
+        setSearchedChart(formattedChart);
+      } else {
+        setSearchError(`Could not find live stock quote for "${rawQuery}". Try typing exact symbol like TCS, RECLTD, TATAMOTORS, SBIN.`);
       }
-      setSearchedChart(formatted);
+    } catch (e: any) {
+      setSearchError(e.message || 'Error fetching stock quote.');
     } finally {
       setSearching(false);
     }
@@ -466,31 +487,67 @@ export const MomentumDividends: React.FC = () => {
               Manual Stock Lookup (Real-Time Price & Chart)
             </h2>
           </div>
-          <span className="text-[11px] text-slate-400">Type any NSE symbol (e.g., TCS, RECLTD, TATAMOTORS)</span>
+          <span className="text-[11px] text-slate-400">Type any stock name or symbol (e.g. Tata Motors, Reliance, TCS, SBIN)</span>
         </div>
 
-        <div className="flex items-center space-x-3">
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3 top-3 text-slate-500" />
-            <input
-              type="text"
-              placeholder="Enter Stock Ticker (e.g. TCS, RECLTD, TATAMOTORS, SBIN)..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleStockSearch(searchQuery);
-              }}
-              className="w-full bg-slate-950 text-slate-100 text-xs pl-9 pr-4 py-2.5 rounded-xl border border-slate-800 focus:outline-none focus:border-emerald-500"
-            />
+        <div className="relative">
+          <div className="flex items-center space-x-3">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 absolute left-3 top-3 text-slate-500" />
+              <input
+                type="text"
+                placeholder="Type Stock Name or Ticker (e.g. Tata Motors, Reliance, TCS, RECLTD, SBIN)..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => {
+                  if (suggestions.length > 0) setShowSuggestions(true);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleStockSearch(searchQuery);
+                }}
+                className="w-full bg-slate-950 text-slate-100 text-xs pl-9 pr-4 py-2.5 rounded-xl border border-slate-800 focus:outline-none focus:border-emerald-500"
+              />
+            </div>
+            <button
+              onClick={() => handleStockSearch(searchQuery)}
+              disabled={searching || !searchQuery.trim()}
+              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-xs font-bold text-white rounded-xl shadow-lg shadow-emerald-600/30 transition-all flex items-center space-x-1.5"
+            >
+              {searching ? <RefreshCw className="w-4 h-4 animate-spin" /> : <span>Search Live Data</span>}
+            </button>
           </div>
-          <button
-            onClick={() => handleStockSearch(searchQuery)}
-            disabled={searching || !searchQuery.trim()}
-            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-xs font-bold text-white rounded-xl shadow-lg shadow-emerald-600/30 transition-all flex items-center space-x-1.5"
-          >
-            {searching ? <RefreshCw className="w-4 h-4 animate-spin" /> : <span>Search Live Data</span>}
-          </button>
+
+          {/* Auto Suggestions Dropdown List */}
+          {showSuggestions && suggestions.length > 0 && (
+            <div className="absolute left-0 right-0 top-full mt-2 bg-slate-950 border border-emerald-500/40 rounded-xl shadow-2xl z-50 max-h-60 overflow-y-auto divide-y divide-slate-800">
+              {suggestions.map((item) => (
+                <div
+                  key={item.symbol}
+                  onClick={() => {
+                    setSearchQuery(item.name || item.symbol);
+                    handleStockSearch(item.symbol);
+                  }}
+                  className="p-3 hover:bg-slate-800/80 cursor-pointer transition-colors flex items-center justify-between"
+                >
+                  <div>
+                    <span className="text-xs font-bold text-slate-100 block">{item.name}</span>
+                    <span className="text-[10px] text-emerald-400 font-mono">{item.symbol} • {item.exchange}</span>
+                  </div>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-slate-900 text-slate-400 uppercase border border-slate-800">
+                    {item.type}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
+
+        {/* Error message banner */}
+        {searchError && (
+          <div className="p-3 rounded-xl bg-rose-950/60 border border-rose-500/40 text-xs text-rose-300 font-medium">
+            ⚠️ {searchError}
+          </div>
+        )}
 
         {/* Searched Stock Live Result Display */}
         {searchedStock && (

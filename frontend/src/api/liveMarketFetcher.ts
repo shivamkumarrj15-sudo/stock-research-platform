@@ -10,7 +10,55 @@ export interface LiveQuoteResult {
   week_52_low: number;
   currency: string;
   exchange: string;
+  name?: string;
   history: Array<{ date: string; close: number }>;
+}
+
+export interface SymbolSearchResult {
+  symbol: string;
+  name: string;
+  exchange: string;
+  type: string;
+}
+
+export async function searchLiveSymbols(query: string): Promise<SymbolSearchResult[]> {
+  if (!query || query.trim().length < 2) return [];
+  const targetUrl = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}`;
+
+  const processQuotes = (quotes: any[]) => {
+    return quotes
+      .filter((q) => q.symbol && (q.quoteType === 'EQUITY' || !q.quoteType))
+      .map((q) => ({
+        symbol: q.symbol,
+        name: q.shortname || q.longname || q.symbol,
+        exchange: q.exchDisp || q.exchange || 'NSE',
+        type: q.quoteType || 'EQUITY',
+      }))
+      .slice(0, 8);
+  };
+
+  try {
+    const res = await fetch(targetUrl);
+    if (res.ok) {
+      const json = await res.json();
+      if (json?.quotes) return processQuotes(json.quotes);
+    }
+  } catch (e) {
+    // Proxy fallback
+  }
+
+  try {
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+    const res = await fetch(proxyUrl);
+    if (res.ok) {
+      const json = await res.json();
+      if (json?.quotes) return processQuotes(json.quotes);
+    }
+  } catch (e) {
+    // Ignore
+  }
+
+  return [];
 }
 
 export async function fetchLiveMarketQuote(ticker: string): Promise<LiveQuoteResult | null> {
@@ -44,6 +92,31 @@ export async function fetchLiveMarketQuote(ticker: string): Promise<LiveQuoteRes
       }
     } catch (e) {
       // Ignore & try next symbol
+    }
+  }
+
+  return null;
+}
+
+export async function resolveSymbolAndQuote(query: string): Promise<LiveQuoteResult | null> {
+  if (!query || !query.trim()) return null;
+
+  // First try direct quote if already a clean ticker format
+  const direct = await fetchLiveMarketQuote(query);
+  if (direct && direct.price > 0) return direct;
+
+  // Search symbols via query API
+  const suggestions = await searchLiveSymbols(query);
+  if (suggestions.length > 0) {
+    // Prefer NSE / BSE symbols
+    const nseQuote = suggestions.find((s) => s.symbol.endsWith('.NS') || s.symbol.endsWith('.BO'));
+    const chosen = nseQuote || suggestions[0];
+    const quote = await fetchLiveMarketQuote(chosen.symbol);
+    if (quote) {
+      return {
+        ...quote,
+        name: chosen.name || quote.name,
+      };
     }
   }
 
@@ -89,6 +162,7 @@ function parseYahooChartJson(ticker: string, symbol: string, json: any): LiveQuo
       week_52_low: meta.fiftyTwoWeekLow ? Math.round(meta.fiftyTwoWeekLow * 100) / 100 : Math.round(price * 0.8 * 100) / 100,
       currency: meta.currency || 'INR',
       exchange: meta.exchangeName || 'NSE',
+      name: meta.shortName || meta.longName || `${ticker} Equity`,
       history,
     };
   } catch (e) {

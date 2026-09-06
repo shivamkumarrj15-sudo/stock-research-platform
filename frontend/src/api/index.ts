@@ -1,5 +1,5 @@
 import api from './client';
-import { fetchLiveMarketQuote } from './liveMarketFetcher';
+import { fetchLiveMarketQuote, resolveSymbolAndQuote, searchLiveSymbols } from './liveMarketFetcher';
 import type {
   AuthTokens, User, StockPrice, StockScore, ValuationScenarios,
   PiotroskiScore, BeneishMScore, AltmanZScore, FinancialRatios,
@@ -22,8 +22,34 @@ export const authApi = {
 
 // ──── Stocks ────
 export const stocksApi = {
-  search: (query: string, exchange?: string) =>
-    getData(api.get<StockPrice[]>('/stocks/search', { params: { q: query, exchange } })),
+  search: async (query: string, exchange?: string) => {
+    try {
+      const res = await api.get<StockPrice[]>('/stocks/search', { params: { q: query, exchange } });
+      if (res.data && Array.isArray(res.data) && res.data.length > 0) return res.data;
+    } catch (e) {
+      // Fallback
+    }
+    const liveSuggestions = await searchLiveSymbols(query);
+    return liveSuggestions.map((s) => ({
+      ticker: s.symbol.replace('.NS', '').replace('.BO', ''),
+      name: s.name,
+      exchange: s.exchange,
+      price: 0,
+      open: 0,
+      high: 0,
+      low: 0,
+      close: 0,
+      volume: 0,
+      change: 0,
+      change_pct: 0,
+      market_cap: 0,
+      week_52_high: 0,
+      week_52_low: 0,
+      data_freshness: 'REAL_TIME',
+      updated_at: new Date().toISOString(),
+      is_demo_data: false,
+    })) as StockPrice[];
+  },
   getProfile: async (ticker: string) => {
     try {
       const res = await api.get<StockPrice>(`/stocks/${ticker}`);
@@ -31,11 +57,11 @@ export const stocksApi = {
     } catch (e) {
       // Fallback
     }
-    const live = await fetchLiveMarketQuote(ticker);
+    const live = await resolveSymbolAndQuote(ticker);
     if (live) {
       return {
         ticker: live.ticker,
-        name: `${live.ticker} Equity`,
+        name: live.name || `${live.ticker} Equity`,
         exchange: live.exchange,
         price: live.price,
         open: live.open,
@@ -62,10 +88,11 @@ export const stocksApi = {
     } catch (e) {
       // Fallback to real market provider
     }
-    const live = await fetchLiveMarketQuote(ticker);
+    const live = await resolveSymbolAndQuote(ticker);
     if (live) {
       return {
         ticker: live.ticker,
+        name: live.name || `${live.ticker} Equity`,
         price: live.price,
         open: live.open,
         high: live.high,
