@@ -1,48 +1,22 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
-  LayoutDashboard,
-  TrendingUp,
-  Filter,
-  Bot,
-  Bookmark,
-  Briefcase,
-  Calendar,
-  Newspaper,
-  Compass,
-  History,
+  Zap,
+  BookOpen,
   Settings,
-  ShieldAlert,
   ChevronLeft,
   ChevronRight,
-  BookOpen,
-  Zap,
   Sparkles,
 } from 'lucide-react';
-import { useUIStore, useAuthStore } from '../../store';
+import { useUIStore } from '../../store';
 
 export const Sidebar: React.FC = () => {
   const { sidebarCollapsed, toggleSidebar } = useUIStore();
-  const { user } = useAuthStore();
 
   const navItems = [
-    { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/propicks-ai', label: 'ProPicks AI (Momentum Gems)', icon: Zap, badge: 'PRO' },
     { to: '/stock-terminal', label: 'Stock Research & News', icon: BookOpen, badge: 'LIVE' },
-    { to: '/propicks-ai', label: 'ProPicks AI (Momentum)', icon: Zap, badge: 'PRO' },
-    { to: '/screener', label: 'Screener', icon: Filter },
-    { to: '/ai-research', label: 'AI Assistant (WarrenAI)', icon: Bot },
-    { to: '/watchlists', label: 'Watchlists', icon: Bookmark },
-    { to: '/portfolio', label: 'Portfolio', icon: Briefcase },
-    { to: '/markets', label: 'Markets & Charts', icon: TrendingUp },
-    { to: '/calendar', label: 'Dividend Calendar', icon: Calendar },
-    { to: '/news', label: 'News & Sentiment', icon: Newspaper },
-    { to: '/strategies', label: 'Ideas & Strategies', icon: Compass },
-    { to: '/backtesting', label: 'Backtesting', icon: History },
   ];
-
-  if (user?.is_admin) {
-    navItems.push({ to: '/admin', label: 'Admin Panel', icon: ShieldAlert });
-  }
 
   return (
     <aside
@@ -52,7 +26,7 @@ export const Sidebar: React.FC = () => {
     >
       {/* Brand Logo */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800">
-        <NavLink to="/" className="flex items-center space-x-3 overflow-hidden">
+        <NavLink to="/propicks-ai" className="flex items-center space-x-3 overflow-hidden">
           <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-amber-500 via-orange-600 to-purple-600 flex items-center justify-center text-white font-bold shadow-lg shadow-amber-500/20">
             <Sparkles className="w-5 h-5" />
           </div>
