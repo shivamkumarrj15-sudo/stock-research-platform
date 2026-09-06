@@ -36,8 +36,12 @@ class Settings(BaseSettings):
     DATA_PROVIDER_MODE: str = "mock"  # mock | live
 
     # ── Market Data Provider ─────────────────────────────────────────────────
-    MARKET_DATA_PROVIDER: str = "yahoo_finance"  # yahoo_finance | alpha_vantage | fmp
+    MARKET_DATA_PROVIDER: str = "angel_one"  # angel_one | yahoo_finance | alpha_vantage | fmp
     MARKET_DATA_API_KEY: str = ""
+    ANGELONE_API_KEY: str = "kHrodFlM"
+    ANGELONE_CLIENT_CODE: str = ""
+    ANGELONE_PASSWORD: str = ""
+    ANGELONE_TOTP_KEY: str = ""
 
     # ── Fundamental Data Provider ─────────────────────────────────────────────
     FUNDAMENTAL_DATA_PROVIDER: str = "yahoo_finance"

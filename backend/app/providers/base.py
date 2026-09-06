@@ -350,16 +350,18 @@ class ProviderRegistry:
 
     @classmethod
     def _create_market_provider(cls, settings) -> MarketDataProvider:
+        from app.providers.angel_one.smartapi_provider import AngelOneMarketDataProvider
         from app.providers.yahoo_finance.yf_provider import YFinanceMarketDataProvider
         from app.providers.alpha_vantage.av_provider import AlphaVantageProvider
         from app.providers.mock.mock_provider import MockMarketDataProvider
 
         provider_map = {
+            "angel_one": lambda: AngelOneMarketDataProvider(api_key=getattr(settings, "ANGELONE_API_KEY", "kHrodFlM")),
             "alpha_vantage": lambda: AlphaVantageProvider(),
             "yahoo_finance": lambda: YFinanceMarketDataProvider(),
             "mock": lambda: MockMarketDataProvider(),
         }
-        factory = provider_map.get(settings.MARKET_DATA_PROVIDER, provider_map["yahoo_finance"])
+        factory = provider_map.get(settings.MARKET_DATA_PROVIDER, provider_map["angel_one"])
         return factory()
 
     @classmethod
