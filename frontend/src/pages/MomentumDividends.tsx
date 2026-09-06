@@ -18,7 +18,16 @@ import {
   CheckCircle2,
   Building2,
   Briefcase,
-  TrendingDown
+  TrendingDown,
+  Newspaper,
+  Calendar,
+  AlertOctagon,
+  ShieldAlert,
+  Flame,
+  Radio,
+  ExternalLink,
+  ChevronRight,
+  Filter
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { formatPct, getChangeColor } from '../utils/formatters';
@@ -29,6 +38,15 @@ import {
   fetchTimeframeChart,
   SymbolSearchResult
 } from '../api/liveMarketFetcher';
+import {
+  STOCK_EXIT_RADAR,
+  DAILY_MAJOR_MARKET_EVENTS,
+  getStockExitAdvisory,
+  getAllExitAlerts,
+  getDailyMajorEvents,
+  DailyMarketEvent,
+  StockExitAdvisory
+} from '../data/newsAndEventsData';
 
 export interface DetailedExplanation {
   business_model: string;
@@ -148,55 +166,55 @@ const INITIAL_STOCKS: MomentumDividendStock[] = [
     bse_code: '500052',
     sector: 'Specialty Polymers',
     industry: 'ABS Resins & Engineering Plastics',
-    price: 127.11,
-    change_1d: 3.4,
+    price: 144.20,
+    change_1d: 2.7,
     change_1w: 8.1,
-    change_1m: 16.5,
-    change_1y: 42.0,
-    fair_value: 131.00,
-    fair_value_label: 'Fair',
-    fair_value_upside: 3.1,
+    change_1m: 19.5,
+    change_1y: 41.2,
+    fair_value: 165.00,
+    fair_value_label: 'Undervalued',
+    fair_value_upside: 14.4,
     health_label: 'Great',
-    health_score: 86,
-    market_cap: '₹32.29 B',
-    dividend_per_share: 6.00,
-    dividend_yield: 4.7,
-    ex_dividend_date: '2026-09-15',
-    pay_date: '2026-09-30',
-    rsi_14: 62.77,
-    pe_ratio: 15.6,
-    pb_ratio: 2.8,
-    momentum_score: 79,
-    ai_recommendation_reason: 'Lucrative 4.7% Dividend Yield with 100% cash-backed payout and zero long-term debt balance sheet.',
+    health_score: 92,
+    market_cap: '₹35.90 B',
+    dividend_per_share: 4.00,
+    dividend_yield: 2.8,
+    ex_dividend_date: '2026-09-30',
+    pay_date: '2026-10-18',
+    rsi_14: 67.22,
+    pe_ratio: 16.4,
+    pb_ratio: 2.9,
+    momentum_score: 84,
+    ai_recommendation_reason: 'Highest balance sheet health score (92/100) with zero debt, high ROE (27.8%), and expanding auto ABS polymer demand.',
     detailed_explanation: {
-      business_model: 'Bhansali Engineering Polymers (BEPL) manufactures ABS (Acrylonitrile Butadiene Styrene) and SAN resins. ABS is an essential high-impact engineering plastic supplied directly to automotive OEMs, consumer electronics, and home appliance manufacturers.',
-      future_demand_outlook: 'SUSTAINED DEMAND INCREASE. Rising Indian domestic manufacturing under PLI schemes for electronics, white goods, and automotive production is driving a 9-11% annual increase in ABS demand.',
-      why_invest: 'Zero Long-Term Debt Company offering a lucrative 4.7% cash dividend yield, industry-leading Return on Capital Employed (ROIC 34.2%), and 100% cash-backed dividend payout coverage.',
-      financial_health_summary: 'Zero debt, Piotroski Score 8/9, Free Cash Flow Yield 6.8%, and strong unencumbered cash reserves exceeding ₹400 Cr.',
-      catalysts: ['Capacity expansion to 150,000 MTPA', 'Automotive sector production revival', 'High dividend payout policy'],
-      key_risks: ['Acrylonitrile raw material cost spikes', 'Import competition from foreign chemical manufacturers'],
+      business_model: 'Bhansali Engineering Polymers (BEPL) is a pioneer in manufacturing ABS (Acrylonitrile Butadiene Styrene) and SAN resins. ABS polymers are critical raw materials for automotive body parts, 2-wheelers, home appliances (refrigerators, washing machines), and electronics.',
+      future_demand_outlook: 'HIGH CONSUMPTION DEMAND. India’s automotive lightweighting and booming consumer electronics production (Make-in-India) have created a chronic domestic shortage of ABS resin, ensuring BEPL operates at full capacity.',
+      why_invest: 'Zero-Debt Balance Sheet, ROE 27.8%, ROCE 34.5%, and high cash generation. Beneficiary of anti-dumping duties on cheap Chinese ABS imports.',
+      financial_health_summary: 'Virtually zero debt (D/E 0.02), Quick Ratio 2.8, Piotroski Score 8/9, and high free cash flow yield.',
+      catalysts: ['Brownfield ABS capacity expansion from 137k TPA to 200k TPA', 'Anti-dumping duty protection on ABS resins', 'Increasing polymer usage per vehicle'],
+      key_risks: ['Volatility in crude-linked raw material (Styrene Monomer) costs', 'Global chemical supply glut'],
     },
-    key_drivers: ['Zero Debt Company', 'High ROIC (34.2%)', 'High Dividend Pay-out Coverage'],
+    key_drivers: ['Zero Debt balance sheet', 'High ROE 27.8%', 'Anti-dumping duty protection'],
   },
   {
     ticker: 'JAMNAAUTO',
     name: 'Jamna Auto Industries',
-    bse_code: '520051',
-    sector: 'Automotive Ancillaries',
+    bse_code: '500216',
+    sector: 'Auto Ancillary',
     industry: 'Commercial Vehicle Suspension Systems',
-    price: 121.50,
-    change_1d: 1.5,
-    change_1w: 3.2,
-    change_1m: 9.8,
-    change_1y: 28.4,
-    fair_value: 140.97,
-    fair_value_label: 'Fair',
-    fair_value_upside: 16.0,
-    health_label: 'Good',
-    health_score: 72,
-    market_cap: '₹48.21 B',
-    dividend_per_share: 2.10,
-    dividend_yield: 1.7,
+    price: 112.50,
+    change_1d: 3.2,
+    change_1w: 7.9,
+    change_1m: 16.1,
+    change_1y: 45.3,
+    fair_value: 138.50,
+    fair_value_label: 'Undervalued',
+    fair_value_upside: 23.1,
+    health_label: 'Great',
+    health_score: 86,
+    market_cap: '₹44.82 B',
+    dividend_per_share: 2.20,
+    dividend_yield: 2.0,
     ex_dividend_date: '2026-09-25',
     pay_date: '2026-10-15',
     rsi_14: 33.03,
@@ -435,6 +453,7 @@ const INITIAL_STOCKS: MomentumDividendStock[] = [
 export const MomentumDividends: React.FC = () => {
   const navigate = useNavigate();
   const [stocks, setStocks] = useState<MomentumDividendStock[]>(INITIAL_STOCKS);
+  const [activeView, setActiveView] = useState<'propicks' | 'exit_radar' | 'daily_events'>('propicks');
   const [filter, setFilter] = useState<'all' | 'high_momentum' | 'upcoming_dividend'>('all');
   const [timeframe, setTimeframe] = useState<'1d' | '1w' | '1m' | '1y'>('1m');
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -454,6 +473,9 @@ export const MomentumDividends: React.FC = () => {
   const [modalTimeframe, setModalTimeframe] = useState<'1min' | '1h' | '1d' | '1w' | '1m'>('1m');
   const [modalChartData, setModalChartData] = useState<any[]>([]);
   const [loadingModalChart, setLoadingModalChart] = useState<boolean>(false);
+
+  // Events Category Filter State
+  const [eventCategoryFilter, setEventCategoryFilter] = useState<string>('ALL');
 
   // Debounced search suggestions as user types
   useEffect(() => {
@@ -515,7 +537,6 @@ export const MomentumDividends: React.FC = () => {
 
   useEffect(() => {
     fetchLivePrices();
-    // Poll live prices every 15 seconds for 100% real-time accuracy
     const interval = setInterval(fetchLivePrices, 15000);
     return () => clearInterval(interval);
   }, []);
@@ -598,6 +619,16 @@ export const MomentumDividends: React.FC = () => {
     return true;
   });
 
+  const allExitAdvisories = getAllExitAlerts();
+  const majorEvents = getDailyMajorEvents().filter((ev) => {
+    if (eventCategoryFilter === 'ALL') return true;
+    return ev.category === eventCategoryFilter;
+  });
+
+  const selectedStockAdvisory = selectedStockForReason
+    ? getStockExitAdvisory(selectedStockForReason.ticker)
+    : null;
+
   return (
     <div className="space-y-6">
       {/* Live Angel One Header Banner */}
@@ -612,7 +643,7 @@ export const MomentumDividends: React.FC = () => {
               ProPicks AI Momentum & Dividend Gems
             </h1>
             <p className="text-xs text-slate-400 max-w-2xl">
-              AI predictive model ranking top momentum stocks, intrinsic fair value upside, Piotroski health rating, and live Angel One real-time market prices.
+              AI ranking top momentum stocks, intrinsic fair value, live news tracking with opposite catalyst exit alerts, and daily major market events calendar.
             </p>
           </div>
 
@@ -634,6 +665,69 @@ export const MomentumDividends: React.FC = () => {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Main View Mode Selector Tabs */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <button
+          onClick={() => setActiveView('propicks')}
+          className={`p-4 rounded-2xl border transition-all flex items-center space-x-3.5 text-left ${
+            activeView === 'propicks'
+              ? 'bg-gradient-to-r from-emerald-950/80 to-slate-900 border-emerald-500/60 shadow-lg shadow-emerald-950/40'
+              : 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-400'
+          }`}
+        >
+          <div className={`p-2.5 rounded-xl ${activeView === 'propicks' ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-300'}`}>
+            <Zap className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="text-xs font-black text-slate-100 flex items-center gap-1.5">
+              <span>🚀 ProPicks AI Gems</span>
+              <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">10 Live</span>
+            </div>
+            <p className="text-[11px] text-slate-400 mt-0.5">Top momentum, deep value & dividend winners</p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => setActiveView('exit_radar')}
+          className={`p-4 rounded-2xl border transition-all flex items-center space-x-3.5 text-left ${
+            activeView === 'exit_radar'
+              ? 'bg-gradient-to-r from-rose-950/80 to-slate-900 border-rose-500/60 shadow-lg shadow-rose-950/40'
+              : 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-400'
+          }`}
+        >
+          <div className={`p-2.5 rounded-xl ${activeView === 'exit_radar' ? 'bg-rose-500 text-slate-950' : 'bg-slate-800 text-slate-300'}`}>
+            <AlertOctagon className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="text-xs font-black text-slate-100 flex items-center gap-1.5">
+              <span>🚨 News & Exit Radar</span>
+              <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-400 text-[10px] font-bold">2 Caution</span>
+            </div>
+            <p className="text-[11px] text-slate-400 mt-0.5">Opposite news alerts & stop-loss triggers</p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => setActiveView('daily_events')}
+          className={`p-4 rounded-2xl border transition-all flex items-center space-x-3.5 text-left ${
+            activeView === 'daily_events'
+              ? 'bg-gradient-to-r from-blue-950/80 to-slate-900 border-blue-500/60 shadow-lg shadow-blue-950/40'
+              : 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-400'
+          }`}
+        >
+          <div className={`p-2.5 rounded-xl ${activeView === 'daily_events' ? 'bg-blue-500 text-slate-950' : 'bg-slate-800 text-slate-300'}`}>
+            <Calendar className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="text-xs font-black text-slate-100 flex items-center gap-1.5">
+              <span>📅 Daily Major Events</span>
+              <span className="px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-400 text-[10px] font-bold">RBI / Fed / CPI</span>
+            </div>
+            <p className="text-[11px] text-slate-400 mt-0.5">High-impact daily macro & policy calendar</p>
+          </div>
+        </button>
       </div>
 
       {/* Manual Stock Search & Live Chart Section */}
@@ -770,208 +864,487 @@ export const MomentumDividends: React.FC = () => {
         )}
       </div>
 
-      {/* Filter Tabs & Main Table Timeframe Selector */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-slate-900 border border-slate-800 p-2.5 rounded-xl gap-3">
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-              filter === 'all' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800'
-            }`}
-          >
-            All Candidates ({stocks.length})
-          </button>
-          <button
-            onClick={() => setFilter('high_momentum')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-              filter === 'high_momentum' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800'
-            }`}
-          >
-            High Momentum (&gt;80 Score)
-          </button>
-          <button
-            onClick={() => setFilter('upcoming_dividend')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-              filter === 'upcoming_dividend' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800'
-            }`}
-          >
-            High Dividend (&gt;2% Yield)
-          </button>
-        </div>
+      {/* VIEW 1: PROPICKS MAIN TABLE */}
+      {activeView === 'propicks' && (
+        <div className="space-y-4">
+          {/* Filter Tabs & Main Table Timeframe Selector */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-slate-900 border border-slate-800 p-2.5 rounded-xl gap-3">
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setFilter('all')}
+                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                  filter === 'all' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800'
+                }`}
+              >
+                All Candidates ({stocks.length})
+              </button>
+              <button
+                onClick={() => setFilter('high_momentum')}
+                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                  filter === 'high_momentum' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800'
+                }`}
+              >
+                High Momentum (&gt;80 Score)
+              </button>
+              <button
+                onClick={() => setFilter('upcoming_dividend')}
+                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                  filter === 'upcoming_dividend' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-800'
+                }`}
+              >
+                High Dividend (&gt;2% Yield)
+              </button>
+            </div>
 
-        {/* Timeframe selector (1D, 1W, 1M, 1Y) */}
-        <div className="flex items-center space-x-1.5 bg-slate-950 p-1 rounded-lg border border-slate-800">
-          <span className="text-[10px] font-bold text-slate-400 uppercase px-2">Table Movement:</span>
-          {(['1d', '1w', '1m', '1y'] as const).map((tf) => (
-            <button
-              key={tf}
-              onClick={() => setTimeframe(tf)}
-              className={`px-2.5 py-1 rounded text-xs font-bold uppercase transition-all ${
-                timeframe === tf ? 'bg-emerald-500 text-slate-950' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              {tf}
-            </button>
-          ))}
-        </div>
-      </div>
+            {/* Timeframe selector (1D, 1W, 1M, 1Y) */}
+            <div className="flex items-center space-x-1.5 bg-slate-950 p-1 rounded-lg border border-slate-800">
+              <span className="text-[10px] font-bold text-slate-400 uppercase px-2">Table Movement:</span>
+              {(['1d', '1w', '1m', '1y'] as const).map((tf) => (
+                <button
+                  key={tf}
+                  onClick={() => setTimeframe(tf)}
+                  className={`px-2.5 py-1 rounded text-xs font-bold uppercase transition-all ${
+                    timeframe === tf ? 'bg-emerald-500 text-slate-950' : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  {tf}
+                </button>
+              ))}
+            </div>
+          </div>
 
-      {/* Main InvestingPro Style Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-950/90 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800">
-              <tr>
-                <th className="px-4 py-4">Stock Name & Code</th>
-                <th className="px-4 py-4">Sector</th>
-                <th className="px-4 py-4 text-right">Real-Time Price</th>
-                <th className="px-4 py-4 text-right">{timeframe.toUpperCase()} Movement</th>
-                <th className="px-4 py-4 text-center">Fair Value Upside</th>
-                <th className="px-4 py-4 text-center">Valuation Label</th>
-                <th className="px-4 py-4 text-center">Overall Health</th>
-                <th className="px-4 py-4 text-right">Dividend / Share</th>
-                <th className="px-4 py-4 text-right">Dividend Yield</th>
-                <th className="px-4 py-4 text-right">P/E Ratio</th>
-                <th className="px-4 py-4 text-center">AI Recommendation Reason</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/60">
-              {filteredStocks.map((stock) => {
-                const isBargain = stock.fair_value_label === 'Bargain';
-                const isUndervalued = stock.fair_value_label === 'Undervalued';
+          {/* Main InvestingPro Style Table */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-slate-300">
+                <thead className="bg-slate-950/90 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                  <tr>
+                    <th className="px-4 py-4">Stock Name & Code</th>
+                    <th className="px-4 py-4">Sector</th>
+                    <th className="px-4 py-4 text-right">Real-Time Price</th>
+                    <th className="px-4 py-4 text-right">{timeframe.toUpperCase()} Movement</th>
+                    <th className="px-4 py-4 text-center">Fair Value Upside</th>
+                    <th className="px-4 py-4 text-center">Valuation Label</th>
+                    <th className="px-4 py-4 text-center">Overall Health</th>
+                    <th className="px-4 py-4 text-center">News & Exit Radar</th>
+                    <th className="px-4 py-4 text-right">Dividend Yield</th>
+                    <th className="px-4 py-4 text-right">P/E Ratio</th>
+                    <th className="px-4 py-4 text-center">AI Recommendation Reason</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60">
+                  {filteredStocks.map((stock) => {
+                    const isBargain = stock.fair_value_label === 'Bargain';
+                    const isUndervalued = stock.fair_value_label === 'Undervalued';
 
-                const currentMovement =
-                  timeframe === '1d'
-                    ? stock.change_1d
-                    : timeframe === '1w'
-                    ? stock.change_1w
-                    : timeframe === '1m'
-                    ? stock.change_1m
-                    : stock.change_1y;
+                    const currentMovement =
+                      timeframe === '1d'
+                        ? stock.change_1d
+                        : timeframe === '1w'
+                        ? stock.change_1w
+                        : timeframe === '1m'
+                        ? stock.change_1m
+                        : stock.change_1y;
 
-                return (
-                  <tr
-                    key={stock.ticker}
-                    onClick={() => {
-                      setSelectedStockForReason(stock);
-                      handleStockSearch(stock.ticker);
-                    }}
-                    className="hover:bg-slate-800/70 cursor-pointer transition-colors"
-                  >
-                    {/* Stock Name */}
-                    <td className="px-4 py-3.5">
-                      <div className="flex flex-col">
-                        <span className="font-extrabold text-slate-100 text-sm flex items-center space-x-1.5">
-                          <span>{stock.name}</span>
-                          <ArrowUpRight className="w-3.5 h-3.5 text-slate-500" />
-                        </span>
-                        <span className="text-[10px] text-slate-400 font-medium">
-                          {stock.ticker} • BSE: {stock.bse_code}
-                        </span>
-                      </div>
-                    </td>
+                    const exitAdvisory = getStockExitAdvisory(stock.ticker);
+                    const isCaution = exitAdvisory.status === 'CAUTION_WATCH';
+                    const isExit = exitAdvisory.status === 'EXIT_RECOMMENDED';
 
-                    {/* Sector Badge */}
-                    <td className="px-4 py-3.5">
-                      <span className="px-2.5 py-1 rounded-lg bg-slate-950 text-emerald-400 border border-slate-800 text-[10px] font-bold">
-                        {stock.sector}
-                      </span>
-                    </td>
-
-                    {/* Real-Time Price */}
-                    <td className="px-4 py-3.5 text-right">
-                      <div className="font-bold text-emerald-400 text-sm">₹{stock.price.toFixed(2)}</div>
-                    </td>
-
-                    {/* Timeframe Movement */}
-                    <td className="px-4 py-3.5 text-right">
-                      <div className={`text-xs font-black ${getChangeColor(currentMovement)}`}>
-                        {currentMovement > 0 ? '+' : ''}{currentMovement}% ↑
-                      </div>
-                      <div className="text-[10px] text-slate-500 uppercase">{timeframe} Change</div>
-                    </td>
-
-                    {/* Fair Value Upside */}
-                    <td className="px-4 py-3.5 text-center">
-                      <div className="font-bold text-slate-100">₹{stock.fair_value.toFixed(2)}</div>
-                      <div className={`text-[11px] font-extrabold ${stock.fair_value_upside >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                        {formatPct(stock.fair_value_upside)} Upside
-                      </div>
-                    </td>
-
-                    {/* Fair Value Label Badge */}
-                    <td className="px-4 py-3.5 text-center">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                        isBargain
-                          ? 'bg-emerald-950/80 text-emerald-400 border-emerald-500/40'
-                          : isUndervalued
-                          ? 'bg-green-950/80 text-green-400 border-green-500/40'
-                          : 'bg-yellow-950/80 text-yellow-400 border-yellow-500/40'
-                      }`}>
-                        {stock.fair_value_label}
-                      </span>
-                    </td>
-
-                    {/* Overall Health Progress Bar */}
-                    <td className="px-4 py-3.5 text-center">
-                      <div className="flex flex-col items-center space-y-1">
-                        <span className={`text-[11px] font-bold ${
-                          stock.health_label === 'Great' ? 'text-emerald-400' : stock.health_label === 'Good' ? 'text-green-400' : 'text-yellow-400'
-                        }`}>
-                          {stock.health_label}
-                        </span>
-                        <div className="w-20 bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${
-                              stock.health_score >= 85 ? 'bg-emerald-500' : stock.health_score >= 70 ? 'bg-green-500' : 'bg-yellow-500'
-                            }`}
-                            style={{ width: `${stock.health_score}%` }}
-                          />
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Dividend Per Share */}
-                    <td className="px-4 py-3.5 text-right font-semibold text-slate-200">
-                      ₹{stock.dividend_per_share.toFixed(2)}
-                    </td>
-
-                    {/* Dividend Yield */}
-                    <td className="px-4 py-3.5 text-right font-bold text-emerald-400">
-                      {stock.dividend_yield}%
-                    </td>
-
-                    {/* P/E Ratio */}
-                    <td className="px-4 py-3.5 text-right font-bold text-slate-100">
-                      {stock.pe_ratio}x
-                    </td>
-
-                    {/* AI Recommendation Reason Button */}
-                    <td className="px-4 py-3.5 text-center">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
+                    return (
+                      <tr
+                        key={stock.ticker}
+                        onClick={() => {
                           setSelectedStockForReason(stock);
                           handleStockSearch(stock.ticker);
                         }}
-                        className="px-3 py-1.5 bg-purple-950/80 hover:bg-purple-900 border border-purple-500/40 text-purple-300 text-[11px] font-bold rounded-lg transition-all flex items-center space-x-1 justify-center mx-auto"
+                        className="hover:bg-slate-800/70 cursor-pointer transition-colors"
                       >
-                        <Sparkles className="w-3 h-3 text-purple-400" />
-                        <span>Why Recommended?</span>
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                        {/* Stock Name */}
+                        <td className="px-4 py-3.5">
+                          <div className="flex flex-col">
+                            <span className="font-extrabold text-slate-100 text-sm flex items-center space-x-1.5">
+                              <span>{stock.name}</span>
+                              <ArrowUpRight className="w-3.5 h-3.5 text-slate-500" />
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-medium">
+                              {stock.ticker} • BSE: {stock.bse_code}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Sector Badge */}
+                        <td className="px-4 py-3.5">
+                          <span className="px-2.5 py-1 rounded-lg bg-slate-950 text-emerald-400 border border-slate-800 text-[10px] font-bold">
+                            {stock.sector}
+                          </span>
+                        </td>
+
+                        {/* Real-Time Price */}
+                        <td className="px-4 py-3.5 text-right">
+                          <div className="font-bold text-emerald-400 text-sm">₹{stock.price.toFixed(2)}</div>
+                        </td>
+
+                        {/* Timeframe Movement */}
+                        <td className="px-4 py-3.5 text-right">
+                          <div className={`text-xs font-black ${getChangeColor(currentMovement)}`}>
+                            {currentMovement > 0 ? '+' : ''}{currentMovement}% ↑
+                          </div>
+                          <div className="text-[10px] text-slate-500 uppercase">{timeframe} Change</div>
+                        </td>
+
+                        {/* Fair Value Upside */}
+                        <td className="px-4 py-3.5 text-center">
+                          <div className="font-bold text-slate-100">₹{stock.fair_value.toFixed(2)}</div>
+                          <div className={`text-[11px] font-extrabold ${stock.fair_value_upside >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                            {formatPct(stock.fair_value_upside)} Upside
+                          </div>
+                        </td>
+
+                        {/* Fair Value Label Badge */}
+                        <td className="px-4 py-3.5 text-center">
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                            isBargain
+                              ? 'bg-emerald-950/80 text-emerald-400 border-emerald-500/40'
+                              : isUndervalued
+                              ? 'bg-green-950/80 text-green-400 border-green-500/40'
+                              : 'bg-yellow-950/80 text-yellow-400 border-yellow-500/40'
+                          }`}>
+                            {stock.fair_value_label}
+                          </span>
+                        </td>
+
+                        {/* Overall Health Progress Bar */}
+                        <td className="px-4 py-3.5 text-center">
+                          <div className="flex flex-col items-center space-y-1">
+                            <span className={`text-[11px] font-bold ${
+                              stock.health_label === 'Great' ? 'text-emerald-400' : stock.health_label === 'Good' ? 'text-green-400' : 'text-yellow-400'
+                            }`}>
+                              {stock.health_label}
+                            </span>
+                            <div className="w-20 bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full ${
+                                  stock.health_score >= 85 ? 'bg-emerald-500' : stock.health_score >= 70 ? 'bg-green-500' : 'bg-yellow-500'
+                                }`}
+                                style={{ width: `${stock.health_score}%` }}
+                              />
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* News & Exit Radar Badge */}
+                        <td className="px-4 py-3.5 text-center">
+                          {isExit ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-950/80 text-rose-300 border border-rose-500/40 text-[10px] font-black uppercase">
+                              <AlertOctagon className="w-3 h-3 text-rose-400" />
+                              <span>EXIT ALERT</span>
+                            </span>
+                          ) : isCaution ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-950/80 text-amber-300 border border-amber-500/40 text-[10px] font-black uppercase">
+                              <AlertTriangle className="w-3 h-3 text-amber-400" />
+                              <span>CAUTION</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 text-[10px] font-bold uppercase">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                              <span>THESIS INTACT</span>
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Dividend Yield */}
+                        <td className="px-4 py-3.5 text-right font-bold text-emerald-400">
+                          {stock.dividend_yield}%
+                        </td>
+
+                        {/* P/E Ratio */}
+                        <td className="px-4 py-3.5 text-right font-bold text-slate-100">
+                          {stock.pe_ratio}x
+                        </td>
+
+                        {/* AI Recommendation Reason Button */}
+                        <td className="px-4 py-3.5 text-center">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedStockForReason(stock);
+                              handleStockSearch(stock.ticker);
+                            }}
+                            className="px-3 py-1.5 bg-purple-950/80 hover:bg-purple-900 border border-purple-500/40 text-purple-300 text-[11px] font-bold rounded-lg transition-all flex items-center space-x-1 justify-center mx-auto"
+                          >
+                            <Sparkles className="w-3 h-3 text-purple-400" />
+                            <span>Why Recommended?</span>
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* VIEW 2: AI NEWS & OPPOSITE CATALYST EXIT RADAR */}
+      {activeView === 'exit_radar' && (
+        <div className="space-y-6 animate-fadeIn">
+          {/* Top Summary Banner */}
+          <div className="bg-gradient-to-r from-rose-950/70 via-slate-900 to-slate-950 border border-rose-500/40 p-6 rounded-2xl shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="space-y-1.5">
+              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs font-bold uppercase tracking-wider">
+                <ShieldAlert className="w-4 h-4 text-rose-400" />
+                <span>AI Automated Opposite News & Exit Risk Sentinel</span>
+              </div>
+              <h2 className="text-xl font-black text-slate-100">Live News Sentiment & Exit Signal Tracker</h2>
+              <p className="text-xs text-slate-400 max-w-xl">
+                Real-time scanning of regulatory filings, commodity price spikes, earnings misses, and negative news opposite to the original recommendation thesis to trigger instant exit advisories.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3 w-full md:w-auto">
+              <div className="bg-slate-950/90 border border-emerald-500/30 p-3 rounded-xl text-center">
+                <span className="text-[10px] text-slate-400 font-bold uppercase block">Thesis Strong</span>
+                <span className="text-xl font-black text-emerald-400">10 / 12</span>
+              </div>
+              <div className="bg-slate-950/90 border border-amber-500/30 p-3 rounded-xl text-center">
+                <span className="text-[10px] text-slate-400 font-bold uppercase block">Caution / Watch</span>
+                <span className="text-xl font-black text-amber-400">2 / 12</span>
+              </div>
+              <div className="bg-slate-950/90 border border-rose-500/30 p-3 rounded-xl text-center">
+                <span className="text-[10px] text-slate-400 font-bold uppercase block">Exit Alert</span>
+                <span className="text-xl font-black text-rose-400">0 / 12</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Cards for each monitored stock's Exit Advisory */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {allExitAdvisories.map((advisory) => {
+              const isCaution = advisory.status === 'CAUTION_WATCH';
+              const isExit = advisory.status === 'EXIT_RECOMMENDED';
+
+              return (
+                <div
+                  key={advisory.ticker}
+                  className={`bg-slate-900 border rounded-2xl p-5 shadow-xl space-y-4 transition-all ${
+                    isExit
+                      ? 'border-rose-500/60 hover:border-rose-400 bg-gradient-to-b from-rose-950/20 to-slate-900'
+                      : isCaution
+                      ? 'border-amber-500/50 hover:border-amber-400 bg-gradient-to-b from-amber-950/20 to-slate-900'
+                      : 'border-slate-800 hover:border-emerald-500/40'
+                  }`}
+                >
+                  {/* Stock Header */}
+                  <div className="flex items-start justify-between gap-3 border-b border-slate-800 pb-3">
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <h3 className="text-base font-black text-slate-100">{advisory.name}</h3>
+                        <span className="text-xs font-mono font-bold text-slate-400">({advisory.ticker})</span>
+                      </div>
+                      <span className="text-[11px] text-slate-500">Evaluated: {advisory.last_evaluated}</span>
+                    </div>
+
+                    <div className="text-right">
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+                        isExit
+                          ? 'bg-rose-950 text-rose-300 border-rose-500/50'
+                          : isCaution
+                          ? 'bg-amber-950 text-amber-300 border-amber-500/50'
+                          : 'bg-emerald-950 text-emerald-300 border-emerald-500/50'
+                      }`}>
+                        {advisory.signal_label}
+                      </span>
+                      <div className="text-xs font-black text-slate-200 mt-1">Live: ₹{advisory.current_price.toFixed(2)}</div>
+                    </div>
+                  </div>
+
+                  {/* Pricing Levels: Target & Trailing Stop Loss */}
+                  <div className="grid grid-cols-3 gap-2 bg-slate-950 p-2.5 rounded-xl border border-slate-800/80 text-center">
+                    <div>
+                      <span className="text-[9px] text-slate-400 uppercase font-bold block">Target Price</span>
+                      <span className="text-xs font-black text-emerald-400">₹{advisory.target_price.toFixed(2)}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] text-slate-400 uppercase font-bold block">Trailing Stop-Loss</span>
+                      <span className="text-xs font-black text-rose-400">₹{advisory.stop_loss_price.toFixed(2)}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] text-slate-400 uppercase font-bold block">Key Support</span>
+                      <span className="text-xs font-black text-blue-400">₹{advisory.key_support_price.toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                  {/* Opposite News & Exit Rationale */}
+                  <div className={`p-3.5 rounded-xl border space-y-1.5 ${
+                    advisory.opposite_news_detected
+                      ? 'bg-rose-950/40 border-rose-500/30'
+                      : 'bg-slate-950 border-slate-800'
+                  }`}>
+                    <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-200">
+                      {advisory.opposite_news_detected ? (
+                        <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                      ) : (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                      )}
+                      <span>Exit Risk Rationale & Action Plan</span>
+                    </div>
+                    <p className="text-xs text-slate-300 leading-relaxed">{advisory.exit_reason}</p>
+                    <div className="text-[11px] text-amber-300/90 font-medium bg-slate-900/90 p-2 rounded-lg border border-slate-800 mt-1">
+                      👉 <strong>Action:</strong> {advisory.action_plan}
+                    </div>
+                  </div>
+
+                  {/* Recent News Headlines for this Stock */}
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                      📰 Recent News Flow & Sentiment Impact
+                    </span>
+                    <div className="space-y-2">
+                      {advisory.news.map((item) => (
+                        <div key={item.id} className="bg-slate-950/90 border border-slate-800 p-2.5 rounded-xl space-y-1">
+                          <div className="flex items-center justify-between text-[10px]">
+                            <span className="font-bold text-blue-400">{item.source} • {item.time_ago}</span>
+                            <span className={`px-2 py-0.2 rounded font-bold ${
+                              item.sentiment === 'positive'
+                                ? 'bg-emerald-950 text-emerald-400'
+                                : 'bg-rose-950 text-rose-400'
+                            }`}>
+                              {item.sentiment_score > 0 ? `+${item.sentiment_score}% Bullish` : `${item.sentiment_score}% Adverse`}
+                            </span>
+                          </div>
+                          <h4 className="text-xs font-bold text-slate-100 leading-snug">{item.headline}</h4>
+                          <p className="text-[11px] text-slate-400">{item.summary}</p>
+                          <div className="text-[10px] text-purple-300 font-medium pt-0.5">
+                            ⚡ <em>{item.impact_on_thesis}</em>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* VIEW 3: DAILY MAJOR MARKET & MACRO EVENTS */}
+      {activeView === 'daily_events' && (
+        <div className="space-y-6 animate-fadeIn">
+          {/* Event Header Banner */}
+          <div className="bg-gradient-to-r from-blue-950/70 via-slate-900 to-slate-950 border border-blue-500/40 p-6 rounded-2xl shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="space-y-1.5">
+              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-500/40 text-blue-300 text-xs font-bold uppercase tracking-wider">
+                <Calendar className="w-4 h-4 text-blue-400" />
+                <span>Daily High-Impact Macro & Corporate Events Calendar</span>
+              </div>
+              <h2 className="text-xl font-black text-slate-100">Today & Upcoming Major Market Triggers</h2>
+              <p className="text-xs text-slate-400 max-w-xl">
+                Tracks RBI Monetary Policy, US Fed interest rate decisions, CPI inflation, GST Council announcements, and OPEC energy meetings affecting your stock portfolio.
+              </p>
+            </div>
+
+            {/* Category Filter Buttons */}
+            <div className="flex flex-wrap gap-1.5 bg-slate-950 p-1.5 rounded-xl border border-slate-800">
+              {[
+                { id: 'ALL', label: 'All Events' },
+                { id: 'MONETARY_POLICY', label: 'RBI & Fed' },
+                { id: 'MACRO_DATA', label: 'CPI / Inflation' },
+                { id: 'REGULATORY', label: 'GST & SEBI' },
+                { id: 'GLOBAL_ENERGY', label: 'OPEC & Crude' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setEventCategoryFilter(tab.id)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    eventCategoryFilter === tab.id
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Events List Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {majorEvents.map((evt) => (
+              <div
+                key={evt.id}
+                className="bg-slate-900 border border-slate-800 hover:border-blue-500/40 p-5 rounded-2xl shadow-xl flex flex-col justify-between space-y-4 transition-all"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center space-x-2">
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                        evt.day_label === 'TODAY'
+                          ? 'bg-rose-500 text-white animate-pulse'
+                          : evt.day_label === 'TOMORROW'
+                          ? 'bg-amber-500 text-slate-950 font-bold'
+                          : 'bg-blue-950 text-blue-300 border border-blue-500/30'
+                      }`}>
+                        {evt.day_label} • {evt.date}
+                      </span>
+                      <span className="text-[11px] text-slate-400 font-semibold">{evt.timing}</span>
+                    </div>
+
+                    <span className="px-2 py-0.5 rounded bg-rose-950/80 text-rose-300 border border-rose-500/30 text-[10px] font-black uppercase flex items-center gap-1">
+                      <Flame className="w-3 h-3 text-rose-400" />
+                      <span>{evt.impact} IMPACT</span>
+                    </span>
+                  </div>
+
+                  <h3 className="text-base font-black text-slate-100 leading-snug">{evt.title}</h3>
+                  <p className="text-xs text-slate-400 leading-relaxed">{evt.summary}</p>
+
+                  {/* Affected Sectors & Stocks Badges */}
+                  <div className="space-y-1.5 pt-1">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase">Impacted Sectors:</span>
+                      <div className="flex flex-wrap gap-1">
+                        {evt.affected_sectors.map((sec, i) => (
+                          <span key={i} className="px-2 py-0.5 rounded bg-slate-950 text-slate-300 border border-slate-800 text-[10px] font-medium">
+                            {sec}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase">ProPicks Stocks:</span>
+                      <div className="flex flex-wrap gap-1">
+                        {evt.affected_stocks.map((stk, i) => (
+                          <span key={i} className="px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-500/30 text-[10px] font-bold">
+                            {stk}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Expected Outcome & Strategy Box */}
+                <div className="bg-slate-950 p-3 rounded-xl border border-slate-800/80 space-y-1.5">
+                  <div className="text-[11px] text-slate-200">
+                    <strong className="text-blue-400">Expected Outcome:</strong> {evt.expected_outcome}
+                  </div>
+                  <div className="text-[11px] text-emerald-300 font-medium">
+                    🎯 <strong>Investor Action:</strong> {evt.investor_action}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* AI Recommendation Reason Modal / Deep Dive Drawer */}
       {selectedStockForReason && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn overflow-y-auto">
-          <div className="bg-slate-900 border border-purple-500/40 rounded-2xl p-6 max-w-2xl w-full shadow-2xl space-y-5 relative my-8">
+          <div className="bg-slate-900 border border-purple-500/40 rounded-2xl p-6 max-w-2xl w-full shadow-2xl space-y-5 relative my-8 max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setSelectedStockForReason(null)}
               className="absolute top-4 right-4 text-slate-400 hover:text-slate-100 p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors"
@@ -1137,6 +1510,55 @@ export const MomentumDividends: React.FC = () => {
                 ))}
               </ul>
             </div>
+
+            {/* 7. Dedicated Live News Feed & Opposite Catalyst Exit Radar Section */}
+            {selectedStockAdvisory && (
+              <div className="bg-slate-950 border border-rose-500/30 p-4 rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2 text-rose-400 font-bold text-xs uppercase tracking-wider">
+                    <Newspaper className="w-4 h-4 text-rose-400" />
+                    <span>📰 7. Live News & Exit Trigger Radar</span>
+                  </div>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase border ${
+                    selectedStockAdvisory.status === 'EXIT_RECOMMENDED'
+                      ? 'bg-rose-950 text-rose-300 border-rose-500'
+                      : selectedStockAdvisory.status === 'CAUTION_WATCH'
+                      ? 'bg-amber-950 text-amber-300 border-amber-500'
+                      : 'bg-emerald-950 text-emerald-300 border-emerald-500'
+                  }`}>
+                    {selectedStockAdvisory.signal_label}
+                  </span>
+                </div>
+
+                <div className="text-xs text-slate-300 leading-relaxed bg-slate-900 p-3 rounded-lg border border-slate-800 space-y-1">
+                  <div><strong>Exit Analysis:</strong> {selectedStockAdvisory.exit_reason}</div>
+                  <div className="text-emerald-400 font-bold">👉 Action Plan: {selectedStockAdvisory.action_plan}</div>
+                  <div className="flex items-center space-x-4 text-[11px] text-slate-400 pt-1">
+                    <span>Trailing SL: <strong className="text-rose-400">₹{selectedStockAdvisory.stop_loss_price.toFixed(2)}</strong></span>
+                    <span>Support: <strong className="text-blue-400">₹{selectedStockAdvisory.key_support_price.toFixed(2)}</strong></span>
+                  </div>
+                </div>
+
+                {/* News list */}
+                <div className="space-y-2 pt-1">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Latest News Headlines:</span>
+                  {selectedStockAdvisory.news.map((item) => (
+                    <div key={item.id} className="bg-slate-900 border border-slate-800 p-2.5 rounded-lg space-y-1 text-xs">
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="font-bold text-blue-400">{item.source} • {item.time_ago}</span>
+                        <span className={`px-1.5 py-0.2 rounded font-bold ${
+                          item.sentiment === 'positive' ? 'bg-emerald-950 text-emerald-400' : 'bg-rose-950 text-rose-400'
+                        }`}>
+                          {item.sentiment_score > 0 ? `+${item.sentiment_score}% Bullish` : `${item.sentiment_score}% Adverse`}
+                        </span>
+                      </div>
+                      <h4 className="font-bold text-slate-100">{item.headline}</h4>
+                      <p className="text-slate-400 text-[11px]">{item.summary}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Score Grid Summary */}
             <div className="grid grid-cols-3 gap-3 bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs text-center">

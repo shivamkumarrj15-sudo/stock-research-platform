@@ -1,7 +1,14 @@
 import React, { useState } from 'react';
-import { Bot, Send, User, Sparkles, TrendingUp, AlertCircle, RefreshCw } from 'lucide-react';
+import { Bot, Send, User, Sparkles, TrendingUp, AlertCircle, RefreshCw, AlertOctagon, Calendar, Newspaper, ShieldAlert } from 'lucide-react';
 import { aiApi } from '../api';
 import { resolveSymbolAndQuote } from '../api/liveMarketFetcher';
+import {
+  STOCK_EXIT_RADAR,
+  DAILY_MAJOR_MARKET_EVENTS,
+  getAllExitAlerts,
+  getDailyMajorEvents,
+  getStockExitAdvisory
+} from '../data/newsAndEventsData';
 
 interface Message {
   sender: 'user' | 'ai';
@@ -12,34 +19,121 @@ export const AIResearch: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       sender: 'ai',
-      text: 'Hello! I am **WarrenAI**, your AI Financial Research Copilot. Ask me any question about stock prices, business models, future demand outlooks, or investment thesis (e.g. *"REC Ltd latest price"*, *"Analyze Tata Motors"*, *"Compare TCS vs INFY"*).'
+      text: `Hello! I am **WarrenAI**, your AI Financial Research & News Copilot.\n\nI continuously track:\n1. 📈 **Real-Time Prices & Deep Analysis** (Business model, future demand, investment thesis)\n2. 🚨 **News Sentiment & Opposite Catalyst Exit Alerts** (Automatic sell/caution warnings if negative news hits recommended stocks)\n3. 📅 **Daily Major Market Events** (RBI policy, US Fed rate cuts, CPI inflation, GST Council meetings)\n\nTry asking: *"Show exit alerts for ProPicks"*, *"Today's major market events"*, *"REC Ltd latest price"*, or *"Analyze Tata Motors news"*!`
     }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const quickPrompts = [
+    '🚨 Show Exit Alerts for ProPicks',
+    '📅 Today\'s Major Market Events (RBI, Fed, CPI)',
+    '📈 REC Ltd Latest Price & Analysis',
+    '🚗 Tata Motors News & Exit Status',
+  ];
 
   const generateSmartCopilotResponse = async (userMsg: string): Promise<string> => {
     const query = userMsg.trim().toLowerCase();
 
     // Greetings
     if (['hi', 'hello', 'hey', 'namaste', 'good morning', 'good afternoon', 'help'].includes(query)) {
-      return `Hello! I am **WarrenAI**, your AI Financial Research Copilot.\n\nAsk me about any stock (e.g., *"REC Ltd latest price"*, *"Analyze Tata Motors"*, *"Why invest in Reliance?"*, *"Compare TCS vs INFY"*) and I will provide real-time live market quotes, business model breakdown, future demand outlook, and complete investment thesis!`;
+      return `Hello! I am **WarrenAI**, your AI Financial Research Copilot.\n\nAsk me about any stock (e.g., *"REC Ltd latest price"*, *"Analyze Tata Motors"*, *"Why invest in Reliance?"*, *"Compare TCS vs INFY"*), **Exit Alerts** (*"Show exit alerts"*, *"Any negative news on ProPicks?"*), or **Macro Events** (*"Today's major events"*, *"RBI policy impact"*).`;
     }
 
-    // Try resolving stock live quote & generating full financial analysis
+    // Exit Alerts & Opposite News Query
+    if (
+      query.includes('exit') ||
+      query.includes('exite') ||
+      query.includes('alert') ||
+      query.includes('negative news') ||
+      query.includes('opposite news') ||
+      query.includes('sell') ||
+      query.includes('warning') ||
+      query.includes('stop loss')
+    ) {
+      const advisories = getAllExitAlerts();
+      const cautionStocks = advisories.filter((a) => a.status === 'CAUTION_WATCH');
+      const intactStocks = advisories.filter((a) => a.status === 'THESIS_INTACT');
+
+      let response = `🚨 **WarrenAI News & Opposite Catalyst Exit Radar Report**\n\n`;
+      response += `🛡️ **Portfolio Status Overview**:\n`;
+      response += `• **Total Recommended Stocks**: ${advisories.length}\n`;
+      response += `• 🟢 **Thesis Intact (HOLD / BUY)**: ${intactStocks.length} Stocks\n`;
+      response += `• 🟡 **Caution / Watchlist (Monitor Support)**: ${cautionStocks.length} Stocks\n`;
+      response += `• 🔴 **Active Exit Alerts**: 0 Stocks Triggered\n\n`;
+      response += `---\n\n`;
+
+      if (cautionStocks.length > 0) {
+        response += `⚠️ **STOCKS UNDER ACTIVE CAUTION (Opposite News / Cost Pressures)**:\n`;
+        cautionStocks.forEach((stk) => {
+          response += `\n📌 **${stk.name} (${stk.ticker})** — *${stk.signal_label}*\n`;
+          response += `• **Live Price**: ₹${stk.current_price.toFixed(2)} | **Trailing SL**: ₹${stk.stop_loss_price.toFixed(2)}\n`;
+          response += `• **Reason**: ${stk.exit_reason}\n`;
+          response += `• **Action Plan**: ${stk.action_plan}\n`;
+        });
+        response += `\n---\n\n`;
+      }
+
+      response += `🟢 **TOP SAFE PICKS (Positive News Flow & Core Thesis Intact)**:\n`;
+      intactStocks.slice(0, 5).forEach((stk) => {
+        response += `• **${stk.name} (${stk.ticker})**: Target ₹${stk.target_price.toFixed(2)} | Stop-Loss ₹${stk.stop_loss_price.toFixed(2)} — *${stk.news[0]?.headline || 'Thesis Strong'}*\n`;
+      });
+
+      return response;
+    }
+
+    // Daily Major Market Events Query
+    if (
+      query.includes('event') ||
+      query.includes('bade event') ||
+      query.includes('calendar') ||
+      query.includes('rbi') ||
+      query.includes('fed') ||
+      query.includes('cpi') ||
+      query.includes('inflation') ||
+      query.includes('gst') ||
+      query.includes('macro') ||
+      query.includes('today')
+    ) {
+      const events = getDailyMajorEvents();
+      let response = `📅 **Daily High-Impact Macro Market & Policy Calendar**\n\n`;
+
+      events.forEach((evt) => {
+        const badge = evt.day_label === 'TODAY' ? '🔴 **TODAY**' : evt.day_label === 'TOMORROW' ? '🟡 **TOMORROW**' : '🔵 **THIS WEEK**';
+        response += `${badge} • **${evt.title}** (${evt.timing})\n`;
+        response += `• **Impact**: 🔥 ${evt.impact} IMPACT (${evt.country})\n`;
+        response += `• **Affected Sectors**: ${evt.affected_sectors.join(', ')}\n`;
+        response += `• **Impacted Stocks**: ${evt.affected_stocks.join(', ')}\n`;
+        response += `• **Summary**: ${evt.summary}\n`;
+        response += `• 🎯 **Investor Strategy**: ${evt.investor_action}\n\n`;
+      });
+
+      return response;
+    }
+
+    // Try resolving stock live quote & generating full financial analysis + news exit check
     try {
       const live = await resolveSymbolAndQuote(userMsg);
       if (live && live.price > 0) {
         const priceStr = `₹${live.price.toFixed(2)}`;
         const changeStr = `${live.change_pct >= 0 ? '+' : ''}${live.change_pct}%`;
         const changeColor = live.change_pct >= 0 ? '🟢' : '🔴';
+        const advisory = getStockExitAdvisory(live.ticker);
 
-        return `📈 **${live.name || live.ticker} (${live.ticker}) — Live Market Analysis**
+        return `📈 **${live.name || live.ticker} (${live.ticker}) — Live Market Analysis & News Radar**
 
 ${changeColor} **Live Market Price**: **${priceStr}** (${changeStr})
 • **Exchange**: ${live.exchange || 'NSE'} • **Currency**: ${live.currency || 'INR'}
 • **Day Range (High / Low)**: ₹${live.high.toFixed(2)} / ₹${live.low.toFixed(2)}
 • **52-Week Range (High / Low)**: ₹${live.week_52_high.toFixed(2)} / ₹${live.week_52_low.toFixed(2)}
+
+---
+
+🚨 **Live News Sentiment & Exit Radar Check**:
+• **Signal**: **${advisory.signal_label}**
+• **Trailing Stop-Loss**: **₹${advisory.stop_loss_price.toFixed(2)}** | **Key Support**: **₹${advisory.key_support_price.toFixed(2)}**
+• **Exit Analysis**: ${advisory.exit_reason}
+• **Action Plan**: ${advisory.action_plan}
 
 ---
 
@@ -69,14 +163,16 @@ ${live.name || live.ticker} operates as a key enterprise in its sector with stro
 Thank you for your inquiry about **"${userMsg}"**.
 
 • **Stock Lookup Hint**: For exact live market quotes, type company names or symbols like *"REC Ltd"*, *"Tata Motors"*, *"Reliance"*, *"TCS"*, or *"SBIN"*.
-• **Research Capability**: I analyze business models, future demand outlooks, valuation multiples (P/E, P/B), balance sheet Piotroski health ratings, and risk factors across all NSE & BSE listed equities.`;
+• **News & Exit Radar**: Ask *"Show exit alerts"* or *"Opposite news warnings"* to see risk advisories.
+• **Daily Major Events**: Ask *"What are today's major market events?"* to see high-impact RBI, Fed, and CPI schedules.`;
   };
 
-  const handleSend = async () => {
-    if (!input.trim() || loading) return;
-    const userMsg = input.trim();
+  const handleSend = async (customMsg?: string) => {
+    const userMsg = (customMsg || input).trim();
+    if (!userMsg || loading) return;
+
     setMessages((prev) => [...prev, { sender: 'user', text: userMsg }]);
-    setInput('');
+    if (!customMsg) setInput('');
     setLoading(true);
 
     try {
@@ -106,10 +202,10 @@ Thank you for your inquiry about **"${userMsg}"**.
             <Bot className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-slate-100">WarrenAI — Financial Research Copilot</h2>
+            <h2 className="text-sm font-bold text-slate-100">WarrenAI — Financial Research & News Copilot</h2>
             <span className="text-[11px] text-emerald-400 font-medium flex items-center space-x-1">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>100% Real-Time Live Market Data & Deep AI Analysis</span>
+              <span>Live Market Quotes • Opposite News Exit Sentinel • Daily Macro Calendar</span>
             </span>
           </div>
         </div>
@@ -147,9 +243,23 @@ Thank you for your inquiry about **"${userMsg}"**.
         {loading && (
           <div className="flex items-center space-x-2 text-xs text-blue-400 bg-slate-950/80 p-3 rounded-xl border border-slate-800 w-fit">
             <Sparkles className="w-4 h-4 animate-spin text-blue-400" />
-            <span>WarrenAI is resolving live market quotes & analyzing business model...</span>
+            <span>WarrenAI is scanning news sentiment, exit signals, and macro calendar...</span>
           </div>
         )}
+      </div>
+
+      {/* Quick Prompts Bar */}
+      <div className="px-4 py-2 bg-slate-950/90 border-t border-slate-800/80 flex items-center space-x-2 overflow-x-auto">
+        <span className="text-[10px] font-bold text-slate-500 uppercase shrink-0">Quick Ask:</span>
+        {quickPrompts.map((qp, idx) => (
+          <button
+            key={idx}
+            onClick={() => handleSend(qp)}
+            className="px-3 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[11px] font-semibold text-slate-300 hover:text-white shrink-0 transition-colors"
+          >
+            {qp}
+          </button>
+        ))}
       </div>
 
       {/* Input Box */}
@@ -159,11 +269,11 @@ Thank you for your inquiry about **"${userMsg}"**.
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-          placeholder="Ask e.g. 'rec ltd latest price', 'Analyze Tata Motors', 'Why invest in Reliance?'..."
+          placeholder="Ask e.g. 'Show exit alerts', 'Today\'s major events', 'REC Ltd latest price'..."
           className="flex-1 bg-slate-900 text-slate-200 text-xs px-4 py-3 rounded-xl border border-slate-800 focus:outline-none focus:border-blue-500"
         />
         <button
-          onClick={handleSend}
+          onClick={() => handleSend()}
           disabled={loading || !input.trim()}
           className="p-3 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white transition-colors shadow-lg shadow-blue-600/30"
         >
