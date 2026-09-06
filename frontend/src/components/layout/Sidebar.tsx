@@ -1,8 +1,9 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
+  LayoutDashboard,
   Zap,
-  BookOpen,
+  Bot,
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -14,8 +15,9 @@ export const Sidebar: React.FC = () => {
   const { sidebarCollapsed, toggleSidebar } = useUIStore();
 
   const navItems = [
-    { to: '/propicks-ai', label: 'ProPicks AI (Momentum Gems)', icon: Zap, badge: 'PRO' },
-    { to: '/stock-terminal', label: 'Stock Research & News', icon: BookOpen, badge: 'LIVE' },
+    { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/propicks-ai', label: 'ProPicks AI (Momentum)', icon: Zap, badge: 'PRO' },
+    { to: '/ai-research', label: 'AI Assistant (WarrenAI)', icon: Bot, badge: 'AI' },
   ];
 
   return (
@@ -26,7 +28,7 @@ export const Sidebar: React.FC = () => {
     >
       {/* Brand Logo */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800">
-        <NavLink to="/propicks-ai" className="flex items-center space-x-3 overflow-hidden">
+        <NavLink to="/" className="flex items-center space-x-3 overflow-hidden">
           <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-amber-500 via-orange-600 to-purple-600 flex items-center justify-center text-white font-bold shadow-lg shadow-amber-500/20">
             <Sparkles className="w-5 h-5" />
           </div>

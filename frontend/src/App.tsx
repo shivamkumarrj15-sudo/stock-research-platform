@@ -32,7 +32,7 @@ export const App: React.FC = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        <Route path="/" element={<Navigate to="/propicks-ai" replace />} />
+        <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/nse-bse-terminal" element={<ProtectedRoute><NSEBSETerminal /></ProtectedRoute>} />
         <Route path="/stock-terminal" element={<ProtectedRoute><NSEBSETerminal /></ProtectedRoute>} />
         <Route path="/propicks-ai" element={<ProtectedRoute><MomentumDividends /></ProtectedRoute>} />
