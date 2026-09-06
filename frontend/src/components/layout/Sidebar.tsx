@@ -15,10 +15,9 @@ import {
   ShieldAlert,
   ChevronLeft,
   ChevronRight,
-  LineChart,
+  BookOpen,
   Zap,
   Sparkles,
-  PieChart
 } from 'lucide-react';
 import { useUIStore, useAuthStore } from '../../store';
 
@@ -28,7 +27,7 @@ export const Sidebar: React.FC = () => {
 
   const navItems = [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/nse-bse-terminal', label: 'NSE/BSE Terminal', icon: LineChart, badge: 'LIVE' },
+    { to: '/stock-terminal', label: 'Stock Research & News', icon: BookOpen, badge: 'LIVE' },
     { to: '/propicks-ai', label: 'ProPicks AI (Momentum)', icon: Zap, badge: 'PRO' },
     { to: '/screener', label: 'Screener', icon: Filter },
     { to: '/ai-research', label: 'AI Assistant (WarrenAI)', icon: Bot },

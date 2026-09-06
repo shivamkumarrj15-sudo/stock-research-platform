@@ -34,6 +34,7 @@ export const App: React.FC = () => {
 
         <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/nse-bse-terminal" element={<ProtectedRoute><NSEBSETerminal /></ProtectedRoute>} />
+        <Route path="/stock-terminal" element={<ProtectedRoute><NSEBSETerminal /></ProtectedRoute>} />
         <Route path="/propicks-ai" element={<ProtectedRoute><MomentumDividends /></ProtectedRoute>} />
         <Route path="/markets" element={<ProtectedRoute><MarketsPage /></ProtectedRoute>} />
         <Route path="/stocks/:ticker" element={<ProtectedRoute><StockProfile /></ProtectedRoute>} />
