@@ -398,41 +398,48 @@ class ProviderRegistry:
     @classmethod
     def market(cls) -> MarketDataProvider:
         if cls._market is None:
-            raise RuntimeError("ProviderRegistry not initialized. Call ProviderRegistry.initialize(settings) first.")
+            from app.providers.angel_one.smartapi_provider import AngelOneMarketDataProvider
+            cls._market = AngelOneMarketDataProvider()
         return cls._market
 
     @classmethod
     def fundamental(cls) -> FundamentalDataProvider:
         if cls._fundamental is None:
-            raise RuntimeError("ProviderRegistry not initialized.")
+            from app.providers.mock.mock_provider import MockFundamentalDataProvider
+            cls._fundamental = MockFundamentalDataProvider()
         return cls._fundamental
 
     @classmethod
     def news(cls) -> NewsProvider:
         if cls._news is None:
-            raise RuntimeError("ProviderRegistry not initialized.")
+            from app.providers.mock.mock_provider import MockNewsProvider
+            cls._news = MockNewsProvider()
         return cls._news
 
     @classmethod
     def economic(cls) -> EconomicDataProvider:
         if cls._economic is None:
-            raise RuntimeError("ProviderRegistry not initialized.")
+            from app.providers.mock.mock_provider import MockEconomicDataProvider
+            cls._economic = MockEconomicDataProvider()
         return cls._economic
 
     @classmethod
     def earnings(cls) -> EarningsProvider:
         if cls._earnings is None:
-            raise RuntimeError("ProviderRegistry not initialized.")
+            from app.providers.mock.mock_provider import MockEarningsProvider
+            cls._earnings = MockEarningsProvider()
         return cls._earnings
 
     @classmethod
     def dividend(cls) -> DividendProvider:
         if cls._dividend is None:
-            raise RuntimeError("ProviderRegistry not initialized.")
+            from app.providers.mock.mock_provider import MockDividendProvider
+            cls._dividend = MockDividendProvider()
         return cls._dividend
 
     @classmethod
     def analyst(cls) -> AnalystDataProvider:
         if cls._analyst is None:
-            raise RuntimeError("ProviderRegistry not initialized.")
+            from app.providers.mock.mock_provider import MockAnalystDataProvider
+            cls._analyst = MockAnalystDataProvider()
         return cls._analyst
