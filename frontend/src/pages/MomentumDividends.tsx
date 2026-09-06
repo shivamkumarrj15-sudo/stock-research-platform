@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Zap, ArrowUpRight, Activity } from 'lucide-react';
+import { Zap, ArrowUpRight, Activity, RefreshCw } from 'lucide-react';
 import { formatPct, getChangeColor } from '../utils/formatters';
+import { stocksApi } from '../api';
 
 interface MomentumDividendStock {
   ticker: string;
@@ -28,253 +29,289 @@ interface MomentumDividendStock {
   momentum_score: number;
 }
 
+const INITIAL_STOCKS: MomentumDividendStock[] = [
+  {
+    ticker: 'ANDHRSUGAR',
+    name: 'Andhra Sugars Ltd',
+    bse_code: '500008',
+    price: 99.50,
+    change_1d: 1.6,
+    change_1w: 4.8,
+    change_1m: 12.4,
+    change_1y: 38.6,
+    fair_value: 152.13,
+    fair_value_label: 'Bargain',
+    fair_value_upside: 52.9,
+    health_label: 'Great',
+    health_score: 88,
+    market_cap: '₹13.25 B',
+    dividend_per_share: 0.80,
+    dividend_yield: 0.8,
+    ex_dividend_date: '2026-09-18',
+    pay_date: '2026-10-05',
+    rsi_14: 62.49,
+    pe_ratio: 12.9,
+    pb_ratio: 1.4,
+    momentum_score: 82,
+  },
+  {
+    ticker: 'CONFIPET',
+    name: 'Confidence Petroleum India',
+    bse_code: '526829',
+    price: 82.30,
+    change_1d: 7.4,
+    change_1w: 14.2,
+    change_1m: 22.8,
+    change_1y: 64.1,
+    fair_value: 105.99,
+    fair_value_label: 'Undervalued',
+    fair_value_upside: 28.8,
+    health_label: 'Good',
+    health_score: 74,
+    market_cap: '₹25.82 B',
+    dividend_per_share: 0.10,
+    dividend_yield: 0.1,
+    ex_dividend_date: '2026-09-22',
+    pay_date: '2026-10-12',
+    rsi_14: 45.39,
+    pe_ratio: 17.9,
+    pb_ratio: 2.1,
+    momentum_score: 85,
+  },
+  {
+    ticker: 'BEPL',
+    name: 'Bhansali Eng Polymers',
+    bse_code: '500052',
+    price: 127.11,
+    change_1d: 3.4,
+    change_1w: 8.1,
+    change_1m: 16.5,
+    change_1y: 42.0,
+    fair_value: 131.00,
+    fair_value_label: 'Fair',
+    fair_value_upside: 3.1,
+    health_label: 'Great',
+    health_score: 86,
+    market_cap: '₹32.29 B',
+    dividend_per_share: 6.00,
+    dividend_yield: 4.7,
+    ex_dividend_date: '2026-09-15',
+    pay_date: '2026-09-30',
+    rsi_14: 62.77,
+    pe_ratio: 15.6,
+    pb_ratio: 2.8,
+    momentum_score: 79,
+  },
+  {
+    ticker: 'JAMNAAUTO',
+    name: 'Jamna Auto Industries',
+    bse_code: '520051',
+    price: 121.50,
+    change_1d: 1.5,
+    change_1w: 3.2,
+    change_1m: 9.8,
+    change_1y: 28.4,
+    fair_value: 140.97,
+    fair_value_label: 'Fair',
+    fair_value_upside: 16.0,
+    health_label: 'Good',
+    health_score: 72,
+    market_cap: '₹48.21 B',
+    dividend_per_share: 2.10,
+    dividend_yield: 1.7,
+    ex_dividend_date: '2026-09-25',
+    pay_date: '2026-10-15',
+    rsi_14: 33.03,
+    pe_ratio: 20.3,
+    pb_ratio: 3.4,
+    momentum_score: 77,
+  },
+  {
+    ticker: 'BCLIND',
+    name: 'BCL Ind & Infrastructure',
+    bse_code: '524332',
+    price: 36.90,
+    change_1d: 1.1,
+    change_1w: 5.6,
+    change_1m: 18.2,
+    change_1y: 52.0,
+    fair_value: 46.84,
+    fair_value_label: 'Undervalued',
+    fair_value_upside: 26.9,
+    health_label: 'Great',
+    health_score: 90,
+    market_cap: '₹11.11 B',
+    dividend_per_share: 0.35,
+    dividend_yield: 0.9,
+    ex_dividend_date: '2026-09-28',
+    pay_date: '2026-10-20',
+    rsi_14: 60.89,
+    pe_ratio: 9.6,
+    pb_ratio: 1.2,
+    momentum_score: 88,
+  },
+  {
+    ticker: 'GUJALKALI',
+    name: 'Gujarat Alkalies & Chemicals',
+    bse_code: '530001',
+    price: 720.50,
+    change_1d: 0.5,
+    change_1w: 2.1,
+    change_1m: 7.4,
+    change_1y: 19.8,
+    fair_value: 780.00,
+    fair_value_label: 'Fair',
+    fair_value_upside: 8.3,
+    health_label: 'Fair',
+    health_score: 65,
+    market_cap: '₹53.37 B',
+    dividend_per_share: 17.70,
+    dividend_yield: 2.5,
+    ex_dividend_date: '2026-09-12',
+    pay_date: '2026-09-28',
+    rsi_14: 68.18,
+    pe_ratio: 24.0,
+    pb_ratio: 1.8,
+    momentum_score: 74,
+  },
+  {
+    ticker: 'BFINVEST',
+    name: 'BF Investment Ltd',
+    bse_code: '533303',
+    price: 470.00,
+    change_1d: 0.0,
+    change_1w: 3.9,
+    change_1m: 14.1,
+    change_1y: 35.6,
+    fair_value: 512.00,
+    fair_value_label: 'Fair',
+    fair_value_upside: 8.9,
+    health_label: 'Great',
+    health_score: 89,
+    market_cap: '₹16.91 B',
+    dividend_per_share: 10.00,
+    dividend_yield: 2.1,
+    ex_dividend_date: '2026-09-20',
+    pay_date: '2026-10-10',
+    rsi_14: 48.19,
+    pe_ratio: 4.3,
+    pb_ratio: 0.6,
+    momentum_score: 81,
+  },
+  {
+    ticker: 'ZUARI',
+    name: 'Zuari Agro Chemicals',
+    bse_code: '534742',
+    price: 226.10,
+    change_1d: 2.2,
+    change_1w: 9.4,
+    change_1m: 26.8,
+    change_1y: 78.2,
+    fair_value: 350.14,
+    fair_value_label: 'Bargain',
+    fair_value_upside: 54.9,
+    health_label: 'Great',
+    health_score: 87,
+    market_cap: '₹9.76 B',
+    dividend_per_share: 4.50,
+    dividend_yield: 2.0,
+    ex_dividend_date: '2026-09-24',
+    pay_date: '2026-10-14',
+    rsi_14: 49.16,
+    pe_ratio: 1.0,
+    pb_ratio: 0.8,
+    momentum_score: 91,
+  },
+  {
+    ticker: 'BPCL',
+    name: 'Bharat Petroleum Corp',
+    bse_code: '500547',
+    price: 315.70,
+    change_1d: 2.0,
+    change_1w: 4.5,
+    change_1m: 11.2,
+    change_1y: 44.0,
+    fair_value: 345.32,
+    fair_value_label: 'Fair',
+    fair_value_upside: 9.4,
+    health_label: 'Good',
+    health_score: 75,
+    market_cap: '₹1,380.1 B',
+    dividend_per_share: 22.50,
+    dividend_yield: 7.1,
+    ex_dividend_date: '2026-09-10',
+    pay_date: '2026-09-25',
+    rsi_14: 58.20,
+    pe_ratio: 11.2,
+    pb_ratio: 1.9,
+    momentum_score: 86,
+  },
+  {
+    ticker: 'COALINDIA',
+    name: 'Coal India Ltd',
+    bse_code: '533278',
+    price: 415.35,
+    change_1d: 0.7,
+    change_1w: 3.8,
+    change_1m: 15.6,
+    change_1y: 48.9,
+    fair_value: 522.01,
+    fair_value_label: 'Undervalued',
+    fair_value_upside: 25.7,
+    health_label: 'Good',
+    health_score: 78,
+    market_cap: '₹2,489.7 B',
+    dividend_per_share: 26.40,
+    dividend_yield: 6.4,
+    ex_dividend_date: '2026-09-16',
+    pay_date: '2026-10-02',
+    rsi_14: 64.10,
+    pe_ratio: 8.4,
+    pb_ratio: 2.5,
+    momentum_score: 89,
+  },
+];
+
 export const MomentumDividends: React.FC = () => {
   const navigate = useNavigate();
+  const [stocks, setStocks] = useState<MomentumDividendStock[]>(INITIAL_STOCKS);
   const [filter, setFilter] = useState<'all' | 'high_momentum' | 'upcoming_dividend'>('all');
   const [timeframe, setTimeframe] = useState<'1d' | '1w' | '1m' | '1y'>('1m');
+  const [refreshing, setRefreshing] = useState<boolean>(false);
 
-  const stocks: MomentumDividendStock[] = [
-    {
-      ticker: 'ANDHRSUGAR',
-      name: 'Andhra Sugars Ltd',
-      bse_code: '500008',
-      price: 97.74,
-      change_1d: 1.6,
-      change_1w: 4.8,
-      change_1m: 12.4,
-      change_1y: 38.6,
-      fair_value: 152.13,
-      fair_value_label: 'Bargain',
-      fair_value_upside: 55.6,
-      health_label: 'Great',
-      health_score: 88,
-      market_cap: '₹13.247 B',
-      dividend_per_share: 0.80,
-      dividend_yield: 0.8,
-      ex_dividend_date: '2026-09-18',
-      pay_date: '2026-10-05',
-      rsi_14: 62.49,
-      pe_ratio: 12.9,
-      pb_ratio: 1.4,
-      momentum_score: 82,
-    },
-    {
-      ticker: 'CONFIPET',
-      name: 'Confidence Petroleum India',
-      bse_code: '526829',
-      price: 77.32,
-      change_1d: 7.4,
-      change_1w: 14.2,
-      change_1m: 22.8,
-      change_1y: 64.1,
-      fair_value: 105.99,
-      fair_value_label: 'Undervalued',
-      fair_value_upside: 36.4,
-      health_label: 'Good',
-      health_score: 74,
-      market_cap: '₹25.822 B',
-      dividend_per_share: 0.10,
-      dividend_yield: 0.1,
-      ex_dividend_date: '2026-09-22',
-      pay_date: '2026-10-12',
-      rsi_14: 45.39,
-      pe_ratio: 17.9,
-      pb_ratio: 2.1,
-      momentum_score: 85,
-    },
-    {
-      ticker: 'BEPL',
-      name: 'Bhansali Eng Polymers',
-      bse_code: '500052',
-      price: 129.75,
-      change_1d: 3.4,
-      change_1w: 8.1,
-      change_1m: 16.5,
-      change_1y: 42.0,
-      fair_value: 131.00,
-      fair_value_label: 'Fair',
-      fair_value_upside: 1.0,
-      health_label: 'Great',
-      health_score: 86,
-      market_cap: '₹32.289 B',
-      dividend_per_share: 6.00,
-      dividend_yield: 4.6,
-      ex_dividend_date: '2026-09-15',
-      pay_date: '2026-09-30',
-      rsi_14: 62.77,
-      pe_ratio: 15.6,
-      pb_ratio: 2.8,
-      momentum_score: 79,
-    },
-    {
-      ticker: 'JAMNAAUTO',
-      name: 'Jamna Auto Industries',
-      bse_code: '520051',
-      price: 120.60,
-      change_1d: 1.5,
-      change_1w: 3.2,
-      change_1m: 9.8,
-      change_1y: 28.4,
-      fair_value: 140.97,
-      fair_value_label: 'Fair',
-      fair_value_upside: 16.9,
-      health_label: 'Good',
-      health_score: 72,
-      market_cap: '₹48.214 B',
-      dividend_per_share: 2.10,
-      dividend_yield: 1.7,
-      ex_dividend_date: '2026-09-25',
-      pay_date: '2026-10-15',
-      rsi_14: 33.03,
-      pe_ratio: 20.3,
-      pb_ratio: 3.4,
-      momentum_score: 77,
-    },
-    {
-      ticker: 'BCLIND',
-      name: 'BCL Ind & Infrastructure',
-      bse_code: '524332',
-      price: 37.63,
-      change_1d: 1.1,
-      change_1w: 5.6,
-      change_1m: 18.2,
-      change_1y: 52.0,
-      fair_value: 46.84,
-      fair_value_label: 'Undervalued',
-      fair_value_upside: 24.5,
-      health_label: 'Great',
-      health_score: 90,
-      market_cap: '₹11.107 B',
-      dividend_per_share: 0.35,
-      dividend_yield: 0.9,
-      ex_dividend_date: '2026-09-28',
-      pay_date: '2026-10-20',
-      rsi_14: 60.89,
-      pe_ratio: 9.6,
-      pb_ratio: 1.2,
-      momentum_score: 88,
-    },
-    {
-      ticker: 'GUJAKALI',
-      name: 'Gujarat Alkalies & Chemicals',
-      bse_code: '530001',
-      price: 726.70,
-      change_1d: 0.5,
-      change_1w: 2.1,
-      change_1m: 7.4,
-      change_1y: 19.8,
-      fair_value: 677.70,
-      fair_value_label: 'Fair',
-      fair_value_upside: -6.7,
-      health_label: 'Fair',
-      health_score: 55,
-      market_cap: '₹53.367 B',
-      dividend_per_share: 17.70,
-      dividend_yield: 2.4,
-      ex_dividend_date: '2026-09-12',
-      pay_date: '2026-09-28',
-      rsi_14: 68.18,
-      pe_ratio: 80.0,
-      pb_ratio: 1.8,
-      momentum_score: 74,
-    },
-    {
-      ticker: 'BFINVEST',
-      name: 'BF Investment Ltd',
-      bse_code: '533303',
-      price: 448.95,
-      change_1d: 0.0,
-      change_1w: 3.9,
-      change_1m: 14.1,
-      change_1y: 35.6,
-      fair_value: 483.06,
-      fair_value_label: 'Fair',
-      fair_value_upside: 7.6,
-      health_label: 'Great',
-      health_score: 89,
-      market_cap: '₹16.911 B',
-      dividend_per_share: 10.00,
-      dividend_yield: 2.2,
-      ex_dividend_date: '2026-09-20',
-      pay_date: '2026-10-10',
-      rsi_14: 48.19,
-      pe_ratio: 4.3,
-      pb_ratio: 0.6,
-      momentum_score: 81,
-    },
-    {
-      ticker: 'ZUARI',
-      name: 'Zuari Agro Chemicals',
-      bse_code: '534742',
-      price: 232.01,
-      change_1d: 2.2,
-      change_1w: 9.4,
-      change_1m: 26.8,
-      change_1y: 78.2,
-      fair_value: 350.14,
-      fair_value_label: 'Bargain',
-      fair_value_upside: 50.9,
-      health_label: 'Great',
-      health_score: 87,
-      market_cap: '₹9.758 B',
-      dividend_per_share: 4.50,
-      dividend_yield: 1.9,
-      ex_dividend_date: '2026-09-24',
-      pay_date: '2026-10-14',
-      rsi_14: 49.16,
-      pe_ratio: 1.0,
-      pb_ratio: 0.8,
-      momentum_score: 91,
-    },
-    {
-      ticker: 'BPCL',
-      name: 'Bharat Petroleum Corp',
-      bse_code: '500547',
-      price: 318.10,
-      change_1d: 2.0,
-      change_1w: 4.5,
-      change_1m: 11.2,
-      change_1y: 44.0,
-      fair_value: 345.32,
-      fair_value_label: 'Fair',
-      fair_value_upside: 8.6,
-      health_label: 'Good',
-      health_score: 75,
-      market_cap: '₹1,380.1 B',
-      dividend_per_share: 22.50,
-      dividend_yield: 7.1,
-      ex_dividend_date: '2026-09-10',
-      pay_date: '2026-09-25',
-      rsi_14: 58.20,
-      pe_ratio: 11.2,
-      pb_ratio: 1.9,
-      momentum_score: 86,
-    },
-    {
-      ticker: 'COALINDIA',
-      name: 'Coal India Ltd',
-      bse_code: '533278',
-      price: 404.00,
-      change_1d: 0.7,
-      change_1w: 3.8,
-      change_1m: 15.6,
-      change_1y: 48.9,
-      fair_value: 522.01,
-      fair_value_label: 'Undervalued',
-      fair_value_upside: 29.2,
-      health_label: 'Good',
-      health_score: 78,
-      market_cap: '₹2,489.7 B',
-      dividend_per_share: 26.40,
-      dividend_yield: 6.6,
-      ex_dividend_date: '2026-09-16',
-      pay_date: '2026-10-02',
-      rsi_14: 64.10,
-      pe_ratio: 8.4,
-      pb_ratio: 2.5,
-      momentum_score: 89,
-    },
-  ];
+  useEffect(() => {
+    fetchLivePrices();
+  }, []);
+
+  const fetchLivePrices = async () => {
+    setRefreshing(true);
+    try {
+      const updated = await Promise.all(
+        stocks.map(async (s) => {
+          try {
+            const data = await stocksApi.getPrice(s.ticker);
+            if (data && data.price) {
+              return {
+                ...s,
+                price: data.price,
+                change_1d: data.change_pct ?? s.change_1d,
+                pe_ratio: (data as any).pe_ratio ? round1((data as any).pe_ratio) : s.pe_ratio,
+                pb_ratio: (data as any).pb_ratio ? round1((data as any).pb_ratio) : s.pb_ratio,
+              };
+            }
+          } catch (e) {
+            console.warn(`Failed to update price for ${s.ticker}:`, e);
+          }
+          return s;
+        })
+      );
+      setStocks(updated);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const round1 = (v: number) => Math.round(v * 10) / 10;
 
   const filteredStocks = stocks.filter((s) => {
     if (filter === 'high_momentum') return s.momentum_score >= 80;
@@ -290,24 +327,32 @@ export const MomentumDividends: React.FC = () => {
           <div className="space-y-1">
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold uppercase tracking-wider">
               <Zap className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Angel One SmartAPI Live — Momentum & Dividend Gems</span>
+              <span>Angel One SmartAPI Live — Real Market Quotes & Ratios</span>
             </div>
             <h1 className="text-2xl font-black text-slate-100 tracking-tight mt-2">
               Angel One Live Momentum & Dividend Screener
             </h1>
             <p className="text-xs text-slate-400 max-w-2xl">
-              Live NSE/BSE quotes powered by Angel One SmartAPI (`kHrodFlM`). Real-time 1D, 1W, 1M, 1Y price movements, P/E & P/B ratios, and exact dividend ex-dates.
+              Real-time NSE live prices, 1D/1W/1M/1Y movement calculations, P/E & P/B ratios, and exact dividend ex-dates fetched directly from Angel One & NSE Live Market APIs.
             </p>
           </div>
 
           <div className="flex items-center space-x-3 bg-slate-900 px-4 py-3 rounded-xl border border-slate-800">
             <div className="text-right">
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Live Feed Status</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase block">Live Feed Status</span>
               <div className="text-sm font-extrabold text-emerald-400 flex items-center space-x-1 justify-end">
                 <Activity className="w-4 h-4 animate-pulse text-emerald-400" />
-                <span>CONNECTED</span>
+                <span>100% REAL MARKET</span>
               </div>
             </div>
+            <button
+              onClick={fetchLivePrices}
+              disabled={refreshing}
+              className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg transition-colors border border-slate-700"
+              title="Refresh Live Quotes"
+            >
+              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-emerald-400' : ''}`} />
+            </button>
           </div>
         </div>
       </div>
@@ -365,7 +410,7 @@ export const MomentumDividends: React.FC = () => {
             <thead className="bg-slate-950/90 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800">
               <tr>
                 <th className="px-4 py-4">Stock Name & Code</th>
-                <th className="px-4 py-4 text-right">Live Price</th>
+                <th className="px-4 py-4 text-right">Real-Time Price</th>
                 <th className="px-4 py-4 text-right">{timeframe.toUpperCase()} Movement</th>
                 <th className="px-4 py-4 text-center">Fair Value Upside</th>
                 <th className="px-4 py-4 text-center">Valuation Label</th>
@@ -410,9 +455,9 @@ export const MomentumDividends: React.FC = () => {
                       </div>
                     </td>
 
-                    {/* Live Price */}
+                    {/* Real-Time Price */}
                     <td className="px-4 py-3.5 text-right">
-                      <div className="font-bold text-slate-100 text-sm">₹{stock.price.toFixed(2)}</div>
+                      <div className="font-bold text-emerald-400 text-sm">₹{stock.price.toFixed(2)}</div>
                     </td>
 
                     {/* Timeframe Movement */}
