@@ -16,7 +16,9 @@ import {
   PieChart,
   AlertTriangle,
   CheckCircle2,
-  Building2
+  Building2,
+  Briefcase,
+  TrendingDown
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { formatPct, getChangeColor } from '../utils/formatters';
@@ -29,8 +31,9 @@ import {
 } from '../api/liveMarketFetcher';
 
 export interface DetailedExplanation {
-  why_selected: string;
-  sector_analysis: string;
+  business_model: string;
+  future_demand_outlook: string;
+  why_invest: string;
   financial_health_summary: string;
   catalysts: string[];
   key_risks: string[];
@@ -94,9 +97,10 @@ const INITIAL_STOCKS: MomentumDividendStock[] = [
     momentum_score: 82,
     ai_recommendation_reason: 'Deep value bargain pricing with 52.9% Intrinsic Fair Value upside (₹152.13) and strong ethanol blend policy cash flows.',
     detailed_explanation: {
-      why_selected: 'Andhra Sugars was selected because it trades at an aggressive 52.9% discount to intrinsic fair value with low P/E multiple (12.9x). The government’s 20% ethanol blending mandate provides long-term revenue visibility and robust cash generation.',
-      sector_analysis: 'The Sugar & Bio-Ethanol sector is experiencing a multi-year structural re-rating. Ethanol blending quotas create guaranteed off-take contracts for sugar mills, insulating revenues from international sugar price volatility.',
-      financial_health_summary: 'Exceptional balance sheet health with a Piotroski Score of 8/9, minimal Debt-to-Equity (0.15), and high interest coverage ratio (18.2x). Free cash flow generation is at record highs.',
+      business_model: 'Andhra Sugars manufactures sugar, bio-ethanol, caustic soda, industrial chemicals, and liquid propellants. It operates an integrated sugar-to-chemical model where sugarcane bagasse powers co-generation power plants, and molasses feed high-margin ethanol distilleries supplying Oil Marketing Companies (OMCs).',
+      future_demand_outlook: 'FUTURE DEMAND WILL SURGE HIGHLY. The Government of India target of 20% EBP (Ethanol Blending Program) by 2025-26 guarantees 100% off-take of produced ethanol at fixed non-capping prices, completely removing revenue dependency on volatile retail sugar prices.',
+      why_invest: 'Bargain Valuation & High Safety Margin: Stock trades at a 52.9% discount to intrinsic fair value (₹152.13) with low P/E multiple (12.9x). Piotroski Health Score is 8/9 with minimal Debt-to-Equity (0.15) and zero promoter share pledge.',
+      financial_health_summary: 'Exceptional balance sheet health: Piotroski Score 8/9, Debt-to-Equity 0.15, Interest Coverage 18.2x, and ROIC 19.4%. Operating cash flow covers debt obligations over 4.5x.',
       catalysts: ['Ethanol blending quota allocation boost', 'Recovery in Caustic Soda realization prices', 'Zero promoter share pledge'],
       key_risks: ['Sugarcane crop yield sensitivity to monsoon', 'Government price regulation on sugar sales'],
     },
@@ -129,9 +133,10 @@ const INITIAL_STOCKS: MomentumDividendStock[] = [
     momentum_score: 85,
     ai_recommendation_reason: 'High relative strength price momentum (+22.8% 1-Month) driven by rapid Auto-LPG station expansion and high cylinder turnover.',
     detailed_explanation: {
-      why_selected: 'Confidence Petroleum was selected due to strong price momentum (+22.8% 1-Month surge) and rapid expansion of its Auto-LPG dispensing station network across tier-2/3 Indian cities.',
-      sector_analysis: 'Clean auto fuel infrastructure in India is seeing surging demand as commercial vehicles switch away from diesel toward cheaper LPG and CNG alternatives.',
-      financial_health_summary: 'Healthy revenue CAGR of 18.4%, moderate Debt-to-Equity ratio (0.42), and improving EBITDA margins reaching 14.2%.',
+      business_model: 'Confidence Petroleum is India’s largest private sector Auto-LPG dispensing station operator (under GoGas brand) and LPG cylinder manufacturer. Revenue comes from retail Auto-LPG sales to commercial vehicles and B2B cylinder sales to PSU oil giants (IOCL, BPCL, HPCL).',
+      future_demand_outlook: 'STRONG MULTI-YEAR DEMAND GROWTH. As petrol and diesel prices remain high, commercial auto-rickshaws and delivery fleets are aggressively switching to Auto-LPG and CNG, driving double-digit volume growth in tier-2 and tier-3 cities.',
+      why_invest: 'High Relative Price Momentum (+22.8% 1-Month) combined with 28.8% intrinsic fair value upside (Target ₹105.99). Network expanding to 250+ dispensing stations with high institutional DII/FII buying interest.',
+      financial_health_summary: 'Revenue CAGR 18.4%, Debt-to-Equity 0.42, EBITDA margin expanding to 14.2%, and strong operational cash generation.',
       catalysts: ['Network expansion to 250+ LPG dispensing units', 'High turnover in LPG cylinder manufacturing division', 'FII institutional holding accumulation'],
       key_risks: ['Global Saudi CP LPG price fluctuations', 'EV adoption in commercial taxi fleets'],
     },
@@ -164,9 +169,10 @@ const INITIAL_STOCKS: MomentumDividendStock[] = [
     momentum_score: 79,
     ai_recommendation_reason: 'Lucrative 4.7% Dividend Yield with 100% cash-backed payout and zero long-term debt balance sheet.',
     detailed_explanation: {
-      why_selected: 'BEPL offers an attractive 4.7% dividend yield backed by a 100% zero-debt balance sheet and industry-leading Return on Capital Employed (ROIC 34.2%).',
-      sector_analysis: 'ABS polymers are essential engineering plastics used in automobiles, consumer electronics, and appliances, benefiting directly from domestic manufacturing growth.',
-      financial_health_summary: 'Zero Long-Term Debt, Piotroski Score 8/9, Free Cash Flow Yield 6.8%, and strong cash reserves.',
+      business_model: 'Bhansali Engineering Polymers (BEPL) manufactures ABS (Acrylonitrile Butadiene Styrene) and SAN resins. ABS is an essential high-impact engineering plastic supplied directly to automotive OEMs, consumer electronics, and home appliance manufacturers.',
+      future_demand_outlook: 'SUSTAINED DEMAND INCREASE. Rising Indian domestic manufacturing under PLI schemes for electronics, white goods, and automotive production is driving a 9-11% annual increase in ABS demand.',
+      why_invest: 'Zero Long-Term Debt Company offering a lucrative 4.7% cash dividend yield, industry-leading Return on Capital Employed (ROIC 34.2%), and 100% cash-backed dividend payout coverage.',
+      financial_health_summary: 'Zero debt, Piotroski Score 8/9, Free Cash Flow Yield 6.8%, and strong unencumbered cash reserves exceeding ₹400 Cr.',
       catalysts: ['Capacity expansion to 150,000 MTPA', 'Automotive sector production revival', 'High dividend payout policy'],
       key_risks: ['Acrylonitrile raw material cost spikes', 'Import competition from foreign chemical manufacturers'],
     },
@@ -199,9 +205,10 @@ const INITIAL_STOCKS: MomentumDividendStock[] = [
     momentum_score: 77,
     ai_recommendation_reason: 'Market leader in Commercial Vehicle suspension springs benefiting from domestic CV volume recovery cycle.',
     detailed_explanation: {
-      why_selected: 'Jamna Auto holds a commanding 68% OEM market share in commercial vehicle leaf and parabolic springs in India, capturing high cash flow as CV sales rise.',
-      sector_analysis: 'India’s national infrastructure spending and highway expansion drive continuous replacement demand for heavy commercial vehicles.',
-      financial_health_summary: 'ROE 24.1%, Interest Coverage 14.2x, low financial leverage, and consistent operational cash generation.',
+      business_model: 'Jamna Auto Industries is India’s largest manufacturer of tapered leaf springs, parabolic springs, and air suspension systems for commercial vehicles. It supplies directly to Tata Motors, Ashok Leyland, Eicher Motors, and BharatBenz.',
+      future_demand_outlook: 'HIGH STRUCTURAL DEMAND. Government infrastructure expenditure (roads, mining, freight corridors) requires continuous addition and replacement of heavy commercial vehicles, driving high OEM and aftermarket spring replacement demand.',
+      why_invest: 'Monopoly-like 68% OEM market share in India, high Return on Equity (24.1%), strong interest coverage (14.2x), and expanding high-margin aftermarket distribution network.',
+      financial_health_summary: 'ROE 24.1%, Interest Coverage 14.2x, low financial leverage, and consistent annual operational cash flow.',
       catalysts: ['National infrastructure expenditure rollout', 'Aftermarket expansion for replacement springs', 'Air suspension adoption'],
       key_risks: ['Commercial vehicle fleet sales cyclicality', 'Steel input price inflation'],
     },
@@ -234,9 +241,10 @@ const INITIAL_STOCKS: MomentumDividendStock[] = [
     momentum_score: 88,
     ai_recommendation_reason: 'Perfect Piotroski Score 9/9 rating with single-digit P/E multiple (9.6x) and doubling ethanol distillery capacity.',
     detailed_explanation: {
-      why_selected: 'BCL Industries boasts a flawless Piotroski 9/9 financial health rating while trading at a discount P/E of just 9.6x amidst rapid ethanol plant expansion.',
-      sector_analysis: 'Grain-based ethanol distilleries benefit from dual feedstocks (maize and damaged rice) and fixed OMC purchase pricing guarantees.',
-      financial_health_summary: 'Piotroski Score 9/9, ROE 21.8%, strong asset turnover ratio, and comfortable interest coverage (8.5x).',
+      business_model: 'BCL Industries operates grain-based ethanol distilleries and edible oil refining plants. It processes broken rice and maize into bio-ethanol supplied under long-term tender contracts to state OMCs.',
+      future_demand_outlook: 'HIGH GUARANTEED DEMAND. India’s transition to E20 (20% ethanol blended fuel) requires grain-based ethanol capacity expansion, ensuring BCL operates at 100%+ capacity utilization.',
+      why_invest: 'Flawless Piotroski 9/9 Financial Health Score while trading at a bargain single-digit P/E multiple of 9.6x. Doubling distillery capacity to 700 KLPD provides strong earnings visibility.',
+      financial_health_summary: 'Perfect Piotroski Score 9/9, ROE 21.8%, strong asset turnover ratio, and comfortable interest coverage (8.5x).',
       catalysts: ['Commissioning of 200 KLPD Kharagpur distillery', 'Edible oil margin recovery', 'De-leveraging timeline'],
       key_risks: ['Maize and broken rice grain price spikes', 'Import duty changes on crude palm oil'],
     },
@@ -269,9 +277,10 @@ const INITIAL_STOCKS: MomentumDividendStock[] = [
     momentum_score: 74,
     ai_recommendation_reason: 'Gujarat State PSU chemical leader with consistent ₹17.70/share cash dividend payouts.',
     detailed_explanation: {
-      why_selected: 'Gujarat Alkalies is a premier state government PSU chemical manufacturer offering high asset quality, reliable cash dividends (₹17.70/share), and recovering Caustic Soda realization margins.',
-      sector_analysis: 'Chlor-Alkali chemicals form the foundational building blocks for textiles, paper, alumina, and water treatment industries in India.',
-      financial_health_summary: 'Book Value ₹405/share, low leverage, strong credit rating, and reliable cash generation backed by Gujarat state promoter.',
+      business_model: 'Gujarat Alkalies & Chemicals (GACL) is a leading Chlor-Alkali chemical producer backed by the Gujarat state government. It manufactures caustic soda, chlorine, hydrogen peroxide, and specialty chemical derivatives.',
+      future_demand_outlook: 'STEADY LONG-TERM DEMAND. Caustic soda and chlorine are indispensable inputs for textiles, paper, alumina, pharmaceuticals, and water purification industries across India.',
+      why_invest: 'State PSU backing, robust balance sheet, ₹405/share book value, and a track record of paying high annual cash dividends (₹17.70/share).',
+      financial_health_summary: 'Low leverage, high credit rating, strong asset backing, and consistent operating cash flow supported by Gujarat state government ownership.',
       catalysts: ['Hydrazine Hydrate plant commercialization', 'Caustic soda price realization recovery', 'Consistent annual cash dividends'],
       key_risks: ['Power cost fluctuations (chlor-alkali power intensive)', 'Global chemical dumping'],
     },
@@ -304,9 +313,10 @@ const INITIAL_STOCKS: MomentumDividendStock[] = [
     momentum_score: 81,
     ai_recommendation_reason: 'Kalyani Group holding company trading at huge discount to underlying asset value with P/E of just 4.3x.',
     detailed_explanation: {
-      why_selected: 'BF Investment is a deep value holding company of the Kalyani Group (Bharat Forge) trading at a 70%+ discount to net asset value (NAV) with a P/E ratio of just 4.3x.',
-      sector_analysis: 'Holding company discounts narrow when group operating subsidiaries undergo rapid earnings expansion in defense, aerospace, and heavy engineering exports.',
-      financial_health_summary: 'Zero long-term debt, P/B ratio 0.6x, low earnings multiple, and pristine group balance sheet.',
+      business_model: 'BF Investment is a holding company of the Kalyani Group holding significant equity stakes in Bharat Forge, Automotive Axles, and Kalyani Steels.',
+      future_demand_outlook: 'HIGH INDIRECT GROWTH. Operating subsidiaries like Bharat Forge are experiencing massive order wins in defense equipment, artillery guns, and aerospace exports.',
+      why_invest: 'Deep value asset discount: Stock trades at a 70%+ discount to its net asset value (NAV) with a P/E multiple of just 4.3x and P/B of 0.6x.',
+      financial_health_summary: 'Zero debt, pristine group balance sheet, low P/E 4.3x, and high book value backing.',
       catalysts: ['Value unlocking via group corporate restructuring', 'Bharat Forge defense export order book growth', 'Promoter stake consolidation'],
       key_risks: ['Holding company discount persistence', 'Low liquidity in equity shares'],
     },
@@ -339,9 +349,10 @@ const INITIAL_STOCKS: MomentumDividendStock[] = [
     momentum_score: 91,
     ai_recommendation_reason: 'Highest momentum score (91/100) with 54.9% intrinsic valuation upside and debt monetization catalysts.',
     detailed_explanation: {
-      why_selected: 'Zuari Agro Chemicals scored the highest momentum rating (91/100) with 54.9% intrinsic fair value upside (Fair Value ₹350.14) driven by monetization of non-core land assets.',
-      sector_analysis: 'Monsoon recovery and direct fertilizer subsidy disbursements from the government strengthen cash-flows for phosphatic fertilizer producers.',
-      financial_health_summary: 'Rapid balance sheet deleveraging through non-core Goa land bank asset sales and Paradeep Phosphates JV monetization.',
+      business_model: 'Zuari Agro Chemicals produces complex NPK/DAP fertilizers and agrochemicals. It distributes crop nutrients to millions of Indian farmers through an extensive dealer network.',
+      future_demand_outlook: 'HIGH DEMAND. Healthy monsoons and direct government fertilizer subsidy disbursements ensure high volume off-take for phosphatic fertilizers.',
+      why_invest: 'Highest momentum rating (91/100) with 54.9% intrinsic fair value upside (Fair Value ₹350.14). Rapid debt reduction via non-core land bank asset monetization.',
+      financial_health_summary: 'Significant balance sheet deleveraging, low P/E multiple (1.0x asset discount), and strong turnaround in subsidiary Paradeep Phosphates.',
       catalysts: ['Monetization of non-core land bank assets', 'Government fertilizer subsidy release', 'P/E multiple 1.0x asset discount'],
       key_risks: ['Raw material (Phosphoric Acid) import cost volatility', 'Monsoon rainfall spatial distribution'],
     },
@@ -374,8 +385,9 @@ const INITIAL_STOCKS: MomentumDividendStock[] = [
     momentum_score: 86,
     ai_recommendation_reason: 'High yield dividend champion (7.1% yield) backed by stable refining margins and robust retail fuel sales.',
     detailed_explanation: {
-      why_selected: 'BPCL is a premier PSU dividend champion delivering a 7.1% annual cash yield supported by stable refining margins and nationwide retail petrol pump sales.',
-      sector_analysis: 'Downstream oil refining and marketing in India is driven by growing transportation fuel demand and petrochemical integration.',
+      business_model: 'BPCL is a Maharatna PSU operating major oil refineries in Mumbai, Kochi, and Bina, alongside a nationwide network of 21,000+ retail fuel stations and LPG distribution outlets.',
+      future_demand_outlook: 'STEADY DEMAND. Growing Indian economic activity and highway vehicle movement drive robust petrol, diesel, and aviation turbine fuel (ATF) consumption.',
+      why_invest: 'High-yield PSU dividend champion delivering 7.1% annual cash yield, supported by stable marketing margins and reasonable P/E valuation (11.2x).',
       financial_health_summary: 'P/E 11.2x, strong free cash flow generation, high return on capital, and consistent PSU cash distribution policy.',
       catalysts: ['7.1% Cash Dividend Yield', 'Green Hydrogen & EV charging station network', 'Stable marketing margins'],
       key_risks: ['Crude oil price spikes (> $95/bbl)', 'Government retail fuel price ceiling intervention'],
@@ -409,9 +421,10 @@ const INITIAL_STOCKS: MomentumDividendStock[] = [
     momentum_score: 89,
     ai_recommendation_reason: 'Monopoly coal producer generating massive FCF with 6.4% dividend yield and robust power demand growth.',
     detailed_explanation: {
-      why_selected: 'Coal India operates as a near-monopoly producing over 80% of India’s thermal coal, generating immense free cash flow and delivering a 6.4% cash dividend yield.',
-      sector_analysis: 'Coal supplies over 70% of India’s electricity base load generation, ensuring long-term volume off-take agreements with thermal power plants.',
-      financial_health_summary: 'Massive cash reserve balance sheet, low P/E ratio (8.4x), Piotroski Score 8/9, and generous dividend distribution policy.',
+      business_model: 'Coal India is the world’s largest coal miner, producing 80%+ of India’s domestic coal. It supplies thermal power stations, steel plants, and cement manufacturers under long-term Fuel Supply Agreements (FSA).',
+      future_demand_outlook: 'HIGH BASELOAD POWER DEMAND. Coal provides 70%+ of India’s power grid baseload. Rising industrial electricity consumption ensures high annual coal dispatch targets.',
+      why_invest: 'Near-monopoly market position, low P/E multiple (8.4x), immense cash reserves, and 6.4% annual cash dividend yield.',
+      financial_health_summary: 'Piotroski Score 8/9, low P/E 8.4x, massive cash reserves, and generous cash dividend distribution policy.',
       catalysts: ['Record annual coal production & dispatch targets', '6.4% Cash Dividend Yield', 'E-auction premium realization gains'],
       key_risks: ['Pace of renewable energy transition', 'Monsoon flooding at open-cast mining sites'],
     },
@@ -978,7 +991,7 @@ export const MomentumDividends: React.FC = () => {
                     <span className="text-xs text-purple-400 font-mono font-bold">{selectedStockForReason.ticker}</span>
                     <span className="text-slate-600">•</span>
                     <span className="px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-500/30 text-[10px] font-bold">
-                      Sector: {selectedStockForReason.sector}
+                      Sector: {selectedStockForReason.sector} ({selectedStockForReason.industry})
                     </span>
                   </div>
                 </div>
@@ -1054,43 +1067,54 @@ export const MomentumDividends: React.FC = () => {
               </div>
             </div>
 
-            {/* Detailed Explanation Sections */}
-            {/* 1. Kyu Liya? (Detailed AI Thesis) */}
-            <div className="bg-slate-950 border border-purple-500/30 p-4 rounded-xl space-y-2">
+            {/* Comprehensive Deep-Dive Analysis Sections */}
+            {/* 1. Business Model */}
+            <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-2">
               <div className="flex items-center space-x-2 text-purple-400 font-bold text-xs uppercase tracking-wider">
-                <CheckCircle2 className="w-4 h-4 text-purple-400" />
-                <span>🎯 Kyu Liya? (Detailed AI Investment Thesis)</span>
+                <Briefcase className="w-4 h-4 text-purple-400" />
+                <span>🏢 1. Business Model (Company Kaise Paisa Kamati Hai)</span>
               </div>
               <p className="text-xs text-slate-200 leading-relaxed font-medium">
-                {selectedStockForReason.detailed_explanation.why_selected}
+                {selectedStockForReason.detailed_explanation.business_model}
               </p>
             </div>
 
-            {/* 2. Sector & Industry Analysis */}
+            {/* 2. Future Demand Outlook */}
             <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-2">
               <div className="flex items-center space-x-2 text-emerald-400 font-bold text-xs uppercase tracking-wider">
-                <Building2 className="w-4 h-4 text-emerald-400" />
-                <span>🏢 Sector & Industry Analysis ({selectedStockForReason.sector})</span>
+                <TrendingUp className="w-4 h-4 text-emerald-400" />
+                <span>🚀 2. Future Demand Outlook (Future Me Demand Badhegi Ya Nahi & Kyu)</span>
               </div>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                {selectedStockForReason.detailed_explanation.sector_analysis}
+              <p className="text-xs text-slate-200 leading-relaxed font-medium">
+                {selectedStockForReason.detailed_explanation.future_demand_outlook}
               </p>
             </div>
 
-            {/* 3. Financial Health & Ratio Analysis */}
+            {/* 3. Why Invest in This Stock? */}
+            <div className="bg-slate-950 border border-purple-500/30 p-4 rounded-xl space-y-2">
+              <div className="flex items-center space-x-2 text-purple-300 font-bold text-xs uppercase tracking-wider">
+                <CheckCircle2 className="w-4 h-4 text-purple-400" />
+                <span>💡 3. Why Invest in This Stock? (Isme Invest Kyu Karein)</span>
+              </div>
+              <p className="text-xs text-slate-200 leading-relaxed font-medium">
+                {selectedStockForReason.detailed_explanation.why_invest}
+              </p>
+            </div>
+
+            {/* 4. Financial Health & Ratio Analysis */}
             <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-2">
               <div className="flex items-center space-x-2 text-blue-400 font-bold text-xs uppercase tracking-wider">
                 <ShieldCheck className="w-4 h-4 text-blue-400" />
-                <span>📊 Financial Health & Balance Sheet Summary</span>
+                <span>📊 4. Financial Health & Ratio Analysis</span>
               </div>
               <p className="text-xs text-slate-300 leading-relaxed">
                 {selectedStockForReason.detailed_explanation.financial_health_summary}
               </p>
             </div>
 
-            {/* 4. Key Growth Catalysts */}
+            {/* 5. Key Growth Catalysts */}
             <div className="space-y-2">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">🚀 Key Growth Catalysts</span>
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">🚀 5. Key Growth Catalysts</span>
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {selectedStockForReason.detailed_explanation.catalysts.map((cat, idx) => (
                   <li key={idx} className="bg-slate-950 border border-slate-800 p-2.5 rounded-lg flex items-start space-x-2 text-xs text-slate-300">
@@ -1101,9 +1125,9 @@ export const MomentumDividends: React.FC = () => {
               </ul>
             </div>
 
-            {/* 5. Key Risk Factors */}
+            {/* 6. Key Risk Factors */}
             <div className="space-y-2">
-              <span className="text-xs font-bold text-rose-400 uppercase tracking-wider block">⚠️ Key Risk Factors & Watch Items</span>
+              <span className="text-xs font-bold text-rose-400 uppercase tracking-wider block">⚠️ 6. Key Risk Factors & Watch Items</span>
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {selectedStockForReason.detailed_explanation.key_risks.map((risk, idx) => (
                   <li key={idx} className="bg-slate-950 border border-rose-500/20 p-2.5 rounded-lg flex items-start space-x-2 text-xs text-rose-300">
