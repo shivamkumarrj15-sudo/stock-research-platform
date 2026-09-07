@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   TrendingUp,
   TrendingDown,
@@ -18,12 +18,16 @@ import {
   Download,
   Info,
   Building,
-  Check
+  Check,
+  Activity,
+  RefreshCw
 } from 'lucide-react';
 import {
   INVESTING_PRO_PORTFOLIO,
   PortfolioStockItem
 } from '../../data/investingProPortfolioData';
+import { resolveSymbolAndQuote } from '../../api/liveMarketFetcher';
+import { stocksApi } from '../../api';
 
 interface InvestingProPortfolioTableProps {
   onSelectStockForReturn?: (ticker: string) => void;
@@ -40,6 +44,70 @@ export const InvestingProPortfolioTable: React.FC<InvestingProPortfolioTableProp
   const [selectedTickers, setSelectedTickers] = useState<Set<string>>(new Set());
   const [sortField, setSortField] = useState<keyof PortfolioStockItem>('fair_value_upside_pct');
   const [sortAsc, setSortAsc] = useState<boolean>(false);
+  const [flashMap, setFlashMap] = useState<Record<string, 'up' | 'down'>>({});
+  const [lastRefreshedTime, setLastRefreshedTime] = useState<string>(new Date().toLocaleTimeString());
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+
+  // Live Auto-Refresh every 5 seconds (Angel One SmartAPI / Live Market Feed)
+  useEffect(() => {
+    const refreshTablePrices = async () => {
+      setIsRefreshing(true);
+      try {
+        const updated = await Promise.all(
+          stocks.map(async (stk) => {
+            try {
+              let p = stk.price;
+              let ch1d = stk.change_1d;
+              try {
+                const res = await stocksApi.getPrice(stk.ticker);
+                if (res && res.price > 0) {
+                  p = res.price;
+                  ch1d = res.change_pct ?? ch1d;
+                }
+              } catch (e) {
+                const live = await resolveSymbolAndQuote(stk.ticker);
+                if (live && live.price > 0) {
+                  p = live.price;
+                  ch1d = live.change_pct ?? ch1d;
+                }
+              }
+
+              let dir: 'up' | 'down' | null = null;
+              if (p > stk.price) dir = 'up';
+              else if (p < stk.price) dir = 'down';
+
+              if (dir) {
+                setFlashMap((prev) => ({ ...prev, [stk.ticker]: dir }));
+                setTimeout(() => {
+                  setFlashMap((prev) => ({ ...prev, [stk.ticker]: undefined as any }));
+                }, 1800);
+              }
+
+              const fvUpside = stk.fair_value_price > 0 ? Math.round(((stk.fair_value_price - p) / p) * 1000) / 10 : stk.fair_value_upside_pct;
+              const fvGauge = Math.min(100, Math.max(5, Math.round(50 + fvUpside * 1.1)));
+
+              return {
+                ...stk,
+                price: p,
+                change_1d: ch1d,
+                fair_value_upside_pct: fvUpside,
+                fair_value_gauge_pct: fvGauge,
+              };
+            } catch (err) {
+              return stk;
+            }
+          })
+        );
+        setStocks(updated);
+        setLastRefreshedTime(new Date().toLocaleTimeString());
+      } finally {
+        setIsRefreshing(false);
+      }
+    };
+
+    const interval = setInterval(refreshTablePrices, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Filter logic
   const filteredStocks = stocks.filter((stk) => {
@@ -134,12 +202,16 @@ export const InvestingProPortfolioTable: React.FC<InvestingProPortfolioTableProp
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 border-b border-slate-800 pb-4">
         <div className="space-y-1">
           <div className="flex items-center space-x-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></div>
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
             <h2 className="text-xl font-black text-slate-100 tracking-tight">
               InvestingPro Portfolio Holdings & Valuation Multiples
             </h2>
             <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold">
               {sortedStocks.length} Equities
+            </span>
+            <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-mono font-bold">
+              <Activity className="w-3 h-3 animate-spin text-emerald-400" />
+              <span>Live Auto-Stream {lastRefreshedTime}</span>
             </span>
           </div>
           <p className="text-xs text-slate-400">
@@ -333,13 +405,29 @@ export const InvestingProPortfolioTable: React.FC<InvestingProPortfolioTableProp
                     </div>
                   </td>
 
-                  {/* Current Price */}
-                  <td className="px-3 py-3 text-right font-mono font-bold text-slate-100">
+                  {/* Current Price with Live Flash */}
+                  <td
+                    className={`px-3 py-3 text-right font-mono font-bold transition-all duration-300 ${
+                      flashMap[stock.ticker] === 'up'
+                        ? 'bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/40'
+                        : flashMap[stock.ticker] === 'down'
+                        ? 'bg-rose-500/20 text-rose-300 ring-1 ring-rose-500/40'
+                        : 'text-slate-100'
+                    }`}
+                  >
                     ₹{stock.price >= 1000 ? stock.price.toLocaleString() : stock.price.toFixed(2)}
                   </td>
 
                   {/* 1D Change % */}
-                  <td className="px-3 py-3 text-center font-mono">
+                  <td
+                    className={`px-3 py-3 text-center font-mono transition-all duration-300 ${
+                      flashMap[stock.ticker] === 'up'
+                        ? 'bg-emerald-500/20'
+                        : flashMap[stock.ticker] === 'down'
+                        ? 'bg-rose-500/20'
+                        : ''
+                    }`}
+                  >
                     <span
                       className={`inline-flex items-center font-bold text-[11px] ${
                         isPositive1D ? 'text-emerald-400' : 'text-rose-400'

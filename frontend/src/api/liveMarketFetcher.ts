@@ -36,8 +36,25 @@ export interface SymbolSearchResult {
   type: string;
 }
 
+export interface AngelOneCredentials {
+  apiKey: string;
+  clientCode: string;
+  mpin: string;
+  totpSecret: string;
+  jwtToken?: string;
+  isConnected: boolean;
+  lastConnectedAt?: string;
+}
+
+// Proxies for high-availability live data
+const CORS_PROXIES = [
+  (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  (url: string) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+  (url: string) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+];
+
 // Helper with strict timeout
-async function fetchWithTimeout(url: string, ms = 2200): Promise<Response> {
+async function fetchWithTimeout(url: string, ms = 2500): Promise<Response> {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), ms);
   try {
@@ -48,6 +65,29 @@ async function fetchWithTimeout(url: string, ms = 2200): Promise<Response> {
     clearTimeout(id);
     throw err;
   }
+}
+
+// Angel One Local Storage Key
+const ANGEL_ONE_STORAGE_KEY = 'angelone_smartapi_config_v1';
+
+export function getSavedAngelOneCredentials(): AngelOneCredentials {
+  try {
+    const saved = localStorage.getItem(ANGEL_ONE_STORAGE_KEY);
+    if (saved) return JSON.parse(saved);
+  } catch (e) {}
+  return {
+    apiKey: 'kHrodFlM',
+    clientCode: '',
+    mpin: '',
+    totpSecret: '',
+    isConnected: false,
+  };
+}
+
+export function saveAngelOneCredentials(creds: AngelOneCredentials) {
+  try {
+    localStorage.setItem(ANGEL_ONE_STORAGE_KEY, JSON.stringify(creds));
+  } catch (e) {}
 }
 
 export async function searchLiveSymbols(query: string): Promise<SymbolSearchResult[]> {
@@ -206,8 +246,9 @@ export async function fetchLiveMarketQuote(ticker: string): Promise<LiveQuoteRes
   for (const symbol of symbolsToTry) {
     const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1mo`;
 
+    // 1. Direct fetch
     try {
-      const res = await fetchWithTimeout(targetUrl, 2000);
+      const res = await fetchWithTimeout(targetUrl, 1800);
       if (res.ok) {
         const json = await res.json();
         const parsed = parseYahooChartJson(cleanTicker, symbol, json, dirStock);
@@ -215,18 +256,21 @@ export async function fetchLiveMarketQuote(ticker: string): Promise<LiveQuoteRes
       }
     } catch (e) {}
 
-    try {
-      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
-      const res = await fetchWithTimeout(proxyUrl, 2200);
-      if (res.ok) {
-        const json = await res.json();
-        const parsed = parseYahooChartJson(cleanTicker, symbol, json, dirStock);
-        if (parsed && parsed.price > 0) return parsed;
-      }
-    } catch (e) {}
+    // 2. High-availability CORS proxies
+    for (const proxyFn of CORS_PROXIES) {
+      try {
+        const proxyUrl = proxyFn(targetUrl);
+        const res = await fetchWithTimeout(proxyUrl, 2000);
+        if (res.ok) {
+          const json = await res.json();
+          const parsed = parseYahooChartJson(cleanTicker, symbol, json, dirStock);
+          if (parsed && parsed.price > 0) return parsed;
+        }
+      } catch (e) {}
+    }
   }
 
-  // Instant directory fallback if network is slow/offline
+  // Instant directory fallback if network is slow/offline with active micro-session variance
   if (dirStock) {
     return {
       ticker: dirStock.ticker,
@@ -257,6 +301,19 @@ export async function fetchLiveMarketQuote(ticker: string): Promise<LiveQuoteRes
   }
 
   return null;
+}
+
+export async function fetchBatchLiveQuotes(tickers: string[]): Promise<Record<string, LiveQuoteResult>> {
+  const results: Record<string, LiveQuoteResult> = {};
+  await Promise.all(
+    tickers.map(async (t) => {
+      try {
+        const q = await resolveSymbolAndQuote(t);
+        if (q) results[t.toUpperCase().replace('.NS', '').replace('.BO', '')] = q;
+      } catch (e) {}
+    })
+  );
+  return results;
 }
 
 export async function resolveSymbolAndQuote(query: string): Promise<LiveQuoteResult | null> {

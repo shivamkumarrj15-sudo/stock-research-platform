@@ -57,6 +57,29 @@ async def get_stock_price(ticker: str):
     price["is_demo_data"] = False
     return price
 
+@router.post("/angelone/login")
+async def login_angel_one(payload: dict):
+    market_prov = get_market()
+    if hasattr(market_prov, "authenticate"):
+        res = await market_prov.authenticate(
+            client_code=payload.get("client_code"),
+            password_or_pin=payload.get("password_or_pin") or payload.get("mpin"),
+            totp_code_or_secret=payload.get("totp") or payload.get("totp_secret"),
+        )
+        return res
+    return {"success": False, "message": "Angel One provider not active"}
+
+@router.get("/angelone/status")
+async def get_angel_one_status():
+    market_prov = get_market()
+    if hasattr(market_prov, "get_connection_status"):
+        return await market_prov.get_connection_status()
+    return {
+        "provider": "LIVE_MARKET_STREAM",
+        "is_authenticated": False,
+        "fallback_live_market_active": True
+    }
+
 @router.get("/stocks/{ticker}/crypto-integrity")
 async def get_crypto_integrity(ticker: str):
     import hashlib
