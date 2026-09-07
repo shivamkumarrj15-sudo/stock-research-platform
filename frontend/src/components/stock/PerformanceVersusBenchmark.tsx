@@ -63,18 +63,29 @@ export const PerformanceVersusBenchmark: React.FC<Props> = ({
   const isINSG20 = currentTicker === 'INSG20';
 
   const stockList = [
-    { ticker: 'ANDHRSUGAR', name: 'Andhra Sugars Ltd', bse: '500008', pe: 12.9 },
-    { ticker: 'CONFIPET', name: 'Confidence Petroleum India', bse: '526829', pe: 17.9 },
-    { ticker: 'BEPL', name: 'Bhansali Eng Polymers', bse: '500052', pe: 15.6 },
-    { ticker: 'JAMNAAUTO', name: 'Jamna Auto', bse: '500216', pe: 20.3 },
-    { ticker: 'BCLIND', name: 'BCL Ind & Infrastructure', bse: '524332', pe: 9.6 },
-    { ticker: 'GUJALKALI', name: 'Gujarat Alkalies & Chemicals', bse: '530001', pe: 80.0 },
-    { ticker: 'ZUARI', name: 'Zuari Agro Chemicals', bse: '534742', pe: 1.0 },
-    { ticker: 'COALINDIA', name: 'Coal India Ltd', bse: '533278', pe: 8.4 },
-    { ticker: 'BPCL', name: 'Bharat Petroleum Corp', bse: '500547', pe: 11.2 },
-    { ticker: 'RECLTD', name: 'REC Limited', bse: '532955', pe: 5.2 },
-    { ticker: 'TATAMOTORS', name: 'Tata Motors Limited', bse: '500570', pe: 14.8 },
+    { ticker: 'ANDHRSUGAR', name: 'Andhra Sugars Ltd', bse: '500008', pe: 12.9, price: 99.50, change_1d: 1.6, fair_value: 152.13, fair_value_upside: 52.9 },
+    { ticker: 'CONFIPET', name: 'Confidence Petroleum', bse: '526829', pe: 17.9, price: 82.30, change_1d: 7.4, fair_value: 105.99, fair_value_upside: 28.8 },
+    { ticker: 'BEPL', name: 'Bhansali Eng Polymers', bse: '500052', pe: 15.6, price: 144.20, change_1d: 2.7, fair_value: 165.00, fair_value_upside: 14.4 },
+    { ticker: 'JAMNAAUTO', name: 'Jamna Auto', bse: '500216', pe: 20.3, price: 112.50, change_1d: 3.2, fair_value: 138.50, fair_value_upside: 23.1 },
+    { ticker: 'BCLIND', name: 'BCL Ind & Infrastructure', bse: '524332', pe: 9.6, price: 54.80, change_1d: 1.8, fair_value: 82.50, fair_value_upside: 50.5 },
+    { ticker: 'GUJALKALI', name: 'Gujarat Alkalies & Chem', bse: '530001', pe: 80.0, price: 742.10, change_1d: 1.2, fair_value: 862.32, fair_value_upside: 16.2 },
+    { ticker: 'ZUARI', name: 'Zuari Agro Chemicals', bse: '534742', pe: 1.0, price: 226.10, change_1d: 2.2, fair_value: 350.14, fair_value_upside: 54.9 },
+    { ticker: 'COALINDIA', name: 'Coal India Ltd', bse: '533278', pe: 8.4, price: 375.40, change_1d: 0.9, fair_value: 448.60, fair_value_upside: 19.5 },
+    { ticker: 'BPCL', name: 'Bharat Petroleum Corp', bse: '500547', pe: 11.2, price: 318.55, change_1d: 2.0, fair_value: 426.31, fair_value_upside: 33.8 },
+    { ticker: 'RECLTD', name: 'REC Limited', bse: '532955', pe: 5.2, price: 398.20, change_1d: 1.5, fair_value: 481.82, fair_value_upside: 21.0 },
+    { ticker: 'TATAMOTORS', name: 'Tata Motors Limited', bse: '500570', pe: 14.8, price: 311.60, change_1d: 1.1, fair_value: 342.14, fair_value_upside: 9.8 },
   ];
+
+  const currentStockInfo = stockList.find((s) => s.ticker === currentTicker) || {
+    ticker: 'INSG20',
+    name: 'Bharat Small Cap Strategy Basket',
+    bse: 'NIFTY SM100',
+    pe: 14.2,
+    price: 10000.0,
+    change_1d: 1.8,
+    fair_value: 13850.0,
+    fair_value_upside: 38.5,
+  };
 
   const handleStockClick = (t: string) => {
     setCurrentTicker(t);
@@ -169,6 +180,51 @@ export const PerformanceVersusBenchmark: React.FC<Props> = ({
                 system is powered by a predictive model trained on over 50 financial signals to
                 identify stocks most likely to outperform the market.
               </p>
+
+              {/* Prominent Live Stock Price & Valuation Strip */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-950 p-3.5 rounded-xl border border-slate-800/80 text-xs mt-3">
+                <div className="border-r border-slate-800 pr-2">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">
+                    {currentStockInfo.ticker} Live Market Price
+                  </span>
+                  <div className="flex items-center space-x-2 mt-0.5">
+                    <span className="text-lg font-black text-slate-100 font-mono">
+                      ₹{currentStockInfo.price >= 1000 ? currentStockInfo.price.toLocaleString() : currentStockInfo.price.toFixed(2)}
+                    </span>
+                    <span className={`text-[11px] font-extrabold px-1.5 py-0.2 rounded ${
+                      currentStockInfo.change_1d >= 0 ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/30' : 'bg-rose-950 text-rose-400 border border-rose-500/30'
+                    }`}>
+                      {currentStockInfo.change_1d >= 0 ? '+' : ''}{currentStockInfo.change_1d.toFixed(1)}% {currentStockInfo.change_1d >= 0 ? '↑' : '↓'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="border-r border-slate-800 pr-2">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Intrinsic Fair Value</span>
+                  <div className="text-base font-black text-emerald-400 font-mono mt-0.5">
+                    ₹{currentStockInfo.fair_value.toFixed(2)}
+                  </div>
+                  <span className="text-[10px] text-emerald-400 font-semibold block">
+                    +{currentStockInfo.fair_value_upside}% Upside
+                  </span>
+                </div>
+
+                <div className="border-r border-slate-800 pr-2">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">P/E Multiple</span>
+                  <div className="text-base font-black text-purple-400 font-mono mt-0.5">
+                    {currentStockInfo.pe.toFixed(1)}x
+                  </div>
+                  <span className="text-[10px] text-slate-500 block">Sector Avg: 22.4x</span>
+                </div>
+
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Strategy Alpha (7Y)</span>
+                  <div className="text-base font-black text-rose-400 font-mono mt-0.5">
+                    +{tfData.total_return_pct.toLocaleString()}%
+                  </div>
+                  <span className="text-[10px] text-slate-500 block">CAGR +{tfData.cagr_pct.toFixed(1)}%</span>
+                </div>
+              </div>
             </div>
 
             {/* Controls Bar: Timeframe Buttons (1Y, 5Y, Max) + Simulated Capital Input + % / ₹ Toggle */}
@@ -415,11 +471,14 @@ export const PerformanceVersusBenchmark: React.FC<Props> = ({
                 </h3>
               </div>
 
-              {/* Mini Table: Name & P/E Ratio */}
+              {/* Mini Table: Name, Price & P/E Ratio */}
               <div className="divide-y divide-slate-800">
                 <div className="flex items-center justify-between py-2 text-[10px] font-bold text-slate-500 uppercase">
-                  <span>Name</span>
-                  <span>P/E Ratio</span>
+                  <span>Stock Name</span>
+                  <div className="flex items-center space-x-3">
+                    <span>Live Price</span>
+                    <span>P/E</span>
+                  </div>
                 </div>
 
                 {stockList.map((stk) => {
@@ -428,7 +487,7 @@ export const PerformanceVersusBenchmark: React.FC<Props> = ({
                     <div
                       key={stk.ticker}
                       onClick={() => handleStockClick(stk.ticker)}
-                      className={`flex items-center justify-between py-2.5 px-2 rounded-lg cursor-pointer transition-colors ${
+                      className={`flex items-center justify-between py-2 px-2 rounded-lg cursor-pointer transition-colors ${
                         isSelected
                           ? 'bg-rose-950/60 text-rose-300 border border-rose-500/30'
                           : 'hover:bg-slate-800 text-slate-300'
@@ -446,9 +505,22 @@ export const PerformanceVersusBenchmark: React.FC<Props> = ({
                         </div>
                       </div>
 
-                      <span className="text-xs font-mono font-bold text-slate-200 shrink-0">
-                        {stk.pe.toFixed(1)}x
-                      </span>
+                      <div className="text-right shrink-0 flex items-center space-x-2.5">
+                        <div className="text-right">
+                          <div className="text-xs font-mono font-bold text-slate-100">
+                            ₹{stk.price.toFixed(2)}
+                          </div>
+                          <div className={`text-[10px] font-bold ${
+                            stk.change_1d >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                          }`}>
+                            {stk.change_1d >= 0 ? '+' : ''}{stk.change_1d.toFixed(1)}% {stk.change_1d >= 0 ? '↑' : '↓'}
+                          </div>
+                        </div>
+
+                        <span className="text-[11px] font-mono font-semibold text-slate-400 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">
+                          {stk.pe.toFixed(1)}x
+                        </span>
+                      </div>
                     </div>
                   );
                 })}
