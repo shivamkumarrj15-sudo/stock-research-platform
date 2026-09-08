@@ -48,39 +48,24 @@ export const InvestingProPortfolioTable: React.FC<InvestingProPortfolioTableProp
   const [lastRefreshedTime, setLastRefreshedTime] = useState<string>(new Date().toLocaleTimeString());
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
-  // Live Auto-Refresh every 5 seconds (Angel One SmartAPI / Live Market Feed)
+  // Live Auto-Refresh (Immediate on mount + every 5 seconds)
   useEffect(() => {
+    let isMounted = true;
+
     const refreshTablePrices = async () => {
+      if (!isMounted) return;
       setIsRefreshing(true);
       try {
         const updated = await Promise.all(
-          stocks.map(async (stk) => {
+          INVESTING_PRO_PORTFOLIO.map(async (stk) => {
             try {
               let p = stk.price;
               let ch1d = stk.change_1d;
-              try {
-                const res = await stocksApi.getPrice(stk.ticker);
-                if (res && res.price > 0) {
-                  p = res.price;
-                  ch1d = res.change_pct ?? ch1d;
-                }
-              } catch (e) {
-                const live = await resolveSymbolAndQuote(stk.ticker);
-                if (live && live.price > 0) {
-                  p = live.price;
-                  ch1d = live.change_pct ?? ch1d;
-                }
-              }
 
-              let dir: 'up' | 'down' | null = null;
-              if (p > stk.price) dir = 'up';
-              else if (p < stk.price) dir = 'down';
-
-              if (dir) {
-                setFlashMap((prev) => ({ ...prev, [stk.ticker]: dir }));
-                setTimeout(() => {
-                  setFlashMap((prev) => ({ ...prev, [stk.ticker]: undefined as any }));
-                }, 1800);
+              const live = await resolveSymbolAndQuote(stk.ticker);
+              if (live && live.price > 0) {
+                p = live.price;
+                ch1d = live.change_pct ?? ch1d;
               }
 
               const fvUpside = stk.fair_value_price > 0 ? Math.round(((stk.fair_value_price - p) / p) * 1000) / 10 : stk.fair_value_upside_pct;
@@ -98,15 +83,23 @@ export const InvestingProPortfolioTable: React.FC<InvestingProPortfolioTableProp
             }
           })
         );
-        setStocks(updated);
-        setLastRefreshedTime(new Date().toLocaleTimeString());
+        if (isMounted) {
+          setStocks(updated);
+          setLastRefreshedTime(new Date().toLocaleTimeString());
+        }
       } finally {
-        setIsRefreshing(false);
+        if (isMounted) setIsRefreshing(false);
       }
     };
 
+    // Run immediately on page load
+    refreshTablePrices();
+
     const interval = setInterval(refreshTablePrices, 5000);
-    return () => clearInterval(interval);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   // Filter logic
