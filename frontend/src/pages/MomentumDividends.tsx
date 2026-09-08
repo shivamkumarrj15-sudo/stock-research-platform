@@ -37,7 +37,8 @@ import {
   Scale,
   DollarSign,
   LineChart,
-  FileText
+  FileText,
+  Info
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { formatPct, getChangeColor, formatCurrency } from '../utils/formatters';
@@ -2350,10 +2351,29 @@ export const MomentumDividends: React.FC = () => {
               </span>
             </div>
 
+            {/* 2-Step Easy Setup Guide Accordion */}
+            <div className="bg-slate-950/90 p-3.5 rounded-xl border border-amber-500/30 space-y-2 text-xs">
+              <div className="flex items-center space-x-2 text-amber-400 font-bold">
+                <Info className="w-4 h-4 shrink-0" />
+                <span>Angel One Details Kaha Se Milegi? (2 Minute Guide):</span>
+              </div>
+              <ul className="text-[11px] text-slate-300 space-y-1.5 list-disc list-inside leading-relaxed">
+                <li>
+                  <strong className="text-slate-100">Client Code:</strong> Angel One App me Profile par sabse upar likha hota hai (e.g. <span className="font-mono text-amber-300">S123456</span>).
+                </li>
+                <li>
+                  <strong className="text-slate-100">MPIN:</strong> Jo 4-digit code aap Angel One app open karne me daalte hain.
+                </li>
+                <li>
+                  <strong className="text-slate-100">TOTP Secret / Code:</strong> Angel One App $\rightarrow$ Profile $\rightarrow$ Security $\rightarrow$ Enable TOTP par jo Key aati hai, ya Authenticator App ka 6-digit OTP code daalein.
+                </li>
+              </ul>
+            </div>
+
             {/* Form Fields */}
             <div className="space-y-3 text-xs">
               <div>
-                <label className="text-slate-300 font-bold block mb-1">Angel One SmartAPI Key</label>
+                <label className="text-slate-300 font-bold block mb-1">SmartAPI Key (Pre-configured)</label>
                 <input
                   type="text"
                   value={angelOneCreds.apiKey}
@@ -2365,7 +2385,7 @@ export const MomentumDividends: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-slate-300 font-bold block mb-1">Angel One Client Code / User ID</label>
+                  <label className="text-slate-300 font-bold block mb-1">Client Code / User ID</label>
                   <input
                     type="text"
                     value={angelOneCreds.clientCode}
@@ -2375,29 +2395,26 @@ export const MomentumDividends: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-slate-300 font-bold block mb-1">MPIN / Password</label>
+                  <label className="text-slate-300 font-bold block mb-1">4-Digit MPIN / Password</label>
                   <input
                     type="password"
                     value={angelOneCreds.mpin}
                     onChange={(e) => setAngelOneCreds({ ...angelOneCreds, mpin: e.target.value })}
-                    placeholder="4-digit MPIN or Password"
+                    placeholder="e.g. 1234"
                     className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 text-xs focus:outline-none focus:border-amber-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-slate-300 font-bold block mb-1">TOTP Secret Key (from Angel One App) or 6-digit TOTP</label>
+                <label className="text-slate-300 font-bold block mb-1">TOTP Secret Key ya Current 6-digit OTP</label>
                 <input
                   type="text"
                   value={angelOneCreds.totpSecret}
                   onChange={(e) => setAngelOneCreds({ ...angelOneCreds, totpSecret: e.target.value })}
-                  placeholder="Base32 Secret (e.g. JBSWY3DPEHPK3PXP) or 6-digit code"
+                  placeholder="Base32 Secret (e.g. JBSWY3DPEHPK3PXP) ya 6-digit OTP"
                   className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 font-mono text-xs focus:outline-none focus:border-amber-500"
                 />
-                <p className="text-[10px] text-slate-400 mt-1">
-                  💡 Note: SmartAPI automatically auto-renews your 24-hour session JWT token when TOTP Secret Key is provided.
-                </p>
               </div>
             </div>
 
@@ -2410,32 +2427,25 @@ export const MomentumDividends: React.FC = () => {
             )}
 
             {/* Actions */}
-            <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2 border-t border-slate-800">
               <button
                 type="button"
-                onClick={() => {
-                  setAngelOneCreds({
-                    apiKey: 'kHrodFlM',
-                    clientCode: '',
-                    mpin: '',
-                    totpSecret: '',
-                    isConnected: false,
-                  });
-                  saveAngelOneCredentials({
-                    apiKey: 'kHrodFlM',
-                    clientCode: '',
-                    mpin: '',
-                    totpSecret: '',
-                    isConnected: false,
-                  });
-                  setAngelOneConnMsg('Reset to High-Speed Multi-Source Live Feed.');
+                onClick={async () => {
+                  setAngelOneConnTesting(true);
+                  try {
+                    await fetchLivePrices();
+                    setAngelOneConnMsg('⚡ Real-time Multi-Source Dalal Street Live Stream Activated! (Zero Login Required)');
+                  } finally {
+                    setAngelOneConnTesting(false);
+                  }
                 }}
-                className="text-xs text-slate-400 hover:text-slate-200"
+                className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold rounded-xl text-xs border border-slate-700 transition-colors flex items-center justify-center space-x-1"
               >
-                Reset Default
+                <Zap className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Instant Auto-Stream (Bina Login)</span>
               </button>
 
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 justify-end">
                 <button
                   onClick={() => setShowAngelOneModal(false)}
                   className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition-colors"
