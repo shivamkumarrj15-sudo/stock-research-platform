@@ -63,17 +63,17 @@ export const PerformanceVersusBenchmark: React.FC<Props> = ({
   const isINSG20 = currentTicker === 'INSG20';
 
   const stockList = [
-    { ticker: 'ANDHRSUGAR', name: 'Andhra Sugars Ltd', bse: '500008', pe: 12.9, price: 99.50, change_1d: 1.6, fair_value: 152.13, fair_value_upside: 52.9 },
-    { ticker: 'CONFIPET', name: 'Confidence Petroleum', bse: '526829', pe: 17.9, price: 82.30, change_1d: 7.4, fair_value: 105.99, fair_value_upside: 28.8 },
-    { ticker: 'BEPL', name: 'Bhansali Eng Polymers', bse: '500052', pe: 15.6, price: 144.20, change_1d: 2.7, fair_value: 165.00, fair_value_upside: 14.4 },
-    { ticker: 'JAMNAAUTO', name: 'Jamna Auto', bse: '500216', pe: 20.3, price: 112.50, change_1d: 3.2, fair_value: 138.50, fair_value_upside: 23.1 },
-    { ticker: 'BCLIND', name: 'BCL Ind & Infrastructure', bse: '524332', pe: 9.6, price: 54.80, change_1d: 1.8, fair_value: 82.50, fair_value_upside: 50.5 },
-    { ticker: 'GUJALKALI', name: 'Gujarat Alkalies & Chem', bse: '530001', pe: 80.0, price: 742.10, change_1d: 1.2, fair_value: 862.32, fair_value_upside: 16.2 },
-    { ticker: 'ZUARI', name: 'Zuari Agro Chemicals', bse: '534742', pe: 1.0, price: 226.10, change_1d: 2.2, fair_value: 350.14, fair_value_upside: 54.9 },
-    { ticker: 'COALINDIA', name: 'Coal India Ltd', bse: '533278', pe: 8.4, price: 375.40, change_1d: 0.9, fair_value: 448.60, fair_value_upside: 19.5 },
-    { ticker: 'BPCL', name: 'Bharat Petroleum Corp', bse: '500547', pe: 11.2, price: 318.55, change_1d: 2.0, fair_value: 426.31, fair_value_upside: 33.8 },
-    { ticker: 'RECLTD', name: 'REC Limited', bse: '532955', pe: 5.2, price: 398.20, change_1d: 1.5, fair_value: 481.82, fair_value_upside: 21.0 },
-    { ticker: 'TATAMOTORS', name: 'Tata Motors Limited', bse: '500570', pe: 14.8, price: 311.60, change_1d: 1.1, fair_value: 342.14, fair_value_upside: 9.8 },
+    { ticker: 'ANDHRSUGAR', name: 'Andhra Sugars Ltd', bse: '500008', pe: 12.9, price: 98.79, change_1d: -0.61, fair_value: 152.13, fair_value_upside: 54.0 },
+    { ticker: 'CONFIPET', name: 'Confidence Petroleum', bse: '526829', pe: 17.9, price: 82.49, change_1d: 0.38, fair_value: 105.99, fair_value_upside: 28.5 },
+    { ticker: 'BEPL', name: 'Bhansali Eng Polymers', bse: '500052', pe: 15.6, price: 133.84, change_1d: 5.52, fair_value: 165.00, fair_value_upside: 23.3 },
+    { ticker: 'JAMNAAUTO', name: 'Jamna Auto', bse: '500216', pe: 20.3, price: 128.92, change_1d: 1.82, fair_value: 155.00, fair_value_upside: 20.2 },
+    { ticker: 'BCLIND', name: 'BCL Ind & Infrastructure', bse: '524332', pe: 9.6, price: 36.00, change_1d: -1.32, fair_value: 46.84, fair_value_upside: 30.1 },
+    { ticker: 'GUJALKALI', name: 'Gujarat Alkalies & Chem', bse: '530001', pe: 80.0, price: 718.75, change_1d: 1.54, fair_value: 780.00, fair_value_upside: 8.5 },
+    { ticker: 'ZUARI', name: 'Zuari Agro Chemicals', bse: '534742', pe: 1.0, price: 227.96, change_1d: 0.49, fair_value: 350.14, fair_value_upside: 53.6 },
+    { ticker: 'COALINDIA', name: 'Coal India Ltd', bse: '533278', pe: 8.4, price: 420.25, change_1d: 0.33, fair_value: 522.01, fair_value_upside: 24.2 },
+    { ticker: 'BPCL', name: 'Bharat Petroleum Corp', bse: '500547', pe: 11.2, price: 303.85, change_1d: -2.89, fair_value: 345.32, fair_value_upside: 13.6 },
+    { ticker: 'RECLTD', name: 'REC Limited', bse: '532955', pe: 5.2, price: 317.85, change_1d: 0.46, fair_value: 398.51, fair_value_upside: 25.4 },
+    { ticker: 'TATAMOTORS', name: 'Tata Motors Limited', bse: '500570', pe: 14.8, price: 306.45, change_1d: -0.18, fair_value: 410.00, fair_value_upside: 33.8 },
   ];
 
   const currentStockInfo = stockList.find((s) => s.ticker === currentTicker) || {
