@@ -71,6 +71,7 @@ import {
 } from '../data/newsAndEventsData';
 import { PerformanceVersusBenchmark } from '../components/stock/PerformanceVersusBenchmark';
 import { ProResearchReportView } from '../components/stock/ProResearchReportView';
+import { SectorMomentumRotator } from '../components/stock/SectorMomentumRotator';
 import { getStockPerformance } from '../data/backtestPerformanceData';
 
 export interface DetailedExplanation {
@@ -478,7 +479,7 @@ const INITIAL_STOCKS: MomentumDividendStock[] = [
 export const MomentumDividends: React.FC = () => {
   const navigate = useNavigate();
   const [stocks, setStocks] = useState<MomentumDividendStock[]>(INITIAL_STOCKS);
-  const [activeView, setActiveView] = useState<'pro_research' | 'benchmark_return' | 'propicks' | 'monthly_rebalance' | 'my_trades' | 'exit_radar' | 'daily_events'>('pro_research');
+  const [activeView, setActiveView] = useState<'smc_sectors' | 'pro_research' | 'benchmark_return' | 'propicks' | 'monthly_rebalance' | 'my_trades' | 'exit_radar' | 'daily_events'>('smc_sectors');
   const [selectedTickerForBenchmark, setSelectedTickerForBenchmark] = useState<string>('INSG20');
   const [selectedTickerForProResearch, setSelectedTickerForProResearch] = useState<string>('ELEO');
   const [filter, setFilter] = useState<'all' | 'high_momentum' | 'upcoming_dividend'>('all');
@@ -890,7 +891,27 @@ export const MomentumDividends: React.FC = () => {
       </div>
 
       {/* Main View Mode Selector Tabs */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
+        <button
+          onClick={() => setActiveView('smc_sectors')}
+          className={`p-3 rounded-2xl border transition-all flex flex-col justify-between text-left ${
+            activeView === 'smc_sectors'
+              ? 'bg-gradient-to-r from-emerald-950/90 to-slate-900 border-emerald-500/80 shadow-lg shadow-emerald-950/40 ring-1 ring-emerald-500'
+              : 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-400'
+          }`}
+        >
+          <div className="flex items-center justify-between w-full mb-1.5">
+            <div className={`p-1.5 rounded-lg ${activeView === 'smc_sectors' ? 'bg-emerald-500 text-slate-950 font-black' : 'bg-slate-800 text-slate-300'}`}>
+              <Sparkles className="w-4 h-4 text-amber-300 fill-amber-300" />
+            </div>
+            <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 text-[9px] font-black">🔥 Fresh Picks</span>
+          </div>
+          <div>
+            <div className="text-xs font-black text-slate-100">🚀 SMC & Sector Alpha</div>
+            <p className="text-[10px] text-slate-400">Fresh Buys & Auto-Exits</p>
+          </div>
+        </button>
+
         <button
           onClick={() => setActiveView('pro_research')}
           className={`p-3 rounded-2xl border transition-all flex flex-col justify-between text-left ${
@@ -1003,7 +1024,7 @@ export const MomentumDividends: React.FC = () => {
             <div className={`p-1.5 rounded-lg ${activeView === 'exit_radar' ? 'bg-rose-500 text-white font-black' : 'bg-slate-800 text-slate-300'}`}>
               <AlertOctagon className="w-4 h-4" />
             </div>
-            <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-400 text-[9px] font-bold">2 Caution</span>
+            <span className="px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-400 text-[9px] font-bold">2 Exits</span>
           </div>
           <div>
             <div className="text-xs font-black text-slate-100">🚨 News & Exit Radar</div>
@@ -1031,6 +1052,20 @@ export const MomentumDividends: React.FC = () => {
           </div>
         </button>
       </div>
+
+      {/* VIEW: SMC SMART MONEY CONCEPTS & SECTOR MOMENTUM ENGINE */}
+      {activeView === 'smc_sectors' && (
+        <SectorMomentumRotator
+          onSelectStockForReport={(t) => {
+            setSelectedTickerForProResearch(t);
+            setActiveView('pro_research');
+          }}
+          onSelectStockForReturn={(t) => {
+            setSelectedTickerForBenchmark(t);
+            setActiveView('benchmark_return');
+          }}
+        />
+      )}
 
       {/* VIEW 0: PRO RESEARCH DOSSIER VIEW (EXACT MATCH TO USER'S ELEO SCREENSHOTS) */}
       {activeView === 'pro_research' && (
