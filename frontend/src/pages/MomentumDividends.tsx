@@ -38,7 +38,8 @@ import {
   DollarSign,
   LineChart,
   FileText,
-  Info
+  Info,
+  Gem
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { formatPct, getChangeColor, formatCurrency } from '../utils/formatters';
@@ -72,6 +73,7 @@ import {
 import { PerformanceVersusBenchmark } from '../components/stock/PerformanceVersusBenchmark';
 import { ProResearchReportView } from '../components/stock/ProResearchReportView';
 import { SectorMomentumRotator } from '../components/stock/SectorMomentumRotator';
+import { LongTermInvestmentView } from '../components/stock/LongTermInvestmentView';
 import { getStockPerformance } from '../data/backtestPerformanceData';
 
 export interface DetailedExplanation {
@@ -479,7 +481,7 @@ const INITIAL_STOCKS: MomentumDividendStock[] = [
 export const MomentumDividends: React.FC = () => {
   const navigate = useNavigate();
   const [stocks, setStocks] = useState<MomentumDividendStock[]>(INITIAL_STOCKS);
-  const [activeView, setActiveView] = useState<'smc_sectors' | 'pro_research' | 'benchmark_return' | 'propicks' | 'monthly_rebalance' | 'my_trades' | 'exit_radar' | 'daily_events'>('smc_sectors');
+  const [activeView, setActiveView] = useState<'long_term_investing' | 'smc_sectors' | 'pro_research' | 'benchmark_return' | 'propicks' | 'monthly_rebalance' | 'my_trades' | 'exit_radar' | 'daily_events'>('long_term_investing');
   const [selectedTickerForBenchmark, setSelectedTickerForBenchmark] = useState<string>('INSG20');
   const [selectedTickerForProResearch, setSelectedTickerForProResearch] = useState<string>('ELEO');
   const [filter, setFilter] = useState<'all' | 'high_momentum' | 'upcoming_dividend'>('all');
@@ -891,7 +893,28 @@ export const MomentumDividends: React.FC = () => {
       </div>
 
       {/* Main View Mode Selector Tabs */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-9 gap-2.5">
+        {/* TAB 0: LONG TERM WEALTH COMPOUNDERS */}
+        <button
+          onClick={() => setActiveView('long_term_investing')}
+          className={`p-3 rounded-2xl border transition-all flex flex-col justify-between text-left ${
+            activeView === 'long_term_investing'
+              ? 'bg-gradient-to-r from-amber-950/90 to-slate-900 border-amber-500/80 shadow-lg shadow-amber-950/40 ring-1 ring-amber-500'
+              : 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-400'
+          }`}
+        >
+          <div className="flex items-center justify-between w-full mb-1.5">
+            <div className={`p-1.5 rounded-lg ${activeView === 'long_term_investing' ? 'bg-amber-500 text-slate-950 font-black' : 'bg-slate-800 text-slate-300'}`}>
+              <Gem className="w-4 h-4 text-amber-300 fill-amber-300" />
+            </div>
+            <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 text-[9px] font-black">👑 1-5 Yr Moat</span>
+          </div>
+          <div>
+            <div className="text-xs font-black text-slate-100">💎 Long-Term Wealth</div>
+            <p className="text-[10px] text-slate-400">निवेश & 10x Compounding</p>
+          </div>
+        </button>
+
         <button
           onClick={() => setActiveView('smc_sectors')}
           className={`p-3 rounded-2xl border transition-all flex flex-col justify-between text-left ${
@@ -1052,6 +1075,20 @@ export const MomentumDividends: React.FC = () => {
           </div>
         </button>
       </div>
+
+      {/* VIEW: LONG-TERM WEALTH COMPOUNDERS & MULTIBAGGER INVESTMENT ENGINE */}
+      {activeView === 'long_term_investing' && (
+        <LongTermInvestmentView
+          onSelectStock={(t) => {
+            setSelectedTickerForProResearch(t);
+            setActiveView('pro_research');
+          }}
+          onCompareReturn={(t) => {
+            setSelectedTickerForBenchmark(t);
+            setActiveView('benchmark_return');
+          }}
+        />
+      )}
 
       {/* VIEW: SMC SMART MONEY CONCEPTS & SECTOR MOMENTUM ENGINE */}
       {activeView === 'smc_sectors' && (
