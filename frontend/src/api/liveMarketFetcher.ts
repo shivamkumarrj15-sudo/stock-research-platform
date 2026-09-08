@@ -77,9 +77,9 @@ export function getSavedAngelOneCredentials(): AngelOneCredentials {
   } catch (e) {}
   return {
     apiKey: 'kHrodFlM',
-    clientCode: '',
+    clientCode: 'AAAL481293',
     mpin: '',
-    totpSecret: '',
+    totpSecret: '3FCRYGPYSNFQCR3CFNY4TLIQLA',
     isConnected: false,
   };
 }
