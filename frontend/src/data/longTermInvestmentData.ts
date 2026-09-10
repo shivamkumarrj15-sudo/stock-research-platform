@@ -71,7 +71,7 @@ export const LONG_TERM_COMPOUNDERS: LongTermStockItem[] = [
     bse_code: '500251',
     sector: 'Consumer & Retail',
     industry: 'Fast Fashion & Supermarket Retail',
-    current_price: 7150.00,
+    current_price: 2818.7,
     accumulation_zone: {
       min_price: 6800.00,
       max_price: 7200.00,
@@ -120,7 +120,7 @@ export const LONG_TERM_COMPOUNDERS: LongTermStockItem[] = [
     bse_code: '500049',
     sector: 'Defense & Aerospace',
     industry: 'Defense Electronics, Radar & EW Systems',
-    current_price: 300.00,
+    current_price: 405.0,
     accumulation_zone: {
       min_price: 288.00,
       max_price: 304.00,
@@ -169,7 +169,7 @@ export const LONG_TERM_COMPOUNDERS: LongTermStockItem[] = [
     bse_code: '542652',
     sector: 'Capital Goods & Infra',
     industry: 'Cables, Wires & Fast Moving Electricals (FMEG)',
-    current_price: 6020.00,
+    current_price: 8358.0,
     accumulation_zone: {
       min_price: 5800.00,
       max_price: 6050.00,
@@ -218,7 +218,7 @@ export const LONG_TERM_COMPOUNDERS: LongTermStockItem[] = [
     bse_code: '540699',
     sector: 'Electronics EMS & Tech',
     industry: 'Electronic Manufacturing Services (EMS) & PLI Leader',
-    current_price: 13600.00,
+    current_price: 13500.0,
     accumulation_zone: {
       min_price: 13100.00,
       max_price: 13700.00,
@@ -267,7 +267,7 @@ export const LONG_TERM_COMPOUNDERS: LongTermStockItem[] = [
     bse_code: '540704',
     sector: 'Financial Infrastructure',
     industry: 'Capital Markets Depository Monopoly',
-    current_price: 1480.00,
+    current_price: 1355.0,
     accumulation_zone: {
       min_price: 1420.00,
       max_price: 1495.00,
@@ -316,7 +316,7 @@ export const LONG_TERM_COMPOUNDERS: LongTermStockItem[] = [
     bse_code: '500400',
     sector: 'Clean Energy & Power Infra',
     industry: 'Solar EPC, Renewable Energy & EV Infra',
-    current_price: 385.00,
+    current_price: 367.0,
     accumulation_zone: {
       min_price: 370.00,
       max_price: 390.00,
@@ -365,7 +365,7 @@ export const LONG_TERM_COMPOUNDERS: LongTermStockItem[] = [
     bse_code: '532955',
     sector: 'PSU Power Finance & Dividends',
     industry: 'Infrastructure & Green Energy Financing',
-    current_price: 317.85,
+    current_price: 313.8,
     accumulation_zone: {
       min_price: 305.00,
       max_price: 320.00,
@@ -414,7 +414,7 @@ export const LONG_TERM_COMPOUNDERS: LongTermStockItem[] = [
     bse_code: '533278',
     sector: 'PSU Natural Resources & Energy',
     industry: 'Energy Commodities & Mining Monopoly',
-    current_price: 380.00,
+    current_price: 432.0,
     accumulation_zone: {
       min_price: 365.00,
       max_price: 385.00,
@@ -463,7 +463,7 @@ export const LONG_TERM_COMPOUNDERS: LongTermStockItem[] = [
     bse_code: '541154',
     sector: 'Defense & Aerospace',
     industry: 'Military Aircraft, Helicopters & Jet Engines',
-    current_price: 4120.00,
+    current_price: 4950.0,
     accumulation_zone: {
       min_price: 3950.00,
       max_price: 4150.00,
@@ -512,7 +512,7 @@ export const LONG_TERM_COMPOUNDERS: LongTermStockItem[] = [
     bse_code: '543278',
     sector: 'Consumer & Retail',
     industry: 'Gold, Diamond & Lifestyle Retail Chains',
-    current_price: 595.00,
+    current_price: 615.2,
     accumulation_zone: {
       min_price: 560.00,
       max_price: 600.00,

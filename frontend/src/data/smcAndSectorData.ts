@@ -567,7 +567,7 @@ export const AUTO_EXIT_ALERTS: AutoExitAlert[] = [
   {
     ticker: 'HFCL',
     name: 'HFCL Ltd',
-    current_price: 250.76,
+    current_price: 233.32,
     entry_price: 135.00,
     realized_gain_pct: 85.7,
     exit_status: 'BOOK_FULL_PROFIT',
@@ -585,7 +585,7 @@ export const AUTO_EXIT_ALERTS: AutoExitAlert[] = [
   {
     ticker: 'ZUARI',
     name: 'Zuari Agro Chemicals',
-    current_price: 227.96,
+    current_price: 223.04,
     entry_price: 148.00,
     realized_gain_pct: 54.0,
     exit_status: 'PARTIAL_EXIT_TRAIL_SL',
