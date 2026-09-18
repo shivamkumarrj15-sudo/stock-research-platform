@@ -42,6 +42,7 @@ class Settings(BaseSettings):
     ANGELONE_CLIENT_CODE: str = ""
     ANGELONE_PASSWORD: str = ""
     ANGELONE_TOTP_KEY: str = ""
+    SCREENER_SESSION_ID: str = "M2kJ4HCo4oqev2hDQoaCqrxZeAvQ6ZBb"
 
     # ── Fundamental Data Provider ─────────────────────────────────────────────
     FUNDAMENTAL_DATA_PROVIDER: str = "yahoo_finance"

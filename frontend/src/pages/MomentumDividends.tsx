@@ -631,9 +631,9 @@ export const MomentumDividends: React.FC = () => {
   const [showScreenerModal, setShowScreenerModal] = useState<boolean>(false);
   const [screenerSessionId, setScreenerSessionId] = useState<string>(() => {
     try {
-      return localStorage.getItem('screener_in_session_id') || '';
+      return localStorage.getItem('screener_in_session_id') || 'M2kJ4HCo4oqev2hDQoaCqrxZeAvQ6ZBb';
     } catch (e) {
-      return '';
+      return 'M2kJ4HCo4oqev2hDQoaCqrxZeAvQ6ZBb';
     }
   });
   const [screenerTesting, setScreenerTesting] = useState<boolean>(false);
