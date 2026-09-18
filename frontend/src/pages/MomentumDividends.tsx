@@ -627,6 +627,18 @@ export const MomentumDividends: React.FC = () => {
   const [angelOneConnTesting, setAngelOneConnTesting] = useState<boolean>(false);
   const [angelOneConnMsg, setAngelOneConnMsg] = useState<string | null>(null);
 
+  // Screener.in Session States
+  const [showScreenerModal, setShowScreenerModal] = useState<boolean>(false);
+  const [screenerSessionId, setScreenerSessionId] = useState<string>(() => {
+    try {
+      return localStorage.getItem('screener_in_session_id') || '';
+    } catch (e) {
+      return '';
+    }
+  });
+  const [screenerTesting, setScreenerTesting] = useState<boolean>(false);
+  const [screenerMsg, setScreenerMsg] = useState<string | null>(null);
+
   // Live Auto-Refresh every 4 seconds
   useEffect(() => {
     fetchLivePrices();
@@ -858,6 +870,16 @@ export const MomentumDividends: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            {/* Screener.in Session Config Button */}
+            <button
+              onClick={() => setShowScreenerModal(true)}
+              className="flex items-center space-x-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-blue-300 hover:text-blue-200 rounded-xl border border-blue-500/30 text-xs font-bold transition-all shadow-md"
+              title="Configure Screener.in Browser Session ID"
+            >
+              <Building2 className="w-3.5 h-3.5 text-blue-400" />
+              <span>Screener.in Session</span>
+            </button>
+
             {/* Angel One Config Button */}
             <button
               onClick={() => setShowAngelOneModal(true)}
@@ -2546,6 +2568,137 @@ export const MomentumDividends: React.FC = () => {
                   className="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs transition-all shadow-lg shadow-amber-500/20"
                 >
                   {angelOneConnTesting ? 'Connecting...' : 'Save & Start Stream'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Screener.in Browser Session Config Modal */}
+      {showScreenerModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-slate-900 border border-blue-500/50 rounded-3xl max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 space-y-6">
+            <div className="flex items-start justify-between border-b border-slate-800 pb-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 rounded-xl bg-blue-500/20 text-blue-400">
+                  <Building2 className="w-5 h-5 text-blue-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-slate-100">Screener.in Session Integration</h3>
+                  <p className="text-xs text-slate-400">Live 10-Yr Financials, Balance Sheet & Ratios via Browser Session</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowScreenerModal(false)}
+                className="text-slate-400 hover:text-slate-200 p-1.5 rounded-lg bg-slate-800"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Step-by-Step Hindi Guide */}
+            <div className="bg-blue-950/30 border border-blue-500/30 rounded-2xl p-4 space-y-3">
+              <span className="text-[11px] font-black uppercase text-blue-300 tracking-wider block">
+                📋 Screener.in se Session ID nikaalne ke 4 Simple Steps:
+              </span>
+              <div className="space-y-2 text-xs text-slate-200">
+                <div className="flex items-start space-x-2">
+                  <span className="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-bold text-[10px]">1</span>
+                  <span>Apne browser me <strong className="text-blue-300">https://www.screener.in</strong> kholein aur account me <strong>Login</strong> karein.</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-bold text-[10px]">2</span>
+                  <span>Keyboard par <strong>F12</strong> dabayein (ya Right-Click ➔ <em>Inspect / जांचें</em>).</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-bold text-[10px]">3</span>
+                  <span>Upar <strong>Application</strong> tab (Firefox me <em>Storage</em>) ➔ Left menu me <strong>Cookies</strong> ➔ <em>https://www.screener.in</em> par click karein.</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-bold text-[10px]">4</span>
+                  <span><strong>sessionid</strong> cookie ke aage ka lamba code (Value) copy karke neeche box me paste kar dein.</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Input Field */}
+            <div className="space-y-3">
+              <div>
+                <label className="text-slate-300 font-bold text-xs block mb-1">
+                  Screener.in Session ID (Cookie Value)
+                </label>
+                <input
+                  type="text"
+                  value={screenerSessionId}
+                  onChange={(e) => setScreenerSessionId(e.target.value.trim())}
+                  placeholder="e.g. 7abc9812df09e... (32-character session ID)"
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-slate-100 font-mono text-xs focus:outline-none focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            {/* Status Message */}
+            {screenerMsg && (
+              <div className="p-3 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs flex items-center space-x-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>{screenerMsg}</span>
+              </div>
+            )}
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => {
+                  setScreenerSessionId('');
+                  try {
+                    localStorage.removeItem('screener_in_session_id');
+                  } catch (e) {}
+                  setScreenerMsg('Screener.in session cleared (using public access).');
+                }}
+                className="text-xs text-slate-400 hover:text-rose-400 font-medium"
+              >
+                Clear Session
+              </button>
+
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setShowScreenerModal(false)}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition-colors"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={async () => {
+                    setScreenerTesting(true);
+                    setScreenerMsg(null);
+                    try {
+                      localStorage.setItem('screener_in_session_id', screenerSessionId);
+                      // Try testing backend endpoint if available
+                      try {
+                        const res = await fetch('http://localhost:8000/api/screener-in/session', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ session_id: screenerSessionId }),
+                        });
+                        if (res.ok) {
+                          const d = await res.json();
+                          setScreenerMsg(d.message || '✅ Screener.in Connected! 10-Yr Financials & Live Ratios Active.');
+                        } else {
+                          setScreenerMsg('✅ Screener.in Session Saved locally.');
+                        }
+                      } catch (err) {
+                        setScreenerMsg('✅ Screener.in Session Saved in Browser.');
+                      }
+                    } finally {
+                      setScreenerTesting(false);
+                    }
+                  }}
+                  disabled={screenerTesting || !screenerSessionId}
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-black rounded-xl text-xs transition-all shadow-lg shadow-blue-600/30"
+                >
+                  {screenerTesting ? 'Verifying...' : 'Save & Connect Screener.in'}
                 </button>
               </div>
             </div>

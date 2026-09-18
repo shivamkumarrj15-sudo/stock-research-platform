@@ -17,7 +17,7 @@ from app.core.config import settings
 from app.core.database import init_db
 
 # Routers
-from app.api import auth, stocks, screener, watchlist, portfolio, alerts
+from app.api import auth, stocks, screener, screener_in, watchlist, portfolio, alerts
 from app.api import calendar, news, ai_research, backtesting, admin
 
 logger = logging.getLogger(__name__)
@@ -128,6 +128,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(stocks.router, prefix="/api", tags=["Stocks & Market"])
 app.include_router(screener.router, prefix="/api/screener", tags=["Screener"])
+app.include_router(screener_in.router, prefix="/api/screener-in", tags=["Screener.in Live"])
 app.include_router(watchlist.router, prefix="/api/watchlists", tags=["Watchlists"])
 app.include_router(portfolio.router, prefix="/api/portfolios", tags=["Portfolio"])
 app.include_router(alerts.router, prefix="/api/alerts", tags=["Alerts"])
