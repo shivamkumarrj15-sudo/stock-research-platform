@@ -15,8 +15,8 @@ export const Sidebar: React.FC = () => {
   const { sidebarCollapsed, toggleSidebar } = useUIStore();
 
   const navItems = [
-    { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/propicks-ai', label: 'ProPicks AI (Momentum)', icon: Zap, badge: 'PRO' },
+    { to: '/', label: 'Fundamental Hub (Screener.in)', icon: LayoutDashboard, badge: 'CORE' },
+    { to: '/propicks-ai', label: 'ProPicks AI (Momentum & Moat)', icon: Zap, badge: 'PRO' },
     { to: '/ai-research', label: 'AI Assistant (WarrenAI)', icon: Bot, badge: 'AI' },
   ];
 

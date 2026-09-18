@@ -4,6 +4,7 @@ import { MarketOverview, ScreenerResult } from '../types';
 import { marketApi, screenerApi } from '../api';
 import { DemoDataBanner } from '../components/common/DemoDataBanner';
 import { DataTable, Column } from '../components/common/DataTable';
+import { FundamentalAnalysisHub } from '../components/stock/FundamentalAnalysisHub';
 import { formatCurrency, getChangeColor, getScoreColor } from '../utils/formatters';
 import {
   TrendingUp,
@@ -66,6 +67,9 @@ export const Dashboard: React.FC = () => {
           ))}
         </div>
       )}
+
+      {/* Fundamental Analysis Hub (ROE, ROCE, Debt/Equity, P/E, Screener.in) */}
+      <FundamentalAnalysisHub />
 
       {/* Hero Quick Banner */}
       <div className="bg-gradient-to-r from-blue-950/60 via-indigo-950/40 to-slate-900 border border-blue-500/20 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">

@@ -163,6 +163,16 @@ export const screenerApi = {
     getData(api.get<ScreenerResult[]>('/screener/run', { params: { sort_by: type, exchange } })),
 };
 
+// ──── Screener.in Live API ────
+export const screenerInApi = {
+  setSession: (session_id: string) =>
+    getData(api.post<{ success: boolean; authenticated: boolean; user?: string; error?: string }>('/screener-in/session', { session_id })),
+  getStatus: () =>
+    getData(api.get<{ success: boolean; authenticated: boolean; user?: string; error?: string }>('/screener-in/status')),
+  getCompany: (ticker: string) =>
+    getData(api.get<any>(`/screener-in/company/${ticker}`)),
+};
+
 // ──── Watchlist ────
 export const watchlistApi = {
   getAll: () => getData(api.get<Watchlist[]>('/watchlists')),

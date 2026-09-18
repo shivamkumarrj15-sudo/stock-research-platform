@@ -74,6 +74,7 @@ import { PerformanceVersusBenchmark } from '../components/stock/PerformanceVersu
 import { ProResearchReportView } from '../components/stock/ProResearchReportView';
 import { SectorMomentumRotator } from '../components/stock/SectorMomentumRotator';
 import { LongTermInvestmentView } from '../components/stock/LongTermInvestmentView';
+import { FundamentalAnalysisHub } from '../components/stock/FundamentalAnalysisHub';
 import { getStockPerformance } from '../data/backtestPerformanceData';
 
 export interface DetailedExplanation {
@@ -481,7 +482,7 @@ const INITIAL_STOCKS: MomentumDividendStock[] = [
 export const MomentumDividends: React.FC = () => {
   const navigate = useNavigate();
   const [stocks, setStocks] = useState<MomentumDividendStock[]>(INITIAL_STOCKS);
-  const [activeView, setActiveView] = useState<'long_term_investing' | 'smc_sectors' | 'pro_research' | 'benchmark_return' | 'propicks' | 'monthly_rebalance' | 'my_trades' | 'exit_radar' | 'daily_events'>('long_term_investing');
+  const [activeView, setActiveView] = useState<'fundamental_hub' | 'long_term_investing' | 'smc_sectors' | 'pro_research' | 'benchmark_return' | 'propicks' | 'monthly_rebalance' | 'my_trades' | 'exit_radar' | 'daily_events'>('fundamental_hub');
   const [selectedTickerForBenchmark, setSelectedTickerForBenchmark] = useState<string>('INSG20');
   const [selectedTickerForProResearch, setSelectedTickerForProResearch] = useState<string>('ELEO');
   const [filter, setFilter] = useState<'all' | 'high_momentum' | 'upcoming_dividend'>('all');
@@ -915,8 +916,29 @@ export const MomentumDividends: React.FC = () => {
       </div>
 
       {/* Main View Mode Selector Tabs */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-9 gap-2.5">
-        {/* TAB 0: LONG TERM WEALTH COMPOUNDERS */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-10 gap-2.5">
+        {/* TAB 0: PURE FUNDAMENTALS HUB (SCREENER.IN) */}
+        <button
+          onClick={() => setActiveView('fundamental_hub')}
+          className={`p-3 rounded-2xl border transition-all flex flex-col justify-between text-left ${
+            activeView === 'fundamental_hub'
+              ? 'bg-gradient-to-r from-indigo-950/90 to-slate-900 border-indigo-500/80 shadow-lg shadow-indigo-950/40 ring-1 ring-indigo-500'
+              : 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-400'
+          }`}
+        >
+          <div className="flex items-center justify-between w-full mb-1.5">
+            <div className={`p-1.5 rounded-lg ${activeView === 'fundamental_hub' ? 'bg-indigo-500 text-white font-black' : 'bg-slate-800 text-slate-300'}`}>
+              <Building2 className="w-4 h-4 text-indigo-300" />
+            </div>
+            <span className="px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 text-[9px] font-black">📊 Screener.in</span>
+          </div>
+          <div>
+            <div className="text-xs font-black text-slate-100">📊 Pure Fundamentals</div>
+            <p className="text-[10px] text-slate-400">ROE, D/E, P/E Ratios</p>
+          </div>
+        </button>
+
+        {/* TAB 1: LONG TERM WEALTH COMPOUNDERS */}
         <button
           onClick={() => setActiveView('long_term_investing')}
           className={`p-3 rounded-2xl border transition-all flex flex-col justify-between text-left ${
@@ -1097,6 +1119,11 @@ export const MomentumDividends: React.FC = () => {
           </div>
         </button>
       </div>
+
+      {/* VIEW: PURE FUNDAMENTAL ANALYSIS HUB (SCREENER.IN) */}
+      {activeView === 'fundamental_hub' && (
+        <FundamentalAnalysisHub />
+      )}
 
       {/* VIEW: LONG-TERM WEALTH COMPOUNDERS & MULTIBAGGER INVESTMENT ENGINE */}
       {activeView === 'long_term_investing' && (
