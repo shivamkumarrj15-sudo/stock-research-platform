@@ -1,7 +1,13 @@
 """
-Screener.in Data Provider Implementation.
-Uses user's logged-in Screener.in sessionid cookie to fetch complete company fundamentals, 10-year financials, quarterly results, ratios, and shareholding patterns.
-Pure standard-library implementation (urllib + asyncio) for 100% zero-dependency compatibility.
+Screener.in Data Provider Implementation
+=======================================
+Extracts:
+1. Top Ratios & Valuation metrics
+2. Full 10-Year Profit & Loss Statement (Sales, EBITDA, PAT, EPS)
+3. Full 10-Year Balance Sheet (Borrowings, Assets, Equity, Reserves)
+4. Full 10-Year Cash Flow Statement (CFO, CFI, CFF, Net Cash Flow)
+5. Shareholding Pattern & Promoter Pledge Trends
+6. Pros & Cons, Compound Growth Tables
 """
 
 import urllib.request
@@ -14,14 +20,9 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
+
 class ScreenerInProvider:
     def __init__(self, session_id: str = ""):
-        if not session_id:
-            try:
-                from app.core.config import settings
-                session_id = getattr(settings, "SCREENER_SESSION_ID", "")
-            except Exception:
-                pass
         self.session_id = session_id or "M2kJ4HCo4oqev2hDQoaCqrxZeAvQ6ZBb"
         self.is_authenticated = bool(self.session_id)
 
@@ -42,50 +43,19 @@ class ScreenerInProvider:
     def _sync_fetch_url(self, url: str) -> Optional[str]:
         req = urllib.request.Request(url, headers=self._get_headers())
         try:
-            with urllib.request.urlopen(req, timeout=12) as res:
+            with urllib.request.urlopen(req, timeout=14) as res:
                 return res.read().decode("utf-8", errors="ignore")
         except Exception as e:
             logger.warning(f"Fetch failed for {url}: {e}")
             return None
 
-    async def verify_session(self) -> Dict[str, Any]:
-        """Verify if the session cookie is valid and fetch logged-in user details if any."""
-        url = "https://www.screener.in/dash/"
-        try:
-            html = await asyncio.to_thread(self._sync_fetch_url, url)
-            if html:
-                is_logged_in = "logout" in html.lower() or "/screens/following/" in html or "user-menu" in html
-                username_match = re.search(r'class="user-name"[^>]*>([^<]+)</span>', html)
-                username = username_match.group(1).strip() if username_match else "Screener Pro User"
-                
-                return {
-                    "success": True,
-                    "is_authenticated": True,
-                    "username": username if is_logged_in else "Screener User",
-                    "message": "Screener.in Session Active & Connected (10-Yr Financials, Balance Sheet & Ratios Active)"
-                }
-            return {
-                "success": False,
-                "is_authenticated": False,
-                "message": "Screener.in server did not respond"
-            }
-        except Exception as e:
-            logger.error(f"Screener session verification failed: {e}")
-            return {
-                "success": False,
-                "is_authenticated": False,
-                "error": str(e)
-            }
-
     async def get_company_data(self, ticker: str) -> Optional[Dict[str, Any]]:
-        """Fetch comprehensive financial data for a stock from Screener.in."""
         clean_ticker = ticker.upper().replace(".NS", "").replace(".BO", "").strip()
         url = f"https://www.screener.in/company/{clean_ticker}/consolidated/"
         
         try:
             html = await asyncio.to_thread(self._sync_fetch_url, url)
             if not html:
-                # Try standalone
                 url_standalone = f"https://www.screener.in/company/{clean_ticker}/"
                 html = await asyncio.to_thread(self._sync_fetch_url, url_standalone)
             
@@ -97,8 +67,39 @@ class ScreenerInProvider:
             logger.error(f"Failed to fetch Screener data for {clean_ticker}: {e}")
             return None
 
+    def _parse_table(self, section_html: str) -> Dict[str, Any]:
+        """Extracts structured 10-year tabular data from an HTML table."""
+        tbl_match = re.search(r'<table[^>]*>([\s\S]*?)</table>', section_html)
+        if not tbl_match:
+            return {}
+
+        tbl_content = tbl_match.group(1)
+        # Headers (Years)
+        headers = [re.sub(r'<[^>]+>', '', th).strip() for th in re.findall(r'<th[^>]*>([\s\S]*?)</th>', tbl_content)]
+        headers = [h for h in headers if h and h not in ("+", "-")]
+
+        rows_data = {}
+        for tr in re.findall(r'<tr[^>]*>([\s\S]*?)</tr>', tbl_content):
+            tds = re.findall(r'<td[^>]*>([\s\S]*?)</td>', tr)
+            if not tds:
+                continue
+            row_name = re.sub(r'<[^>]+>', '', tds[0]).strip().replace("+", "").replace("-", "").strip()
+            if not row_name:
+                continue
+            
+            values = []
+            for td in tds[1:]:
+                clean_v = re.sub(r'<[^>]+>', '', td).strip().replace(",", "").replace("%", "")
+                try:
+                    values.append(float(clean_v))
+                except ValueError:
+                    values.append(clean_v)
+            if values:
+                rows_data[row_name] = values
+
+        return {"years": headers, "rows": rows_data}
+
     def _parse_screener_html(self, ticker: str, html: str) -> Dict[str, Any]:
-        """Parse the HTML response into structured financial metrics."""
         # 1. Company Name
         name_match = re.search(r'<h1[^>]*>([^<]+)</h1>', html)
         name = name_match.group(1).strip() if name_match else ticker
@@ -114,7 +115,7 @@ class ScreenerInProvider:
             except ValueError:
                 ratios[clean_name] = clean_val
 
-        # 3. About / Business Profile
+        # 3. About
         about_text = ""
         about_match = re.search(r'<div class="company-profile[^"]*"[^>]*>([\s\S]*?)</div>', html)
         if about_match:
@@ -131,7 +132,29 @@ class ScreenerInProvider:
             cons_block = html.split('id="cons"')[1].split('</div>')[0]
             cons = [re.sub(r'<[^>]+>', '', c).strip() for c in re.findall(r'<li[^>]*>([\s\S]*?)</li>', cons_block)]
 
-        # 5. Compound Growth Ratios (Sales, Profit, Stock Price CAGR, ROE)
+        # 5. Extract 10-Year Statements
+        pl_data = {}
+        bs_data = {}
+        cf_data = {}
+        sh_data = {}
+
+        if 'id="profit-loss"' in html:
+            pl_section = html.split('id="profit-loss"')[1].split('</section>')[0]
+            pl_data = self._parse_table(pl_section)
+
+        if 'id="balance-sheet"' in html:
+            bs_section = html.split('id="balance-sheet"')[1].split('</section>')[0]
+            bs_data = self._parse_table(bs_section)
+
+        if 'id="cash-flow"' in html:
+            cf_section = html.split('id="cash-flow"')[1].split('</section>')[0]
+            cf_data = self._parse_table(cf_section)
+
+        if 'id="shareholding"' in html:
+            sh_section = html.split('id="shareholding"')[1].split('</section>')[0]
+            sh_data = self._parse_table(sh_section)
+
+        # 6. Compound Growth Ratios
         compound_growth = {}
         cagr_tables = re.findall(r'<table class="ranges-table">([\s\S]*?)</table>', html)
         for tbl in cagr_tables:
@@ -157,6 +180,10 @@ class ScreenerInProvider:
             "about": about_text,
             "pros": pros,
             "cons": cons,
+            "profit_loss_statement": pl_data,
+            "balance_sheet": bs_data,
+            "cash_flow_statement": cf_data,
+            "shareholding_pattern": sh_data,
             "compound_growth": compound_growth,
             "retrieved_at": datetime.utcnow().isoformat(),
             "source": "SCREENER_IN_LIVE"

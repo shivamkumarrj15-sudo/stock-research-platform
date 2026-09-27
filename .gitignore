@@ -23,6 +23,7 @@ frontend/.env
 
 # Logs & Temporary Files
 *.log
+*.pdf
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

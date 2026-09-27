@@ -26,6 +26,9 @@ logger = logging.getLogger(__name__)
 limiter = Limiter(key_func=get_remote_address)
 
 
+import asyncio
+from app.services.telegram_ai_bot import telegram_bot_instance
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifecycle: startup and shutdown events."""
@@ -42,10 +45,16 @@ async def lifespan(app: FastAPI):
         logger.error(f"Database initialization failed: {e}")
         raise
 
+    # Start Telegram AI Bot in background
+    bot_task = asyncio.create_task(telegram_bot_instance.start_polling())
+    logger.info("StockIQ Telegram AI Bot background polling started.")
+
     yield
 
     # Shutdown
     logger.info("Shutting down application")
+    telegram_bot_instance.is_running = False
+    bot_task.cancel()
 
 
 app = FastAPI(
@@ -135,6 +144,7 @@ app.include_router(alerts.router, prefix="/api/alerts", tags=["Alerts"])
 app.include_router(calendar.router, prefix="/api/calendar", tags=["Calendar"])
 app.include_router(news.router, prefix="/api/news", tags=["News"])
 app.include_router(ai_research.router, prefix="/api/ai", tags=["AI Research"])
+app.include_router(ai_research.router, prefix="/api/v1/research", tags=["AI Research V1"])
 app.include_router(backtesting.router, prefix="/api/backtesting", tags=["Backtesting"])
 app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
 
@@ -172,3 +182,12 @@ async def api_info():
             "not guarantees of future performance."
         ),
     }
+
+
+# ── Frontend Static Files (for unified Render / Production deployment) ───────
+import os
+from fastapi.staticfiles import StaticFiles
+
+frontend_dist = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))
+if os.path.exists(frontend_dist):
+    app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="frontend")
