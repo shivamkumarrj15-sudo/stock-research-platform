@@ -12,8 +12,8 @@ __pycache__/
 *.sqlite3
 
 # Build & Distribution
-frontend/dist/
-frontend/build/
+# frontend/dist/ is tracked for fast Docker container deployment
+
 
 # Environment Variables & Keys (Do not commit secrets)
 .env
