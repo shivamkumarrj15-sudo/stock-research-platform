@@ -159,51 +159,57 @@ export const AIResearch: React.FC = () => {
             {/* Input Form */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
               <div>
-                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
-                  Stock Symbol / Name
+                <label className="text-[11px] font-bold text-amber-400 uppercase tracking-wider block mb-1.5 flex items-center space-x-1">
+                  <span>🏢 Enter Stock Symbol / Name</span>
                 </label>
                 <input
                   type="text"
                   value={stockTicker}
                   onChange={(e) => setStockTicker(e.target.value.toUpperCase())}
                   placeholder="e.g. WEBELSOLAR, TATAMOTORS, TCS, RELIANCE"
-                  className="w-full bg-slate-950 text-slate-100 text-xs px-4 py-3 rounded-xl border border-slate-700 font-bold focus:border-blue-500 focus:outline-none"
+                  className="w-full bg-slate-950 text-slate-100 text-xs px-4 py-3 rounded-xl border-2 border-blue-500/50 font-bold focus:border-blue-400 focus:outline-none placeholder:text-slate-600"
                 />
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                    Recipient Email
+                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center space-x-1">
+                    <span>📧 Send To Email</span>
                   </label>
-                  <input
-                    type="checkbox"
-                    checked={sendEmail}
-                    onChange={(e) => setSendEmail(e.target.checked)}
-                    className="rounded accent-blue-600"
-                  />
+                  <label className="text-[10px] text-emerald-400 font-bold flex items-center space-x-1 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={sendEmail}
+                      onChange={(e) => setSendEmail(e.target.checked)}
+                      className="rounded accent-emerald-500"
+                    />
+                    <span>Active</span>
+                  </label>
                 </div>
                 <input
                   type="email"
                   value={targetEmail}
                   disabled={!sendEmail}
                   onChange={(e) => setTargetEmail(e.target.value)}
-                  placeholder="your_email@gmail.com"
+                  placeholder="shivamkumarrj13@gmail.com"
                   className="w-full bg-slate-950 text-slate-100 text-xs px-4 py-3 rounded-xl border border-slate-700 disabled:opacity-40 focus:border-blue-500 focus:outline-none"
                 />
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                    Telegram Chat ID
+                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center space-x-1">
+                    <span>📱 Send To Telegram</span>
                   </label>
-                  <input
-                    type="checkbox"
-                    checked={sendTelegram}
-                    onChange={(e) => setSendTelegram(e.target.checked)}
-                    className="rounded accent-blue-600"
-                  />
+                  <label className="text-[10px] text-emerald-400 font-bold flex items-center space-x-1 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={sendTelegram}
+                      onChange={(e) => setSendTelegram(e.target.checked)}
+                      className="rounded accent-emerald-500"
+                    />
+                    <span>Active</span>
+                  </label>
                 </div>
                 <input
                   type="text"
@@ -219,21 +225,40 @@ export const AIResearch: React.FC = () => {
                 <button
                   onClick={handleRunResearch}
                   disabled={isResearching || !stockTicker.trim()}
-                  className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
+                  className="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 via-blue-600 to-indigo-600 hover:from-emerald-500 hover:to-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-xl shadow-blue-600/30 transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
                 >
                   {isResearching ? (
                     <>
                       <Sparkles className="w-4 h-4 animate-spin text-white" />
-                      <span>Forensics & AI Dispatching...</span>
+                      <span>Generating 4 PDFs & Dispatching...</span>
                     </>
                   ) : (
                     <>
                       <SendHorizontal className="w-4 h-4" />
-                      <span>🚀 Run Research & Dispatch</span>
+                      <span>🚀 Send Research Papers (Email & Telegram)</span>
                     </>
                   )}
                 </button>
               </div>
+            </div>
+
+            {/* Quick Stock Selector Chips */}
+            <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-slate-800/80">
+              <span className="text-[11px] font-bold text-slate-400">Quick Select:</span>
+              {['WEBELSOLAR', 'RELIANCE', 'TATAMOTORS', 'TCS', 'INFY', 'SUZLON', 'HDFCBANK'].map((stk) => (
+                <button
+                  key={stk}
+                  type="button"
+                  onClick={() => setStockTicker(stk)}
+                  className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                    stockTicker === stk
+                      ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30 scale-105'
+                      : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700'
+                  }`}
+                >
+                  ⚡ {stk}
+                </button>
+              ))}
             </div>
 
             {researchError && (
