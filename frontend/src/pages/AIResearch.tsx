@@ -100,6 +100,7 @@ export const AIResearch: React.FC = () => {
   const mgmt = researchResult?.ai_research?.management_team_and_leadership || [];
   const growth = researchResult?.ai_research?.yearly_financial_and_profit_growth || {};
   const killThesis = researchResult?.ai_research?.pre_mortem_kill_thesis || [];
+  const compWarfare = researchResult?.ai_research?.competitor_warfare_and_beat_analysis || {};
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
@@ -296,6 +297,16 @@ export const AIResearch: React.FC = () => {
                       <Download className="w-3.5 h-3.5 text-white" />
                       <span>Vol 2 (Buffett PDF)</span>
                     </a>
+
+                    <a
+                      href={`http://localhost:8000/api/v1/research/download-volume3/${researchResult.ticker}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-xs rounded-xl flex items-center space-x-2 transition-all shadow-lg shadow-indigo-600/30"
+                    >
+                      <Download className="w-3.5 h-3.5 text-white" />
+                      <span>Vol 3 (Competitor Warfare PDF)</span>
+                    </a>
                   </div>
                 </div>
 
@@ -423,6 +434,121 @@ export const AIResearch: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* ⚔️ Competitor Warfare & Market Domination Strategy Card */}
+              <div className="p-6 bg-slate-900 border border-indigo-500/40 rounded-3xl space-y-5 shadow-2xl relative overflow-hidden">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                  <div>
+                    <span className="text-[10px] font-extrabold text-indigo-400 uppercase tracking-widest block mb-1">
+                      ⚔️ VOLUME 3 INTELLIGENCE • PEER BENCHMARKING & MARKET SHARE WARFARE
+                    </span>
+                    <h3 className="text-base font-black text-slate-100 flex items-center space-x-2">
+                      <span>🥊 Competitor Warfare & Market Domination Battle Plan</span>
+                    </h3>
+                  </div>
+
+                  {compWarfare.can_it_beat_and_overtake_peers?.beat_probability_score && (
+                    <div className="px-4 py-2 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 font-black text-xs flex items-center space-x-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      <span>Outperformance: {compWarfare.can_it_beat_and_overtake_peers.beat_probability_score}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Peer Growth Benchmarking Table */}
+                {compWarfare.growth_and_margin_comparison && (
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-bold text-slate-300 flex items-center space-x-1.5">
+                      <span>📊 Peer Growth & Margin Benchmarking Matrix</span>
+                    </h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs text-left text-slate-300">
+                        <thead className="text-[11px] uppercase bg-slate-950 text-slate-400 border border-slate-800">
+                          <tr>
+                            <th className="px-4 py-2.5">Company / Peer</th>
+                            <th className="px-4 py-2.5">3Y Sales CAGR</th>
+                            <th className="px-4 py-2.5">EBITDA Margin</th>
+                            <th className="px-4 py-2.5">ROCE</th>
+                            <th className="px-4 py-2.5">Debt / Equity</th>
+                            <th className="px-4 py-2.5">Market Share</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-800 border border-slate-800">
+                          {compWarfare.growth_and_margin_comparison.map((row: any, idx: number) => {
+                            const isTarget = row.company?.includes('(Target)') || row.company?.includes(researchResult.company_name);
+                            return (
+                              <tr key={idx} className={isTarget ? "bg-indigo-950/40 font-bold text-indigo-200" : "bg-slate-900/60"}>
+                                <td className="px-4 py-2.5 flex items-center space-x-1.5">
+                                  {isTarget && <span className="text-amber-400">🎯</span>}
+                                  <span>{row.company}</span>
+                                </td>
+                                <td className="px-4 py-2.5">{row.sales_cagr_3y}</td>
+                                <td className="px-4 py-2.5 text-emerald-400">{row.ebitda_margin_pct}</td>
+                                <td className="px-4 py-2.5">{row.roce_pct}</td>
+                                <td className="px-4 py-2.5">{row.debt_equity}</td>
+                                <td className="px-4 py-2.5">{row.market_share_pct}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Key Competitors & Strategic Arsenal Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Strategic Weapons */}
+                  <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
+                    <h4 className="text-xs font-bold text-indigo-300 flex items-center space-x-1.5">
+                      <span>⚔️ How Company is Beating Competitors (Strategic Weapons)</span>
+                    </h4>
+                    <div className="space-y-2 text-xs">
+                      {compWarfare.what_company_is_doing_to_beat_competitors?.map((w: any, idx: number) => (
+                        <div key={idx} className="p-2.5 bg-slate-900/80 rounded-xl border border-slate-800">
+                          <span className="font-bold text-slate-200 block text-[11px] mb-0.5">{w.strategy_pillar}</span>
+                          <p className="text-slate-400 text-[11px]">{w.execution_detail}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Structural Catalysts to Overtake & Counter Risks */}
+                  <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
+                    <h4 className="text-xs font-bold text-emerald-300 flex items-center space-x-1.5">
+                      <span>🚀 Structural Catalysts to Overtake & Gain Share</span>
+                    </h4>
+                    <div className="space-y-1.5 text-xs text-slate-300">
+                      {compWarfare.can_it_beat_and_overtake_peers?.structural_catalysts_to_overtake?.map((c: string, idx: number) => (
+                        <div key={idx} className="flex items-start space-x-2">
+                          <span className="text-emerald-400 font-bold">•</span>
+                          <span className="text-[11px]">{c}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-800">
+                      <span className="text-[11px] font-bold text-rose-400 block mb-1">⚠️ Competitor Counter-Attack Risks:</span>
+                      <div className="space-y-1 text-xs text-slate-400">
+                        {compWarfare.can_it_beat_and_overtake_peers?.competitor_counter_attack_risks?.map((r: string, idx: number) => (
+                          <div key={idx} className="flex items-start space-x-2">
+                            <span className="text-rose-400 font-bold">•</span>
+                            <span className="text-[11px]">{r}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Final Market Domination Verdict */}
+                {compWarfare.can_it_beat_and_overtake_peers?.final_market_dominance_verdict && (
+                  <div className="p-3.5 bg-indigo-950/30 border border-indigo-500/30 rounded-2xl text-xs text-indigo-200 leading-relaxed italic">
+                    <b>🏆 Final Market Domination Verdict:</b> "{compWarfare.can_it_beat_and_overtake_peers.final_market_dominance_verdict}"
+                  </div>
+                )}
+              </div>
+
 
               {/* Corporate Tie-ups & Verified Contracts Card */}
               {tieUps.length > 0 && (

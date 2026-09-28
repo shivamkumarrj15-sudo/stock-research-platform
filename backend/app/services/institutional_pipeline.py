@@ -275,10 +275,11 @@ class InstitutionalPipeline:
             statements=screener_data
         )
 
-        # 8. Generate Master 12-Pillar Warren Buffett PDF Memo
+        # 8. Generate Master 12-Pillar Warren Buffett & Volume PDFs
         master_path = f"{clean_ticker}_Master_Buffett_12Pillar_Analysis.pdf"
         vol1_path = f"{clean_ticker}_Vol1_Business_Model_and_Moat.pdf"
         vol2_path = f"{clean_ticker}_Vol2_Financials_and_Buffett_Verdict.pdf"
+        vol3_path = f"{clean_ticker}_Vol3_Competitor_Warfare_and_Beat_Analysis.pdf"
 
         master_bytes = InstitutionalPDFGenerator.generate_master_buffett_12pillar_pdf(
             ticker=clean_ticker,
@@ -308,10 +309,20 @@ class InstitutionalPipeline:
             output_filepath=vol2_path
         )
 
+        vol3_bytes = InstitutionalPDFGenerator.generate_volume3_competitor_warfare_pdf(
+            ticker=clean_ticker,
+            company_name=company_name,
+            fundamentals=fundamentals,
+            forensics=forensics,
+            ai_research=ai_research,
+            output_filepath=vol3_path
+        )
+
         pdf_attachments = [
             {"filename": f"{clean_ticker}_Master_Buffett_12Pillar_Analysis.pdf", "bytes": master_bytes},
             {"filename": f"{clean_ticker}_Vol1_Business_Model_and_Moat.pdf", "bytes": vol1_bytes},
-            {"filename": f"{clean_ticker}_Vol2_Financials_and_Buffett_Verdict.pdf", "bytes": vol2_bytes}
+            {"filename": f"{clean_ticker}_Vol2_Financials_and_Buffett_Verdict.pdf", "bytes": vol2_bytes},
+            {"filename": f"{clean_ticker}_Vol3_Competitor_Warfare_and_Beat_Analysis.pdf", "bytes": vol3_bytes}
         ]
 
         # 9. Email Dispatch
@@ -355,6 +366,7 @@ class InstitutionalPipeline:
             "pdf_master_path": os.path.abspath(master_path),
             "pdf_volume1_path": os.path.abspath(vol1_path),
             "pdf_volume2_path": os.path.abspath(vol2_path),
+            "pdf_volume3_path": os.path.abspath(vol3_path),
             "buffett_verdict": ai_research.get("warren_buffett_final_verdict", {}),
             "buffett_scorecard": buffett_scorecard,
             "email_dispatch": email_result,

@@ -62,6 +62,7 @@ CURRENT ACTIVE STOCK IN CONVERSATION:
 - Business Model Breakdown: {ai.get('business_model_ultra_detailed', {}).get('simple_analogy') or ai.get('business_model_explained_simply')}
 - Raw Materials & Supply: {json.dumps(ai.get('business_model_ultra_detailed', {}).get('raw_materials_and_suppliers', {}))}
 - Moat & Pricing Power: {json.dumps(ai.get('economic_moat_evaluation', {}))}
+- Competitor Warfare & Peer Benchmarking: {json.dumps(ai.get('competitor_warfare_and_beat_analysis', {}))}
 - Catalysts & Contracts: {json.dumps(ai.get('verified_contracts_and_catalysts', []))}
 - Key Risks & Red Flags: {json.dumps(ai.get('forensic_red_flags', []))}
 """
@@ -164,12 +165,16 @@ class StockIQTelegramBot:
 
                 v1_bytes = None
                 v2_bytes = None
+                v3_bytes = None
                 if os.path.exists(result.get("pdf_volume1_path", "")):
                     with open(result["pdf_volume1_path"], "rb") as f1:
                         v1_bytes = f1.read()
                 if os.path.exists(result.get("pdf_volume2_path", "")):
                     with open(result["pdf_volume2_path"], "rb") as f2:
                         v2_bytes = f2.read()
+                if os.path.exists(result.get("pdf_volume3_path", "")):
+                    with open(result["pdf_volume3_path"], "rb") as f3:
+                        v3_bytes = f3.read()
 
                 if v1_bytes and v2_bytes:
                     self.telegram_service.send_research_to_telegram(
@@ -177,6 +182,7 @@ class StockIQTelegramBot:
                         company_name=result.get("company_name", ticker),
                         vol1_bytes=v1_bytes,
                         vol2_bytes=v2_bytes,
+                        vol3_bytes=v3_bytes,
                         exec_summary=result.get("ai_research", {}).get("executive_summary", ""),
                         dcf_summary=result.get("forensics", {}).get("dcf", {}),
                         buffett_verdict=result.get("buffett_verdict", {}),
@@ -189,7 +195,7 @@ class StockIQTelegramBot:
                 await self.send_text(
                     chat_id,
                     f"💡 *Aap {session.last_company_name} ke bare mein koi bhi question pooch sakte hain!*\n"
-                    f"_Jaise: 'Iska raw material kya hai?', 'Moat kaisa hai?', 'Future expansion plans kya hain?'_"
+                    f"_Jaise: 'Competitors ko kaise beat kar raha hai?', 'Kya aage nikal payega?', 'Raw material kahan se aata hai?'_"
                 )
             except Exception as e:
                 logger.error(f"Research error: {e}", exc_info=True)

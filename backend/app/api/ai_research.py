@@ -96,6 +96,23 @@ async def download_volume2_pdf(ticker: str):
     raise HTTPException(status_code=404, detail=f"Volume 2 PDF for {clean_ticker} not found")
 
 
+@router.get("/download-volume3/{ticker}")
+async def download_volume3_pdf(ticker: str):
+    """Download Volume 3: Competitor Warfare, Peer Benchmarking & Market Domination PDF."""
+    clean_ticker = ticker.upper().strip()
+    pdf_path = f"{clean_ticker}_Vol3_Competitor_Warfare_and_Beat_Analysis.pdf"
+    if not os.path.exists(pdf_path):
+        await institutional_pipeline.run_full_research(ticker=clean_ticker)
+
+    if os.path.exists(pdf_path):
+        return FileResponse(
+            pdf_path,
+            media_type="application/pdf",
+            filename=f"{clean_ticker}_Vol3_Competitor_Warfare_and_Beat_Analysis.pdf"
+        )
+    raise HTTPException(status_code=404, detail=f"Volume 3 PDF for {clean_ticker} not found")
+
+
 @router.post("/analyze")
 async def analyze_stock(payload: Dict[str, Any]):
     ticker = payload.get("ticker", "TCS").upper()
