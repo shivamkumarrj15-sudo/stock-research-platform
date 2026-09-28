@@ -68,10 +68,12 @@ CURRENT ACTIVE STOCK IN CONVERSATION:
 """
 
 
+from app.core.config import settings
+
 class StockIQTelegramBot:
     def __init__(self, bot_token: str = "", openrouter_key: str = ""):
-        self.bot_token = bot_token or os.environ.get("TELEGRAM_BOT_TOKEN", "")
-        self.openrouter_key = openrouter_key or os.environ.get("AI_API_KEY", "")
+        self.bot_token = (bot_token or os.environ.get("TELEGRAM_BOT_TOKEN") or getattr(settings, "TELEGRAM_BOT_TOKEN", "")).strip()
+        self.openrouter_key = (openrouter_key or os.environ.get("AI_API_KEY") or getattr(settings, "AI_API_KEY", "")).strip()
         self.base_url = f"https://api.telegram.org/bot{self.bot_token}"
         self.pipeline = InstitutionalPipeline()
         self.telegram_service = TelegramService(self.bot_token)
@@ -83,6 +85,7 @@ class StockIQTelegramBot:
         if chat_id not in self.sessions:
             self.sessions[chat_id] = UserSession(chat_id)
         return self.sessions[chat_id]
+
 
     async def start_polling(self):
         """Starts real-time continuous polling loop for incoming Telegram messages."""
