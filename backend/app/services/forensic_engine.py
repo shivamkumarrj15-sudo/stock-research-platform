@@ -608,3 +608,165 @@ class ForensicEngine:
             "margin_of_safety_pct": margin_of_safety_pct,
             "valuation_verdict": "ATTRACTIVELY_UNDERVALUED" if margin_of_safety_pct > 20 else ("FAIRLY_VALUED" if margin_of_safety_pct >= -15 else "OVERVALUED_NO_MOS")
         }
+
+    @staticmethod
+    def calculate_comprehensive_valuation_suite(
+        current_price: float,
+        shares_outstanding: float,
+        net_income: float,
+        ebit: float,
+        free_cash_flow: float,
+        book_value_per_share: float,
+        growth_rate: float,
+        pe_ratio: float,
+        total_debt: float = 0.0,
+        cash: float = 0.0,
+        median_pe_5y: float = 22.0,
+        median_pb_5y: float = 3.5
+    ) -> Dict[str, Any]:
+        """
+        Calculates A-Z Institutional Fair Value Suite across 7 Core Methodologies:
+        1. 3-Scenario DCF (Discounted Free Cash Flow)
+        2. Reverse DCF (Market Hurdle Rate)
+        3. Benjamin Graham Formula Value
+        4. Peter Lynch Fair Value & PEG Model
+        5. Warren Buffett Owner Earnings Power
+        6. Bruce Greenwald Earnings Power Value (EPV)
+        7. Historical Multiples Reversion Target
+        -> Plus Weighted Blended Intrinsic Value & 3-Tranche Capital Entry Strategy
+        """
+        shares = max(shares_outstanding, 0.01)
+        eps = max(net_income / shares, 0.01) if net_income > 0 else 0.5
+        g = max(min(growth_rate, 35.0), 3.0)
+
+        # 1. 3-Scenario DCF
+        dcf_res = ForensicEngine.calculate_3scenario_dcf(
+            free_cash_flow=free_cash_flow,
+            current_price=current_price,
+            shares_outstanding=shares,
+            cash=cash,
+            total_debt=total_debt,
+            historical_growth_rate=g
+        )
+        dcf_base_val = dcf_res["base_case"]["fair_value"]
+
+        # 2. Reverse DCF
+        rev_dcf = ForensicEngine.calculate_reverse_dcf(
+            current_price=current_price,
+            free_cash_flow=free_cash_flow,
+            shares_outstanding=shares
+        )
+
+        # 3. Benjamin Graham Formula: V = EPS * (8.5 + 2g) * (4.4 / Y)
+        # Indian AAA bond yield assumed at 7.2%
+        bond_yield = 7.2
+        graham_val = round(eps * (8.5 + (1.5 * g)) * (4.4 / bond_yield), 2)
+        graham_val = max(graham_val, 1.0)
+
+        # 4. Peter Lynch Fair Value: Fair P/E = Growth Rate, Fair Value = EPS * g
+        lynch_pe = max(min(g, 28.0), 8.0)
+        lynch_val = round(eps * lynch_pe, 2)
+        peg_ratio = round(pe_ratio / g, 2) if g > 0 and pe_ratio > 0 else 1.2
+
+        # 5. Warren Buffett Owner Earnings
+        # Owner Earnings = Net Income + Depreciation - Maintenance Capex
+        maintenance_capex = max(net_income * 0.25, 0.0)
+        owner_earnings = max(net_income - maintenance_capex, free_cash_flow)
+        owner_earnings_ps = round(owner_earnings / shares, 2)
+        owner_earnings_yield = round((owner_earnings_ps / current_price) * 100.0, 2) if current_price > 0 else 5.0
+        # Capitalized at 10% required hurdle rate
+        owner_earnings_fair_value = round(owner_earnings_ps / 0.10, 2)
+
+        # 6. Bruce Greenwald Earnings Power Value (EPV Columbia University)
+        # Zero-growth normalized NOPAT capitalized at WACC
+        tax_rate = 0.25
+        nopat = max(ebit * (1 - tax_rate), net_income)
+        wacc = 0.11
+        epv_operations = nopat / wacc
+        epv_equity = epv_operations + cash - total_debt
+        epv_per_share = round(max(epv_equity / shares, 1.0), 2)
+
+        # 7. Historical Multiple Reversion
+        med_pe = median_pe_5y if median_pe_5y > 5 else 20.0
+        hist_pe_val = round(eps * med_pe, 2)
+        med_pb = median_pb_5y if median_pb_5y > 0.5 else 3.0
+        hist_pb_val = round(max(book_value_per_share, 1.0) * med_pb, 2)
+
+        # Weighted Blended Intrinsic Value
+        # 30% DCF + 20% Graham + 15% Lynch + 15% Owner Earnings + 10% EPV + 10% Historical PE
+        blended_fair_value = round(
+            (0.30 * dcf_base_val) +
+            (0.20 * graham_val) +
+            (0.15 * lynch_val) +
+            (0.15 * owner_earnings_fair_value) +
+            (0.10 * epv_per_share) +
+            (0.10 * hist_pe_val),
+            2
+        )
+
+        if blended_fair_value > 0 and current_price > 0:
+            blended_mos_pct = round(((blended_fair_value - current_price) / blended_fair_value) * 100.0, 1)
+        else:
+            blended_mos_pct = 0.0
+
+        max_buy_price = round(blended_fair_value * 0.75, 2) # 25% Margin of safety target entry
+
+        # 3-Tranche Capital Allocation Plan
+        tranche_1_price = round(min(current_price, blended_fair_value * 0.90), 2)
+        tranche_2_price = round(blended_fair_value * 0.78, 2)
+        tranche_3_price = round(blended_fair_value * 0.65, 2)
+
+        return {
+            "current_price": current_price,
+            "blended_fair_value": blended_fair_value,
+            "blended_margin_of_safety_pct": blended_mos_pct,
+            "max_target_buy_price": max_buy_price,
+            "valuation_stance": "STRONG_BUY_UNDERVALUED" if blended_mos_pct >= 25.0 else ("ACCUMULATE_FAIR_VALUE" if blended_mos_pct >= 0.0 else "OVERVALUED_TRIM_WAIT"),
+            "models": {
+                "dcf_3scenario": {
+                    "bear_case": dcf_res["bear_case"]["fair_value"],
+                    "base_case": dcf_base_val,
+                    "bull_case": dcf_res["bull_case"]["fair_value"],
+                    "wacc_pct": 11.0,
+                    "terminal_growth_pct": 4.5
+                },
+                "reverse_dcf": {
+                    "implied_growth_rate_pct": rev_dcf.get("implied_growth_rate_pct", 10.0),
+                    "assessment": rev_dcf.get("assessment", "")
+                },
+                "benjamin_graham_formula": {
+                    "fair_value": graham_val,
+                    "formula": f"EPS ({eps}) * (8.5 + 1.5*{g}%) * (4.4 / {bond_yield}%)",
+                    "upside_pct": round(((graham_val - current_price) / current_price) * 100.0, 1) if current_price > 0 else 0.0
+                },
+                "peter_lynch_fair_value": {
+                    "fair_value": lynch_val,
+                    "fair_pe": lynch_pe,
+                    "peg_ratio": peg_ratio,
+                    "verdict": "PEG < 1.0 (Undervalued Growth)" if peg_ratio < 1.0 else ("PEG 1.0-1.8 (Fair Growth)" if peg_ratio <= 1.8 else "PEG > 1.8 (Expensive)")
+                },
+                "warren_buffett_owner_earnings": {
+                    "owner_earnings_per_share": owner_earnings_ps,
+                    "owner_earnings_yield_pct": owner_earnings_yield,
+                    "fair_value_10pct_cap": owner_earnings_fair_value,
+                    "vs_gsec_10y_yield": "Attractive (>7.1% G-Sec)" if owner_earnings_yield >= 7.1 else "Moderate"
+                },
+                "earnings_power_value_epv": {
+                    "epv_per_share": epv_per_share,
+                    "zero_growth_nopat": round(nopat, 2),
+                    "reproduction_cost_premium_pct": round(((current_price - epv_per_share) / epv_per_share) * 100.0, 1) if epv_per_share > 0 else 0.0
+                },
+                "historical_multiple_reversion": {
+                    "pe_reversion_target": hist_pe_val,
+                    "pb_reversion_target": hist_pb_val,
+                    "median_pe_5y": med_pe,
+                    "median_pb_5y": med_pb
+                }
+            },
+            "capital_allocation_tranches": [
+                {"tranche": "Tranche 1 (30% Capital)", "entry_price": tranche_1_price, "rationale": "Initial position sizing within fair value accumulation zone."},
+                {"tranche": "Tranche 2 (40% Capital)", "entry_price": tranche_2_price, "rationale": "Core value deployment offering 22%+ margin of safety on market dips."},
+                {"tranche": "Tranche 3 (30% Capital)", "entry_price": tranche_3_price, "rationale": "Deep value asymmetric allocation on cycle corrections offering 35%+ margin of safety."}
+            ]
+        }
+

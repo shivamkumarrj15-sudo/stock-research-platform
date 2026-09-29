@@ -101,6 +101,10 @@ export const AIResearch: React.FC = () => {
   const growth = researchResult?.ai_research?.yearly_financial_and_profit_growth || {};
   const killThesis = researchResult?.ai_research?.pre_mortem_kill_thesis || [];
   const compWarfare = researchResult?.ai_research?.competitor_warfare_and_beat_analysis || {};
+  const compVal = researchResult?.forensics?.comprehensive_valuation || {};
+  const valModels = compVal.models || {};
+  const tranches = compVal.capital_allocation_tranches || [];
+  const dupont = researchResult?.forensics?.dupont_5way || {};
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
@@ -383,14 +387,216 @@ export const AIResearch: React.FC = () => {
                 </div>
 
                 <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase block">Base DCF Fair Value</span>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase block">Blended Fair Value</span>
                   <span className="text-xl font-black text-emerald-400 mt-1 block">
-                    Rs. {researchResult.forensics?.dcf?.base_case?.fair_value}
+                    Rs. {compVal.blended_fair_value || researchResult.forensics?.dcf?.base_case?.fair_value}
                   </span>
                   <span className="text-[11px] text-emerald-400 font-bold">
-                    +{researchResult.forensics?.dcf?.margin_of_safety_pct}% Margin of Safety
+                    +{compVal.blended_margin_of_safety_pct || researchResult.forensics?.dcf?.margin_of_safety_pct}% Margin of Safety
                   </span>
                 </div>
+              </div>
+
+              {/* 🧮 A-Z Institutional Valuation & Fair Value Suite (7 Models) */}
+              <div className="p-6 bg-slate-900 border-2 border-emerald-500/40 rounded-3xl space-y-5 shadow-2xl relative overflow-hidden">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                  <div>
+                    <span className="text-[10px] font-extrabold text-emerald-400 uppercase tracking-widest block mb-1">
+                      🧮 INSTITUTIONAL VALUATION MATRIX • 7 CORE METHODOLOGIES
+                    </span>
+                    <h3 className="text-base font-black text-slate-100 flex items-center space-x-2">
+                      <span>🎯 Blended Intrinsic Fair Value & Margin of Safety Breakdown</span>
+                    </h3>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="px-4 py-2 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 font-black text-xs">
+                      Blended Fair Value: ₹{compVal.blended_fair_value || researchResult.forensics?.dcf?.base_case?.fair_value}
+                    </div>
+                    {compVal.max_target_buy_price && (
+                      <div className="px-4 py-2 rounded-xl bg-blue-950/80 border border-blue-500/40 text-blue-300 font-black text-xs">
+                        Max Buy Entry: ₹{compVal.max_target_buy_price}
+                      </div>
+                    )}
+                    <div className="px-4 py-2 rounded-xl bg-amber-950/80 border border-amber-500/40 text-amber-300 font-black text-xs">
+                      MOS: {compVal.blended_margin_of_safety_pct || researchResult.forensics?.dcf?.margin_of_safety_pct}%
+                    </div>
+                  </div>
+                </div>
+
+                {/* 7 Models Interactive Table */}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left text-slate-300">
+                    <thead className="text-[11px] uppercase bg-slate-950 text-slate-400 border border-slate-800">
+                      <tr>
+                        <th className="px-4 py-2.5">Valuation Methodology</th>
+                        <th className="px-4 py-2.5">Core Inputs & Rationale</th>
+                        <th className="px-4 py-2.5">Model Fair Value</th>
+                        <th className="px-4 py-2.5">Institutional Verdict / Upside</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800 border border-slate-800">
+                      {/* Model 1: 3-Scenario DCF */}
+                      <tr className="bg-slate-900/60">
+                        <td className="px-4 py-3 font-bold text-slate-100 flex items-center space-x-2">
+                          <span className="text-emerald-400">1.</span>
+                          <span>3-Scenario Discounted Cash Flow (DCF)</span>
+                        </td>
+                        <td className="px-4 py-3 text-slate-400">
+                          Bear: ₹{valModels.dcf_3scenario?.bear_case} | Base: ₹{valModels.dcf_3scenario?.base_case} | Bull: ₹{valModels.dcf_3scenario?.bull_case}
+                          <br/><span className="text-[10px] text-slate-500">WACC: {valModels.dcf_3scenario?.wacc_pct || 11}%, Terminal g: {valModels.dcf_3scenario?.terminal_growth_pct || 4.5}%</span>
+                        </td>
+                        <td className="px-4 py-3 font-black text-emerald-400 text-sm">
+                          ₹{valModels.dcf_3scenario?.base_case || researchResult.forensics?.dcf?.base_case?.fair_value}
+                        </td>
+                        <td className="px-4 py-3 text-emerald-300 font-bold">
+                          +{researchResult.forensics?.dcf?.base_case?.implied_upside_pct || researchResult.forensics?.dcf?.margin_of_safety_pct}% Implied Upside
+                        </td>
+                      </tr>
+
+                      {/* Model 2: Reverse DCF */}
+                      <tr className="bg-slate-950/40">
+                        <td className="px-4 py-3 font-bold text-slate-100 flex items-center space-x-2">
+                          <span className="text-blue-400">2.</span>
+                          <span>Reverse DCF (Market Hurdle Rate)</span>
+                        </td>
+                        <td className="px-4 py-3 text-slate-400">
+                          Market Implied Hurdle: <b className="text-blue-300">{valModels.reverse_dcf?.implied_growth_rate_pct || revDcf.implied_growth_rate_pct}% CAGR</b>
+                        </td>
+                        <td className="px-4 py-3 font-bold text-blue-300">
+                          Hurdle Rate Model
+                        </td>
+                        <td className="px-4 py-3 text-slate-300">
+                          {valModels.reverse_dcf?.assessment || revDcf.assessment || 'Priced for moderate growth'}
+                        </td>
+                      </tr>
+
+                      {/* Model 3: Benjamin Graham Formula */}
+                      <tr className="bg-slate-900/60">
+                        <td className="px-4 py-3 font-bold text-slate-100 flex items-center space-x-2">
+                          <span className="text-amber-400">3.</span>
+                          <span>Benjamin Graham Intrinsic Formula</span>
+                        </td>
+                        <td className="px-4 py-3 text-slate-400">
+                          Formula: <code className="text-[10px] bg-slate-950 px-1.5 py-0.5 rounded text-amber-300">V = EPS × (8.5 + 1.5g) × (4.4 / 7.2% Yield)</code>
+                        </td>
+                        <td className="px-4 py-3 font-black text-amber-400 text-sm">
+                          ₹{valModels.benjamin_graham_formula?.fair_value || 'N/A'}
+                        </td>
+                        <td className="px-4 py-3 text-amber-300 font-bold">
+                          +{valModels.benjamin_graham_formula?.upside_pct}% Graham Upside
+                        </td>
+                      </tr>
+
+                      {/* Model 4: Peter Lynch Fair Value & PEG */}
+                      <tr className="bg-slate-950/40">
+                        <td className="px-4 py-3 font-bold text-slate-100 flex items-center space-x-2">
+                          <span className="text-indigo-400">4.</span>
+                          <span>Peter Lynch Fair Value & PEG Model</span>
+                        </td>
+                        <td className="px-4 py-3 text-slate-400">
+                          Fair P/E = Growth Rate ({valModels.peter_lynch_fair_value?.fair_pe}x) | PEG: {valModels.peter_lynch_fair_value?.peg_ratio}
+                        </td>
+                        <td className="px-4 py-3 font-black text-indigo-300 text-sm">
+                          ₹{valModels.peter_lynch_fair_value?.fair_value || 'N/A'}
+                        </td>
+                        <td className="px-4 py-3 text-indigo-300 font-bold">
+                          {valModels.peter_lynch_fair_value?.verdict || 'PEG < 1.0 (Undervalued)'}
+                        </td>
+                      </tr>
+
+                      {/* Model 5: Warren Buffett Owner Earnings Power */}
+                      <tr className="bg-slate-900/60">
+                        <td className="px-4 py-3 font-bold text-slate-100 flex items-center space-x-2">
+                          <span className="text-emerald-400">5.</span>
+                          <span>Warren Buffett Owner Earnings Power</span>
+                        </td>
+                        <td className="px-4 py-3 text-slate-400">
+                          OEPS: ₹{valModels.warren_buffett_owner_earnings?.owner_earnings_per_share} | Yield: {valModels.warren_buffett_owner_earnings?.owner_earnings_yield_pct}% vs 10Y G-Sec (7.1%)
+                        </td>
+                        <td className="px-4 py-3 font-black text-emerald-400 text-sm">
+                          ₹{valModels.warren_buffett_owner_earnings?.fair_value_10pct_cap || 'N/A'}
+                        </td>
+                        <td className="px-4 py-3 text-emerald-300 font-bold">
+                          {valModels.warren_buffett_owner_earnings?.vs_gsec_10y_yield || 'Attractive Yield'}
+                        </td>
+                      </tr>
+
+                      {/* Model 6: Bruce Greenwald EPV */}
+                      <tr className="bg-slate-950/40">
+                        <td className="px-4 py-3 font-bold text-slate-100 flex items-center space-x-2">
+                          <span className="text-violet-400">6.</span>
+                          <span>Bruce Greenwald Earnings Power (EPV)</span>
+                        </td>
+                        <td className="px-4 py-3 text-slate-400">
+                          Zero-Growth Normalized NOPAT capitalized at 11% WACC (Columbia University Model)
+                        </td>
+                        <td className="px-4 py-3 font-black text-violet-300 text-sm">
+                          ₹{valModels.earnings_power_value_epv?.epv_per_share || 'N/A'}
+                        </td>
+                        <td className="px-4 py-3 text-slate-300">
+                          Asset Reproduction Benchmark
+                        </td>
+                      </tr>
+
+                      {/* Model 7: Historical 5Y Multiple Reversion */}
+                      <tr className="bg-slate-900/60">
+                        <td className="px-4 py-3 font-bold text-slate-100 flex items-center space-x-2">
+                          <span className="text-cyan-400">7.</span>
+                          <span>Historical 5Y Multiple Reversion</span>
+                        </td>
+                        <td className="px-4 py-3 text-slate-400">
+                          Median 5Y P/E: {valModels.historical_multiple_reversion?.median_pe_5y}x | Median 5Y P/B: {valModels.historical_multiple_reversion?.median_pb_5y}x
+                        </td>
+                        <td className="px-4 py-3 font-black text-cyan-300 text-sm">
+                          ₹{valModels.historical_multiple_reversion?.pe_reversion_target || 'N/A'}
+                        </td>
+                        <td className="px-4 py-3 text-slate-300">
+                          Cycle Mean Reversion Target
+                        </td>
+                      </tr>
+
+                      {/* Blended Weighted Fair Value Master Row */}
+                      <tr className="bg-emerald-950/60 font-bold border-t-2 border-emerald-500">
+                        <td className="px-4 py-3.5 text-white font-extrabold flex items-center space-x-2">
+                          <span>🎯</span>
+                          <span>BLENDED INSTITUTIONAL FAIR VALUE</span>
+                        </td>
+                        <td className="px-4 py-3.5 text-emerald-200">
+                          Institutional Weighted Composite of All 6 Intrinsic Models
+                        </td>
+                        <td className="px-4 py-3.5 text-emerald-300 font-black text-base">
+                          ₹{compVal.blended_fair_value || researchResult.forensics?.dcf?.base_case?.fair_value}
+                        </td>
+                        <td className="px-4 py-3.5 text-emerald-300 font-extrabold">
+                          +{compVal.blended_margin_of_safety_pct || researchResult.forensics?.dcf?.margin_of_safety_pct}% Margin of Safety
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* 3-Tranche Capital Entry Strategy */}
+                {tranches.length > 0 && (
+                  <div className="space-y-3 pt-2">
+                    <h4 className="text-xs font-bold text-amber-300 flex items-center space-x-1.5">
+                      <span>🎯 Institutional 3-Tranche Capital Allocation & Deployment Strategy</span>
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      {tranches.map((tr: any, idx: number) => (
+                        <div key={idx} className="p-3.5 bg-slate-950 rounded-2xl border border-slate-800 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-extrabold text-slate-200 text-xs">{tr.tranche}</span>
+                            <span className="px-2 py-0.5 rounded-lg bg-emerald-950 border border-emerald-500/40 text-emerald-300 font-black text-xs">
+                              Entry: ₹{tr.entry_price}
+                            </span>
+                          </div>
+                          <p className="text-slate-400 text-[11px] leading-relaxed pt-1">{tr.rationale}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Monthly Seasonality & Gain/Loss Cycles Card */}

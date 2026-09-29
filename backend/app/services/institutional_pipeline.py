@@ -231,6 +231,21 @@ class InstitutionalPipeline:
             shares_outstanding=shares_in_cr
         )
 
+        comprehensive_val = ForensicEngine.calculate_comprehensive_valuation_suite(
+            current_price=current_price or 100.0,
+            shares_outstanding=shares_in_cr,
+            net_income=real_pat,
+            ebit=real_ebit,
+            free_cash_flow=fcf_in_cr,
+            book_value_per_share=book_value or (real_equity / shares_in_cr if shares_in_cr > 0 else 10.0),
+            growth_rate=fundamentals.get("profit_cagr_5y", 14.0),
+            pe_ratio=pe_ratio or 20.0,
+            total_debt=real_debt,
+            cash=real_assets * 0.08,
+            median_pe_5y=fundamentals.get("sector_pe", 22.0),
+            median_pb_5y=pb_ratio or 3.0
+        )
+
         buffett_scorecard = ForensicEngine.calculate_buffett_100pt_scorecard(
             roe_pct=roe_pct,
             roce_pct=roce_pct,
@@ -238,7 +253,7 @@ class InstitutionalPipeline:
             piotroski_score=piotroski.get("score", 6),
             altman_z=altman_z.get("z_score", 2.5),
             beneish_m=beneish_m.get("m_score", -2.2),
-            margin_of_safety_pct=dcf.get("margin_of_safety_pct", 0),
+            margin_of_safety_pct=comprehensive_val.get("blended_margin_of_safety_pct", dcf.get("margin_of_safety_pct", 0)),
             cfo_to_pat=eq.get("cfo_to_pat_ratio") or 0.9
         )
 
@@ -251,6 +266,7 @@ class InstitutionalPipeline:
             "piotroski": piotroski,
             "dcf": dcf,
             "reverse_dcf": reverse_dcf,
+            "comprehensive_valuation": comprehensive_val,
             "buffett_scorecard": buffett_scorecard
         }
 
