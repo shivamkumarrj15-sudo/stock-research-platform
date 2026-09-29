@@ -31,7 +31,7 @@ export const AIResearch: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       sender: 'ai',
-      text: `Hello! I am **WarrenAI**, your Institutional Equity Research Copilot.\n\nAsk me any questions about monthly seasonality (kis month me gain/loss hota hai), corporate tie-ups & contracts, institutional investors (FII/DII), management team contracts & experience, or Warren Buffett's 5-Gate valuation logic! You can also message our **Telegram Bot (@shivam_ai_news_bot)** to receive full 2-Volume PDF research memos.`
+      text: `Hello! I am **WarrenAI**, your Institutional Equity Research Copilot.\n\nAsk me any questions about monthly seasonality, corporate tie-ups & contracts, institutional investors (FII/DII), management contracts, or Warren Buffett's 7-Model Fair Value calculations! You can also message our **Telegram Bot (@shivam_ai_news_bot)** to receive full 4-Volume PDF research memos.`
     }
   ]);
   const [input, setInput] = useState('');
@@ -77,7 +77,7 @@ export const AIResearch: React.FC = () => {
           ...prev,
           {
             sender: 'ai',
-            text: `📊 **WarrenAI Analysis on "${userMsg}"**:\n\nFor thorough 20-stage institutional research on this company with 2 downloadable PDF volumes, seasonality, tie-ups, management dossier, and Telegram delivery, click the **"Run Research & Dispatch"** button above or message **@shivam_ai_news_bot** on Telegram with \`/research ${userMsg.toUpperCase()}\`.`
+            text: `📊 **WarrenAI Analysis on "${userMsg}"**:\n\nFor thorough 20-stage institutional research on this company with 4 downloadable PDF volumes, seasonality, tie-ups, management dossier, and Telegram delivery, click the **"Send Research Papers"** button above or message **@shivam_ai_news_bot** on Telegram with \`/research ${userMsg.toUpperCase()}\`.`
           }
         ]);
       }
@@ -107,78 +107,78 @@ export const AIResearch: React.FC = () => {
   const dupont = researchResult?.forensics?.dupont_5way || {};
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+    <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto pb-12">
       {/* Top Navigation Tabs */}
-      <div className="flex items-center space-x-2 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800 w-fit">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800 w-full sm:w-fit">
         <button
           onClick={() => setActiveTab('buffett_research')}
-          className={`px-5 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-2 transition-all ${
+          className={`px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition-all ${
             activeTab === 'buffett_research'
               ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
               : 'text-slate-400 hover:text-slate-200'
           }`}
         >
-          <ShieldCheck className="w-4 h-4" />
-          <span>🏛️ Institutional Buffett & Forensic Engine (2-Vol PDFs + Email + Telegram)</span>
+          <ShieldCheck className="w-4 h-4 shrink-0" />
+          <span className="truncate">🏛️ Institutional Research (4 PDFs & 7 Models)</span>
         </button>
 
         <button
           onClick={() => setActiveTab('ai_chat')}
-          className={`px-5 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-2 transition-all ${
+          className={`px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition-all ${
             activeTab === 'ai_chat'
               ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
               : 'text-slate-400 hover:text-slate-200'
           }`}
         >
-          <Bot className="w-4 h-4" />
-          <span>💬 WarrenAI Financial Copilot</span>
+          <Bot className="w-4 h-4 shrink-0" />
+          <span className="truncate">💬 WarrenAI Financial Copilot</span>
         </button>
       </div>
 
       {activeTab === 'buffett_research' ? (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Main Research Dispatch Card */}
-          <div className="p-6 bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl relative overflow-hidden">
+          <div className="p-4 sm:p-6 bg-slate-900 border border-slate-800 rounded-2xl sm:rounded-3xl shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
 
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 sm:gap-4 border-b border-slate-800 pb-4 sm:pb-6">
               <div>
-                <h1 className="text-xl font-black text-slate-100 flex items-center space-x-2">
-                  <span>🏛️ Institutional Wall Street / Dalal Street Research Engine</span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-extrabold uppercase">
+                <h1 className="text-base sm:text-xl font-black text-slate-100 flex flex-wrap items-center gap-2">
+                  <span>🏛️ Institutional Research Engine</span>
+                  <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[9px] sm:text-[10px] font-extrabold uppercase">
                     Buffett & Munger Grade
                   </span>
                 </h1>
-                <p className="text-xs text-slate-400 mt-1">
-                  10Y Financials • Monthly Seasonality • Management Contracts • Tie-ups & Investors • 2-Volume PDFs • Email & Telegram Bot
+                <p className="text-[11px] sm:text-xs text-slate-400 mt-1">
+                  10Y Statements • 7-Model Fair Value • Seasonality • Competitor Warfare • 4 PDFs • Email & Telegram
                 </p>
               </div>
 
-              <div className="flex items-center space-x-2 text-xs font-bold text-emerald-400 bg-emerald-950/60 px-3 py-1.5 rounded-xl border border-emerald-500/30">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Telegram Bot Active: @shivam_ai_news_bot</span>
+              <div className="flex items-center space-x-2 text-[11px] sm:text-xs font-bold text-emerald-400 bg-emerald-950/60 px-3 py-1.5 rounded-xl border border-emerald-500/30">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                <span className="truncate">Telegram Bot: @shivam_ai_news_bot</span>
               </div>
             </div>
 
             {/* Input Form */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-4 sm:mt-6">
               <div>
-                <label className="text-[11px] font-bold text-amber-400 uppercase tracking-wider block mb-1.5 flex items-center space-x-1">
-                  <span>🏢 Enter Stock Symbol / Name</span>
+                <label className="text-[11px] font-bold text-amber-400 uppercase tracking-wider block mb-1.5">
+                  🏢 Stock Symbol / Name
                 </label>
                 <input
                   type="text"
                   value={stockTicker}
                   onChange={(e) => setStockTicker(e.target.value.toUpperCase())}
-                  placeholder="e.g. WEBELSOLAR, TATAMOTORS, TCS, RELIANCE"
-                  className="w-full bg-slate-950 text-slate-100 text-xs px-4 py-3 rounded-xl border-2 border-blue-500/50 font-bold focus:border-blue-400 focus:outline-none placeholder:text-slate-600"
+                  placeholder="e.g. WEBELSOLAR, TCS, RELIANCE"
+                  className="w-full bg-slate-950 text-slate-100 text-xs px-3.5 py-3 rounded-xl border-2 border-blue-500/50 font-bold focus:border-blue-400 focus:outline-none placeholder:text-slate-600"
                 />
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center space-x-1">
-                    <span>📧 Send To Email</span>
+                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                    📧 Send To Email
                   </label>
                   <label className="text-[10px] text-emerald-400 font-bold flex items-center space-x-1 cursor-pointer">
                     <input
@@ -196,14 +196,14 @@ export const AIResearch: React.FC = () => {
                   disabled={!sendEmail}
                   onChange={(e) => setTargetEmail(e.target.value)}
                   placeholder="shivamkumarrj13@gmail.com"
-                  className="w-full bg-slate-950 text-slate-100 text-xs px-4 py-3 rounded-xl border border-slate-700 disabled:opacity-40 focus:border-blue-500 focus:outline-none"
+                  className="w-full bg-slate-950 text-slate-100 text-xs px-3.5 py-3 rounded-xl border border-slate-700 disabled:opacity-40 focus:border-blue-500 focus:outline-none"
                 />
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center space-x-1">
-                    <span>📱 Send To Telegram</span>
+                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                    📱 Send To Telegram
                   </label>
                   <label className="text-[10px] text-emerald-400 font-bold flex items-center space-x-1 cursor-pointer">
                     <input
@@ -221,11 +221,11 @@ export const AIResearch: React.FC = () => {
                   disabled={!sendTelegram}
                   onChange={(e) => setTelegramChatId(e.target.value)}
                   placeholder="7863710238"
-                  className="w-full bg-slate-950 text-slate-100 text-xs px-4 py-3 rounded-xl border border-slate-700 disabled:opacity-40 focus:border-blue-500 focus:outline-none"
+                  className="w-full bg-slate-950 text-slate-100 text-xs px-3.5 py-3 rounded-xl border border-slate-700 disabled:opacity-40 focus:border-blue-500 focus:outline-none"
                 />
               </div>
 
-              <div className="flex items-end">
+              <div className="flex items-end sm:col-span-2 lg:col-span-1">
                 <button
                   onClick={handleRunResearch}
                   disabled={isResearching || !stockTicker.trim()}
@@ -233,13 +233,13 @@ export const AIResearch: React.FC = () => {
                 >
                   {isResearching ? (
                     <>
-                      <Sparkles className="w-4 h-4 animate-spin text-white" />
-                      <span>Generating 4 PDFs & Dispatching...</span>
+                      <Sparkles className="w-4 h-4 animate-spin text-white shrink-0" />
+                      <span className="truncate">Generating 4 PDFs & Dispatching...</span>
                     </>
                   ) : (
                     <>
-                      <SendHorizontal className="w-4 h-4" />
-                      <span>🚀 Send Research Papers (Email & Telegram)</span>
+                      <SendHorizontal className="w-4 h-4 shrink-0" />
+                      <span className="truncate">🚀 Send Research Papers (Email & TG)</span>
                     </>
                   )}
                 </button>
@@ -247,14 +247,14 @@ export const AIResearch: React.FC = () => {
             </div>
 
             {/* Quick Stock Selector Chips */}
-            <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-slate-800/80">
-              <span className="text-[11px] font-bold text-slate-400">Quick Select:</span>
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-4 pt-4 border-t border-slate-800/80">
+              <span className="text-[10px] sm:text-[11px] font-bold text-slate-400">Quick Select:</span>
               {['WEBELSOLAR', 'RELIANCE', 'TATAMOTORS', 'TCS', 'INFY', 'SUZLON', 'HDFCBANK'].map((stk) => (
                 <button
                   key={stk}
                   type="button"
                   onClick={() => setStockTicker(stk)}
-                  className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                  className={`px-2.5 sm:px-3 py-1 rounded-lg text-[10px] sm:text-[11px] font-bold transition-all ${
                     stockTicker === stk
                       ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30 scale-105'
                       : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700'
@@ -266,7 +266,7 @@ export const AIResearch: React.FC = () => {
             </div>
 
             {researchError && (
-              <div className="mt-4 p-4 rounded-xl bg-rose-950/60 border border-rose-800 text-rose-300 text-xs flex items-center space-x-2">
+              <div className="mt-4 p-3.5 sm:p-4 rounded-xl bg-rose-950/60 border border-rose-800 text-rose-300 text-xs flex items-center space-x-2">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
                 <span>{researchError}</span>
               </div>
@@ -275,300 +275,300 @@ export const AIResearch: React.FC = () => {
 
           {/* Research Results Dashboard */}
           {researchResult && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Warren Buffett & Institutional Grade Banner */}
-              <div className="p-6 bg-gradient-to-r from-slate-900 via-slate-900 to-slate-950 border-2 border-amber-500/40 rounded-3xl shadow-xl">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="p-4 sm:p-6 bg-gradient-to-r from-slate-900 via-slate-900 to-slate-950 border-2 border-amber-500/40 rounded-2xl sm:rounded-3xl shadow-xl">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                   <div>
-                    <span className="text-[11px] font-extrabold text-amber-400 uppercase tracking-widest block mb-1">
+                    <span className="text-[10px] sm:text-[11px] font-extrabold text-amber-400 uppercase tracking-widest block mb-1">
                       🌟 INSTITUTIONAL BUFFETT-MUNGER VERDICT
                     </span>
-                    <h2 className="text-2xl font-black text-slate-100 flex flex-wrap items-center gap-3">
+                    <h2 className="text-xl sm:text-2xl font-black text-slate-100 flex flex-wrap items-center gap-2 sm:gap-3">
                       <span>{researchResult.company_name} ({researchResult.ticker})</span>
-                      <span className="px-3 py-1 rounded-xl bg-emerald-600 text-white text-xs font-black tracking-wide">
+                      <span className="px-2.5 sm:px-3 py-1 rounded-xl bg-emerald-600 text-white text-[11px] sm:text-xs font-black tracking-wide">
                         {researchResult.buffett_verdict?.verdict || 'BUY_WITH_MARGIN_OF_SAFETY'}
                       </span>
                       {scorecard.institutional_grade && (
-                        <span className="px-3 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-black">
+                        <span className="px-2.5 sm:px-3 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px] sm:text-xs font-black">
                           Grade: {scorecard.institutional_grade} ({scorecard.total_score}/100)
                         </span>
                       )}
                     </h2>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto">
                     <a
                       href={`http://localhost:8000/api/v1/research/download-master/${researchResult.ticker}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="px-4 py-2.5 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black text-xs rounded-xl flex items-center space-x-2 transition-all shadow-lg shadow-amber-500/20"
+                      className="px-4 py-2.5 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black text-xs rounded-xl flex items-center justify-center space-x-2 transition-all shadow-lg shadow-amber-500/20 sm:col-span-2 lg:col-span-1"
                     >
-                      <Download className="w-4 h-4 text-slate-950" />
-                      <span>🏆 Download Master 12-Pillar Buffett PDF</span>
+                      <Download className="w-4 h-4 text-slate-950 shrink-0" />
+                      <span className="truncate">🏆 Master 14-Pillar PDF</span>
                     </a>
 
                     <a
                       href={`http://localhost:8000/api/v1/research/download-volume1/${researchResult.ticker}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-bold rounded-xl border border-slate-700 flex items-center space-x-2 transition-all shadow-md"
+                      className="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-bold rounded-xl border border-slate-700 flex items-center justify-center space-x-2 transition-all shadow-md"
                     >
-                      <Download className="w-3.5 h-3.5 text-blue-400" />
-                      <span>Vol 1 (Moat PDF)</span>
+                      <Download className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                      <span className="truncate">Vol 1 (Moat PDF)</span>
                     </a>
 
                     <a
                       href={`http://localhost:8000/api/v1/research/download-volume2/${researchResult.ticker}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl flex items-center space-x-2 transition-all shadow-lg shadow-blue-600/30"
+                      className="px-3.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl flex items-center justify-center space-x-2 transition-all shadow-lg shadow-blue-600/30"
                     >
-                      <Download className="w-3.5 h-3.5 text-white" />
-                      <span>Vol 2 (Buffett PDF)</span>
+                      <Download className="w-3.5 h-3.5 text-white shrink-0" />
+                      <span className="truncate">Vol 2 (Buffett PDF)</span>
                     </a>
 
                     <a
                       href={`http://localhost:8000/api/v1/research/download-volume3/${researchResult.ticker}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-xs rounded-xl flex items-center space-x-2 transition-all shadow-lg shadow-indigo-600/30"
+                      className="px-3.5 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-xs rounded-xl flex items-center justify-center space-x-2 transition-all shadow-lg shadow-indigo-600/30"
                     >
-                      <Download className="w-3.5 h-3.5 text-white" />
-                      <span>Vol 3 (Competitor Warfare PDF)</span>
+                      <Download className="w-3.5 h-3.5 text-white shrink-0" />
+                      <span className="truncate">Vol 3 (Warfare PDF)</span>
                     </a>
                   </div>
                 </div>
 
-                <div className="mt-4 p-4 rounded-2xl bg-slate-950/70 border border-slate-800 text-xs text-slate-300 leading-relaxed font-sans">
+                <div className="mt-4 p-3.5 sm:p-4 rounded-2xl bg-slate-950/70 border border-slate-800 text-xs text-slate-300 leading-relaxed font-sans">
                   <b>Omaha Rationale:</b> {researchResult.buffett_verdict?.omaha_reasoning || 'Durable competitive franchise with high returns on capital and substantial margin of safety.'}
                 </div>
 
                 {/* Delivery Badges */}
-                <div className="mt-4 flex flex-wrap items-center gap-3 text-xs">
+                <div className="mt-4 flex flex-wrap items-center gap-2 sm:gap-3 text-xs">
                   {researchResult.email_dispatch?.success && (
                     <span className="px-3 py-1 rounded-lg bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 font-semibold flex items-center space-x-1.5">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Email Delivered to {researchResult.email_dispatch.recipient}</span>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span className="truncate">Email Delivered to {researchResult.email_dispatch.recipient}</span>
                     </span>
                   )}
                   {researchResult.telegram_dispatch?.success && (
                     <span className="px-3 py-1 rounded-lg bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 font-semibold flex items-center space-x-1.5">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Telegram Delivered (2 PDFs Delivered to @shivam_ai_news_bot)</span>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span className="truncate">Telegram Delivered (4 PDFs Delivered to @shivam_ai_news_bot)</span>
                     </span>
                   )}
                 </div>
               </div>
 
               {/* Forensic Accounting & Valuation Matrix */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase block">Altman Z''-Score</span>
-                  <span className="text-xl font-black text-slate-100 mt-1 block">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
+                <div className="p-3 sm:p-4 rounded-2xl bg-slate-900 border border-slate-800">
+                  <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase block">Altman Z''-Score</span>
+                  <span className="text-lg sm:text-xl font-black text-slate-100 mt-1 block">
                     {altman.z_score || '3.1'}
                   </span>
-                  <span className="text-[11px] text-emerald-400 font-semibold">{altman.zone || 'SAFE_ZONE'}</span>
+                  <span className="text-[10px] sm:text-[11px] text-emerald-400 font-semibold">{altman.zone || 'SAFE_ZONE'}</span>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase block">Beneish M-Score</span>
-                  <span className="text-xl font-black text-slate-100 mt-1 block">
+                <div className="p-3 sm:p-4 rounded-2xl bg-slate-900 border border-slate-800">
+                  <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase block">Beneish M-Score</span>
+                  <span className="text-lg sm:text-xl font-black text-slate-100 mt-1 block">
                     {beneish.m_score || '-2.4'}
                   </span>
-                  <span className="text-[11px] text-emerald-400 font-semibold">{beneish.status || 'CLEAN_ACCOUNTING'}</span>
+                  <span className="text-[10px] sm:text-[11px] text-emerald-400 font-semibold">{beneish.status || 'CLEAN_ACCOUNTING'}</span>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase block">Reverse DCF Hurdle</span>
-                  <span className="text-xl font-black text-blue-400 mt-1 block">
+                <div className="p-3 sm:p-4 rounded-2xl bg-slate-900 border border-slate-800">
+                  <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase block">Reverse DCF Hurdle</span>
+                  <span className="text-lg sm:text-xl font-black text-blue-400 mt-1 block">
                     {revDcf.implied_growth_rate_pct || '10.0'}% CAGR
                   </span>
-                  <span className="text-[11px] text-slate-400">{revDcf.expectation_level || 'Market Hurdle'}</span>
+                  <span className="text-[10px] sm:text-[11px] text-slate-400 truncate block">{revDcf.expectation_level || 'Market Hurdle'}</span>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase block">Blended Fair Value</span>
-                  <span className="text-xl font-black text-emerald-400 mt-1 block">
-                    Rs. {compVal.blended_fair_value || researchResult.forensics?.dcf?.base_case?.fair_value}
+                <div className="p-3 sm:p-4 rounded-2xl bg-slate-900 border border-slate-800">
+                  <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase block">Blended Fair Value</span>
+                  <span className="text-lg sm:text-xl font-black text-emerald-400 mt-1 block">
+                    ₹{compVal.blended_fair_value || researchResult.forensics?.dcf?.base_case?.fair_value}
                   </span>
-                  <span className="text-[11px] text-emerald-400 font-bold">
+                  <span className="text-[10px] sm:text-[11px] text-emerald-400 font-bold truncate block">
                     +{compVal.blended_margin_of_safety_pct || researchResult.forensics?.dcf?.margin_of_safety_pct}% Margin of Safety
                   </span>
                 </div>
               </div>
 
               {/* 🧮 A-Z Institutional Valuation & Fair Value Suite (7 Models) */}
-              <div className="p-6 bg-slate-900 border-2 border-emerald-500/40 rounded-3xl space-y-5 shadow-2xl relative overflow-hidden">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+              <div className="p-4 sm:p-6 bg-slate-900 border-2 border-emerald-500/40 rounded-2xl sm:rounded-3xl space-y-4 sm:space-y-5 shadow-2xl relative overflow-hidden">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 border-b border-slate-800 pb-3 sm:pb-4">
                   <div>
-                    <span className="text-[10px] font-extrabold text-emerald-400 uppercase tracking-widest block mb-1">
+                    <span className="text-[9px] sm:text-[10px] font-extrabold text-emerald-400 uppercase tracking-widest block mb-1">
                       🧮 INSTITUTIONAL VALUATION MATRIX • 7 CORE METHODOLOGIES
                     </span>
-                    <h3 className="text-base font-black text-slate-100 flex items-center space-x-2">
+                    <h3 className="text-sm sm:text-base font-black text-slate-100 flex items-center space-x-2">
                       <span>🎯 Blended Intrinsic Fair Value & Margin of Safety Breakdown</span>
                     </h3>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-3">
-                    <div className="px-4 py-2 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 font-black text-xs">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                    <div className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 font-black text-[11px] sm:text-xs">
                       Blended Fair Value: ₹{compVal.blended_fair_value || researchResult.forensics?.dcf?.base_case?.fair_value}
                     </div>
                     {compVal.max_target_buy_price && (
-                      <div className="px-4 py-2 rounded-xl bg-blue-950/80 border border-blue-500/40 text-blue-300 font-black text-xs">
+                      <div className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-blue-950/80 border border-blue-500/40 text-blue-300 font-black text-[11px] sm:text-xs">
                         Max Buy Entry: ₹{compVal.max_target_buy_price}
                       </div>
                     )}
-                    <div className="px-4 py-2 rounded-xl bg-amber-950/80 border border-amber-500/40 text-amber-300 font-black text-xs">
+                    <div className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-amber-950/80 border border-amber-500/40 text-amber-300 font-black text-[11px] sm:text-xs">
                       MOS: {compVal.blended_margin_of_safety_pct || researchResult.forensics?.dcf?.margin_of_safety_pct}%
                     </div>
                   </div>
                 </div>
 
-                {/* 7 Models Interactive Table */}
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs text-left text-slate-300">
-                    <thead className="text-[11px] uppercase bg-slate-950 text-slate-400 border border-slate-800">
+                {/* 7 Models Interactive Table with Touch Horizontal Scroll */}
+                <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+                  <table className="w-full min-w-[620px] text-xs text-left text-slate-300">
+                    <thead className="text-[10px] sm:text-[11px] uppercase bg-slate-950 text-slate-400 border border-slate-800">
                       <tr>
-                        <th className="px-4 py-2.5">Valuation Methodology</th>
-                        <th className="px-4 py-2.5">Core Inputs & Rationale</th>
-                        <th className="px-4 py-2.5">Model Fair Value</th>
-                        <th className="px-4 py-2.5">Institutional Verdict / Upside</th>
+                        <th className="px-3.5 py-2.5">Valuation Methodology</th>
+                        <th className="px-3.5 py-2.5">Core Inputs & Rationale</th>
+                        <th className="px-3.5 py-2.5">Model Fair Value</th>
+                        <th className="px-3.5 py-2.5">Institutional Verdict / Upside</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800 border border-slate-800">
                       {/* Model 1: 3-Scenario DCF */}
                       <tr className="bg-slate-900/60">
-                        <td className="px-4 py-3 font-bold text-slate-100 flex items-center space-x-2">
+                        <td className="px-3.5 py-3 font-bold text-slate-100 flex items-center space-x-2">
                           <span className="text-emerald-400">1.</span>
                           <span>3-Scenario Discounted Cash Flow (DCF)</span>
                         </td>
-                        <td className="px-4 py-3 text-slate-400">
+                        <td className="px-3.5 py-3 text-slate-400">
                           Bear: ₹{valModels.dcf_3scenario?.bear_case} | Base: ₹{valModels.dcf_3scenario?.base_case} | Bull: ₹{valModels.dcf_3scenario?.bull_case}
                           <br/><span className="text-[10px] text-slate-500">WACC: {valModels.dcf_3scenario?.wacc_pct || 11}%, Terminal g: {valModels.dcf_3scenario?.terminal_growth_pct || 4.5}%</span>
                         </td>
-                        <td className="px-4 py-3 font-black text-emerald-400 text-sm">
+                        <td className="px-3.5 py-3 font-black text-emerald-400 text-sm">
                           ₹{valModels.dcf_3scenario?.base_case || researchResult.forensics?.dcf?.base_case?.fair_value}
                         </td>
-                        <td className="px-4 py-3 text-emerald-300 font-bold">
+                        <td className="px-3.5 py-3 text-emerald-300 font-bold">
                           +{researchResult.forensics?.dcf?.base_case?.implied_upside_pct || researchResult.forensics?.dcf?.margin_of_safety_pct}% Implied Upside
                         </td>
                       </tr>
 
                       {/* Model 2: Reverse DCF */}
                       <tr className="bg-slate-950/40">
-                        <td className="px-4 py-3 font-bold text-slate-100 flex items-center space-x-2">
+                        <td className="px-3.5 py-3 font-bold text-slate-100 flex items-center space-x-2">
                           <span className="text-blue-400">2.</span>
                           <span>Reverse DCF (Market Hurdle Rate)</span>
                         </td>
-                        <td className="px-4 py-3 text-slate-400">
+                        <td className="px-3.5 py-3 text-slate-400">
                           Market Implied Hurdle: <b className="text-blue-300">{valModels.reverse_dcf?.implied_growth_rate_pct || revDcf.implied_growth_rate_pct}% CAGR</b>
                         </td>
-                        <td className="px-4 py-3 font-bold text-blue-300">
+                        <td className="px-3.5 py-3 font-bold text-blue-300">
                           Hurdle Rate Model
                         </td>
-                        <td className="px-4 py-3 text-slate-300">
+                        <td className="px-3.5 py-3 text-slate-300">
                           {valModels.reverse_dcf?.assessment || revDcf.assessment || 'Priced for moderate growth'}
                         </td>
                       </tr>
 
                       {/* Model 3: Benjamin Graham Formula */}
                       <tr className="bg-slate-900/60">
-                        <td className="px-4 py-3 font-bold text-slate-100 flex items-center space-x-2">
+                        <td className="px-3.5 py-3 font-bold text-slate-100 flex items-center space-x-2">
                           <span className="text-amber-400">3.</span>
                           <span>Benjamin Graham Intrinsic Formula</span>
                         </td>
-                        <td className="px-4 py-3 text-slate-400">
+                        <td className="px-3.5 py-3 text-slate-400">
                           Formula: <code className="text-[10px] bg-slate-950 px-1.5 py-0.5 rounded text-amber-300">V = EPS × (8.5 + 1.5g) × (4.4 / 7.2% Yield)</code>
                         </td>
-                        <td className="px-4 py-3 font-black text-amber-400 text-sm">
+                        <td className="px-3.5 py-3 font-black text-amber-400 text-sm">
                           ₹{valModels.benjamin_graham_formula?.fair_value || 'N/A'}
                         </td>
-                        <td className="px-4 py-3 text-amber-300 font-bold">
+                        <td className="px-3.5 py-3 text-amber-300 font-bold">
                           +{valModels.benjamin_graham_formula?.upside_pct}% Graham Upside
                         </td>
                       </tr>
 
                       {/* Model 4: Peter Lynch Fair Value & PEG */}
                       <tr className="bg-slate-950/40">
-                        <td className="px-4 py-3 font-bold text-slate-100 flex items-center space-x-2">
+                        <td className="px-3.5 py-3 font-bold text-slate-100 flex items-center space-x-2">
                           <span className="text-indigo-400">4.</span>
                           <span>Peter Lynch Fair Value & PEG Model</span>
                         </td>
-                        <td className="px-4 py-3 text-slate-400">
+                        <td className="px-3.5 py-3 text-slate-400">
                           Fair P/E = Growth Rate ({valModels.peter_lynch_fair_value?.fair_pe}x) | PEG: {valModels.peter_lynch_fair_value?.peg_ratio}
                         </td>
-                        <td className="px-4 py-3 font-black text-indigo-300 text-sm">
+                        <td className="px-3.5 py-3 font-black text-indigo-300 text-sm">
                           ₹{valModels.peter_lynch_fair_value?.fair_value || 'N/A'}
                         </td>
-                        <td className="px-4 py-3 text-indigo-300 font-bold">
+                        <td className="px-3.5 py-3 text-indigo-300 font-bold">
                           {valModels.peter_lynch_fair_value?.verdict || 'PEG < 1.0 (Undervalued)'}
                         </td>
                       </tr>
 
                       {/* Model 5: Warren Buffett Owner Earnings Power */}
                       <tr className="bg-slate-900/60">
-                        <td className="px-4 py-3 font-bold text-slate-100 flex items-center space-x-2">
+                        <td className="px-3.5 py-3 font-bold text-slate-100 flex items-center space-x-2">
                           <span className="text-emerald-400">5.</span>
                           <span>Warren Buffett Owner Earnings Power</span>
                         </td>
-                        <td className="px-4 py-3 text-slate-400">
+                        <td className="px-3.5 py-3 text-slate-400">
                           OEPS: ₹{valModels.warren_buffett_owner_earnings?.owner_earnings_per_share} | Yield: {valModels.warren_buffett_owner_earnings?.owner_earnings_yield_pct}% vs 10Y G-Sec (7.1%)
                         </td>
-                        <td className="px-4 py-3 font-black text-emerald-400 text-sm">
+                        <td className="px-3.5 py-3 font-black text-emerald-400 text-sm">
                           ₹{valModels.warren_buffett_owner_earnings?.fair_value_10pct_cap || 'N/A'}
                         </td>
-                        <td className="px-4 py-3 text-emerald-300 font-bold">
+                        <td className="px-3.5 py-3 text-emerald-300 font-bold">
                           {valModels.warren_buffett_owner_earnings?.vs_gsec_10y_yield || 'Attractive Yield'}
                         </td>
                       </tr>
 
                       {/* Model 6: Bruce Greenwald EPV */}
                       <tr className="bg-slate-950/40">
-                        <td className="px-4 py-3 font-bold text-slate-100 flex items-center space-x-2">
+                        <td className="px-3.5 py-3 font-bold text-slate-100 flex items-center space-x-2">
                           <span className="text-violet-400">6.</span>
                           <span>Bruce Greenwald Earnings Power (EPV)</span>
                         </td>
-                        <td className="px-4 py-3 text-slate-400">
-                          Zero-Growth Normalized NOPAT capitalized at 11% WACC (Columbia University Model)
+                        <td className="px-3.5 py-3 text-slate-400">
+                          Zero-Growth Normalized NOPAT capitalized at 11% WACC (Columbia Model)
                         </td>
-                        <td className="px-4 py-3 font-black text-violet-300 text-sm">
+                        <td className="px-3.5 py-3 font-black text-violet-300 text-sm">
                           ₹{valModels.earnings_power_value_epv?.epv_per_share || 'N/A'}
                         </td>
-                        <td className="px-4 py-3 text-slate-300">
+                        <td className="px-3.5 py-3 text-slate-300">
                           Asset Reproduction Benchmark
                         </td>
                       </tr>
 
                       {/* Model 7: Historical 5Y Multiple Reversion */}
                       <tr className="bg-slate-900/60">
-                        <td className="px-4 py-3 font-bold text-slate-100 flex items-center space-x-2">
+                        <td className="px-3.5 py-3 font-bold text-slate-100 flex items-center space-x-2">
                           <span className="text-cyan-400">7.</span>
                           <span>Historical 5Y Multiple Reversion</span>
                         </td>
-                        <td className="px-4 py-3 text-slate-400">
+                        <td className="px-3.5 py-3 text-slate-400">
                           Median 5Y P/E: {valModels.historical_multiple_reversion?.median_pe_5y}x | Median 5Y P/B: {valModels.historical_multiple_reversion?.median_pb_5y}x
                         </td>
-                        <td className="px-4 py-3 font-black text-cyan-300 text-sm">
+                        <td className="px-3.5 py-3 font-black text-cyan-300 text-sm">
                           ₹{valModels.historical_multiple_reversion?.pe_reversion_target || 'N/A'}
                         </td>
-                        <td className="px-4 py-3 text-slate-300">
+                        <td className="px-3.5 py-3 text-slate-300">
                           Cycle Mean Reversion Target
                         </td>
                       </tr>
 
                       {/* Blended Weighted Fair Value Master Row */}
                       <tr className="bg-emerald-950/60 font-bold border-t-2 border-emerald-500">
-                        <td className="px-4 py-3.5 text-white font-extrabold flex items-center space-x-2">
+                        <td className="px-3.5 py-3.5 text-white font-extrabold flex items-center space-x-2">
                           <span>🎯</span>
                           <span>BLENDED INSTITUTIONAL FAIR VALUE</span>
                         </td>
-                        <td className="px-4 py-3.5 text-emerald-200">
+                        <td className="px-3.5 py-3.5 text-emerald-200">
                           Institutional Weighted Composite of All 6 Intrinsic Models
                         </td>
-                        <td className="px-4 py-3.5 text-emerald-300 font-black text-base">
+                        <td className="px-3.5 py-3.5 text-emerald-300 font-black text-sm sm:text-base">
                           ₹{compVal.blended_fair_value || researchResult.forensics?.dcf?.base_case?.fair_value}
                         </td>
-                        <td className="px-4 py-3.5 text-emerald-300 font-extrabold">
+                        <td className="px-3.5 py-3.5 text-emerald-300 font-extrabold">
                           +{compVal.blended_margin_of_safety_pct || researchResult.forensics?.dcf?.margin_of_safety_pct}% Margin of Safety
                         </td>
                       </tr>
@@ -578,20 +578,20 @@ export const AIResearch: React.FC = () => {
 
                 {/* 3-Tranche Capital Entry Strategy */}
                 {tranches.length > 0 && (
-                  <div className="space-y-3 pt-2">
+                  <div className="space-y-2.5 sm:space-y-3 pt-2">
                     <h4 className="text-xs font-bold text-amber-300 flex items-center space-x-1.5">
                       <span>🎯 Institutional 3-Tranche Capital Allocation & Deployment Strategy</span>
                     </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
                       {tranches.map((tr: any, idx: number) => (
-                        <div key={idx} className="p-3.5 bg-slate-950 rounded-2xl border border-slate-800 space-y-1">
+                        <div key={idx} className="p-3 sm:p-3.5 bg-slate-950 rounded-xl sm:rounded-2xl border border-slate-800 space-y-1">
                           <div className="flex items-center justify-between">
                             <span className="font-extrabold text-slate-200 text-xs">{tr.tranche}</span>
                             <span className="px-2 py-0.5 rounded-lg bg-emerald-950 border border-emerald-500/40 text-emerald-300 font-black text-xs">
                               Entry: ₹{tr.entry_price}
                             </span>
                           </div>
-                          <p className="text-slate-400 text-[11px] leading-relaxed pt-1">{tr.rationale}</p>
+                          <p className="text-slate-400 text-[10px] sm:text-[11px] leading-relaxed pt-1">{tr.rationale}</p>
                         </div>
                       ))}
                     </div>
@@ -600,15 +600,15 @@ export const AIResearch: React.FC = () => {
               </div>
 
               {/* Monthly Seasonality & Gain/Loss Cycles Card */}
-              <div className="p-6 bg-slate-900 border border-slate-800 rounded-3xl space-y-4">
+              <div className="p-4 sm:p-6 bg-slate-900 border border-slate-800 rounded-2xl sm:rounded-3xl space-y-3 sm:space-y-4">
                 <h3 className="text-sm font-bold text-slate-100 flex items-center space-x-2">
-                  <Calendar className="w-4 h-4 text-amber-400" />
+                  <Calendar className="w-4 h-4 text-amber-400 shrink-0" />
                   <span>Monthly Seasonality & Gain/Loss Cycles (Weather & Fiscal Trends)</span>
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-800/40">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-emerald-950/40 border border-emerald-800/40">
                     <span className="text-xs font-bold text-emerald-400 flex items-center space-x-1.5 mb-1">
-                      <TrendingUp className="w-4 h-4" />
+                      <TrendingUp className="w-4 h-4 shrink-0" />
                       <span>Best Months to Accumulate (Peak Gain Window)</span>
                     </span>
                     <p className="text-xs text-slate-300 leading-relaxed">
@@ -616,9 +616,9 @@ export const AIResearch: React.FC = () => {
                     </p>
                   </div>
 
-                  <div className="p-4 rounded-2xl bg-rose-950/40 border border-rose-800/40">
+                  <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-rose-950/40 border border-rose-800/40">
                     <span className="text-xs font-bold text-rose-400 flex items-center space-x-1.5 mb-1">
-                      <TrendingDown className="w-4 h-4" />
+                      <TrendingDown className="w-4 h-4 shrink-0" />
                       <span>Worst Months (Drawdown / Seasonal Consolidation)</span>
                     </span>
                     <p className="text-xs text-slate-300 leading-relaxed">
@@ -634,31 +634,31 @@ export const AIResearch: React.FC = () => {
               </div>
 
               {/* Positive Points vs Negative Points Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="p-6 bg-slate-900 border border-emerald-800/40 rounded-3xl space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                <div className="p-4 sm:p-6 bg-slate-900 border border-emerald-800/40 rounded-2xl sm:rounded-3xl space-y-3">
                   <h3 className="text-sm font-bold text-emerald-400 flex items-center space-x-2">
-                    <Check className="w-4 h-4" />
+                    <Check className="w-4 h-4 shrink-0" />
                     <span>Key Positive Points (Moats & Tailwinds)</span>
                   </h3>
                   <div className="space-y-2">
                     {positives.map((p: string, idx: number) => (
                       <div key={idx} className="text-xs text-slate-300 flex items-start space-x-2">
-                        <span className="text-emerald-400 font-bold">•</span>
+                        <span className="text-emerald-400 font-bold shrink-0">•</span>
                         <span>{p}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="p-6 bg-slate-900 border border-rose-800/40 rounded-3xl space-y-3">
+                <div className="p-4 sm:p-6 bg-slate-900 border border-rose-800/40 rounded-2xl sm:rounded-3xl space-y-3">
                   <h3 className="text-sm font-bold text-rose-400 flex items-center space-x-2">
-                    <X className="w-4 h-4" />
+                    <X className="w-4 h-4 shrink-0" />
                     <span>Key Negative Points (Risks & Red Flags)</span>
                   </h3>
                   <div className="space-y-2">
                     {negatives.map((n: string, idx: number) => (
                       <div key={idx} className="text-xs text-slate-300 flex items-start space-x-2">
-                        <span className="text-rose-400 font-bold">•</span>
+                        <span className="text-rose-400 font-bold shrink-0">•</span>
                         <span>{n}</span>
                       </div>
                     ))}
@@ -667,41 +667,41 @@ export const AIResearch: React.FC = () => {
               </div>
 
               {/* ⚔️ Competitor Warfare & Market Domination Strategy Card */}
-              <div className="p-6 bg-slate-900 border border-indigo-500/40 rounded-3xl space-y-5 shadow-2xl relative overflow-hidden">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+              <div className="p-4 sm:p-6 bg-slate-900 border border-indigo-500/40 rounded-2xl sm:rounded-3xl space-y-4 sm:space-y-5 shadow-2xl relative overflow-hidden">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 border-b border-slate-800 pb-3 sm:pb-4">
                   <div>
-                    <span className="text-[10px] font-extrabold text-indigo-400 uppercase tracking-widest block mb-1">
+                    <span className="text-[9px] sm:text-[10px] font-extrabold text-indigo-400 uppercase tracking-widest block mb-1">
                       ⚔️ VOLUME 3 INTELLIGENCE • PEER BENCHMARKING & MARKET SHARE WARFARE
                     </span>
-                    <h3 className="text-base font-black text-slate-100 flex items-center space-x-2">
+                    <h3 className="text-sm sm:text-base font-black text-slate-100 flex items-center space-x-2">
                       <span>🥊 Competitor Warfare & Market Domination Battle Plan</span>
                     </h3>
                   </div>
 
                   {compWarfare.can_it_beat_and_overtake_peers?.beat_probability_score && (
-                    <div className="px-4 py-2 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 font-black text-xs flex items-center space-x-2">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <div className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 font-black text-xs flex items-center space-x-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
                       <span>Outperformance: {compWarfare.can_it_beat_and_overtake_peers.beat_probability_score}</span>
                     </div>
                   )}
                 </div>
 
-                {/* Peer Growth Benchmarking Table */}
+                {/* Peer Growth Benchmarking Table with Touch Scroll */}
                 {compWarfare.growth_and_margin_comparison && (
                   <div className="space-y-2">
                     <h4 className="text-xs font-bold text-slate-300 flex items-center space-x-1.5">
                       <span>📊 Peer Growth & Margin Benchmarking Matrix</span>
                     </h4>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-xs text-left text-slate-300">
-                        <thead className="text-[11px] uppercase bg-slate-950 text-slate-400 border border-slate-800">
+                    <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+                      <table className="w-full min-w-[560px] text-xs text-left text-slate-300">
+                        <thead className="text-[10px] sm:text-[11px] uppercase bg-slate-950 text-slate-400 border border-slate-800">
                           <tr>
-                            <th className="px-4 py-2.5">Company / Peer</th>
-                            <th className="px-4 py-2.5">3Y Sales CAGR</th>
-                            <th className="px-4 py-2.5">EBITDA Margin</th>
-                            <th className="px-4 py-2.5">ROCE</th>
-                            <th className="px-4 py-2.5">Debt / Equity</th>
-                            <th className="px-4 py-2.5">Market Share</th>
+                            <th className="px-3.5 py-2.5">Company / Peer</th>
+                            <th className="px-3.5 py-2.5">3Y Sales CAGR</th>
+                            <th className="px-3.5 py-2.5">EBITDA Margin</th>
+                            <th className="px-3.5 py-2.5">ROCE</th>
+                            <th className="px-3.5 py-2.5">Debt / Equity</th>
+                            <th className="px-3.5 py-2.5">Market Share</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-800 border border-slate-800">
@@ -709,15 +709,15 @@ export const AIResearch: React.FC = () => {
                             const isTarget = row.company?.includes('(Target)') || row.company?.includes(researchResult.company_name);
                             return (
                               <tr key={idx} className={isTarget ? "bg-indigo-950/40 font-bold text-indigo-200" : "bg-slate-900/60"}>
-                                <td className="px-4 py-2.5 flex items-center space-x-1.5">
-                                  {isTarget && <span className="text-amber-400">🎯</span>}
-                                  <span>{row.company}</span>
+                                <td className="px-3.5 py-2.5 flex items-center space-x-1.5">
+                                  {isTarget && <span className="text-amber-400 shrink-0">🎯</span>}
+                                  <span className="truncate">{row.company}</span>
                                 </td>
-                                <td className="px-4 py-2.5">{row.sales_cagr_3y}</td>
-                                <td className="px-4 py-2.5 text-emerald-400">{row.ebitda_margin_pct}</td>
-                                <td className="px-4 py-2.5">{row.roce_pct}</td>
-                                <td className="px-4 py-2.5">{row.debt_equity}</td>
-                                <td className="px-4 py-2.5">{row.market_share_pct}</td>
+                                <td className="px-3.5 py-2.5">{row.sales_cagr_3y}</td>
+                                <td className="px-3.5 py-2.5 text-emerald-400">{row.ebitda_margin_pct}</td>
+                                <td className="px-3.5 py-2.5">{row.roce_pct}</td>
+                                <td className="px-3.5 py-2.5">{row.debt_equity}</td>
+                                <td className="px-3.5 py-2.5">{row.market_share_pct}</td>
                               </tr>
                             );
                           })}
@@ -728,11 +728,11 @@ export const AIResearch: React.FC = () => {
                 )}
 
                 {/* Key Competitors & Strategic Arsenal Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   {/* Strategic Weapons */}
-                  <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
+                  <div className="p-3.5 sm:p-4 bg-slate-950 rounded-xl sm:rounded-2xl border border-slate-800 space-y-2.5 sm:space-y-3">
                     <h4 className="text-xs font-bold text-indigo-300 flex items-center space-x-1.5">
-                      <span>⚔️ How Company is Beating Competitors (Strategic Weapons)</span>
+                      <span>⚔️ Strategic Weapons to Beat Rivals</span>
                     </h4>
                     <div className="space-y-2 text-xs">
                       {compWarfare.what_company_is_doing_to_beat_competitors?.map((w: any, idx: number) => (
@@ -745,14 +745,14 @@ export const AIResearch: React.FC = () => {
                   </div>
 
                   {/* Structural Catalysts to Overtake & Counter Risks */}
-                  <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
+                  <div className="p-3.5 sm:p-4 bg-slate-950 rounded-xl sm:rounded-2xl border border-slate-800 space-y-2.5 sm:space-y-3">
                     <h4 className="text-xs font-bold text-emerald-300 flex items-center space-x-1.5">
-                      <span>🚀 Structural Catalysts to Overtake & Gain Share</span>
+                      <span>🚀 Catalysts to Overtake & Gain Share</span>
                     </h4>
                     <div className="space-y-1.5 text-xs text-slate-300">
                       {compWarfare.can_it_beat_and_overtake_peers?.structural_catalysts_to_overtake?.map((c: string, idx: number) => (
                         <div key={idx} className="flex items-start space-x-2">
-                          <span className="text-emerald-400 font-bold">•</span>
+                          <span className="text-emerald-400 font-bold shrink-0">•</span>
                           <span className="text-[11px]">{c}</span>
                         </div>
                       ))}
@@ -763,7 +763,7 @@ export const AIResearch: React.FC = () => {
                       <div className="space-y-1 text-xs text-slate-400">
                         {compWarfare.can_it_beat_and_overtake_peers?.competitor_counter_attack_risks?.map((r: string, idx: number) => (
                           <div key={idx} className="flex items-start space-x-2">
-                            <span className="text-rose-400 font-bold">•</span>
+                            <span className="text-rose-400 font-bold shrink-0">•</span>
                             <span className="text-[11px]">{r}</span>
                           </div>
                         ))}
@@ -774,26 +774,25 @@ export const AIResearch: React.FC = () => {
 
                 {/* Final Market Domination Verdict */}
                 {compWarfare.can_it_beat_and_overtake_peers?.final_market_dominance_verdict && (
-                  <div className="p-3.5 bg-indigo-950/30 border border-indigo-500/30 rounded-2xl text-xs text-indigo-200 leading-relaxed italic">
+                  <div className="p-3 sm:p-3.5 bg-indigo-950/30 border border-indigo-500/30 rounded-xl sm:rounded-2xl text-xs text-indigo-200 leading-relaxed italic">
                     <b>🏆 Final Market Domination Verdict:</b> "{compWarfare.can_it_beat_and_overtake_peers.final_market_dominance_verdict}"
                   </div>
                 )}
               </div>
 
-
               {/* Corporate Tie-ups & Verified Contracts Card */}
               {tieUps.length > 0 && (
-                <div className="p-6 bg-slate-900 border border-slate-800 rounded-3xl space-y-3">
+                <div className="p-4 sm:p-6 bg-slate-900 border border-slate-800 rounded-2xl sm:rounded-3xl space-y-3">
                   <h3 className="text-sm font-bold text-slate-100 flex items-center space-x-2">
-                    <Handshake className="w-4 h-4 text-blue-400" />
+                    <Handshake className="w-4 h-4 text-blue-400 shrink-0" />
                     <span>Verified Corporate Tie-ups, Joint Ventures & Off-Take Contracts</span>
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {tieUps.map((tu: any, idx: number) => (
                       <div key={idx} className="p-3 bg-slate-950 rounded-xl border border-slate-800">
                         <div className="flex items-center justify-between text-xs mb-1">
-                          <span className="font-bold text-slate-100">{tu.partner_name}</span>
-                          <span className="px-2 py-0.5 rounded bg-blue-600/20 text-blue-300 text-[10px] font-semibold">{tu.type}</span>
+                          <span className="font-bold text-slate-100 truncate">{tu.partner_name}</span>
+                          <span className="px-2 py-0.5 rounded bg-blue-600/20 text-blue-300 text-[10px] font-semibold shrink-0">{tu.type}</span>
                         </div>
                         <p className="text-[11px] text-slate-400">{tu.details}</p>
                       </div>
@@ -803,11 +802,11 @@ export const AIResearch: React.FC = () => {
               )}
 
               {/* Management Leadership & Institutional Investors Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 {/* Management Team Dossier */}
-                <div className="p-6 bg-slate-900 border border-slate-800 rounded-3xl space-y-3">
+                <div className="p-4 sm:p-6 bg-slate-900 border border-slate-800 rounded-2xl sm:rounded-3xl space-y-3">
                   <h3 className="text-sm font-bold text-slate-100 flex items-center space-x-2">
-                    <Briefcase className="w-4 h-4 text-amber-400" />
+                    <Briefcase className="w-4 h-4 text-amber-400 shrink-0" />
                     <span>Management Leadership & Contract Dossier</span>
                   </h3>
                   <div className="space-y-3">
@@ -832,12 +831,12 @@ export const AIResearch: React.FC = () => {
                 </div>
 
                 {/* Institutional & Key Investors */}
-                <div className="p-6 bg-slate-900 border border-slate-800 rounded-3xl space-y-3">
+                <div className="p-4 sm:p-6 bg-slate-900 border border-slate-800 rounded-2xl sm:rounded-3xl space-y-3">
                   <h3 className="text-sm font-bold text-slate-100 flex items-center space-x-2">
-                    <Users className="w-4 h-4 text-emerald-400" />
+                    <Users className="w-4 h-4 text-emerald-400 shrink-0" />
                     <span>Institutional & Super Investors Breakdown</span>
                   </h3>
-                  <div className="space-y-3 text-xs">
+                  <div className="space-y-2.5 text-xs">
                     <div className="p-3 bg-slate-950 rounded-xl border border-slate-800">
                       <span className="font-bold text-slate-200 block mb-1">Promoter Shareholding & Pledge:</span>
                       <p className="text-slate-400 text-[11px]">{investors.promoters_holding_summary || 'Strong promoter ownership with minimal pledge.'}</p>
@@ -859,12 +858,12 @@ export const AIResearch: React.FC = () => {
               </div>
 
               {/* 10-Year Profit Growth Record */}
-              <div className="p-6 bg-slate-900 border border-slate-800 rounded-3xl space-y-3">
+              <div className="p-4 sm:p-6 bg-slate-900 border border-slate-800 rounded-2xl sm:rounded-3xl space-y-3">
                 <h3 className="text-sm font-bold text-slate-100 flex items-center space-x-2">
-                  <TrendingUp className="w-4 h-4 text-blue-400" />
+                  <TrendingUp className="w-4 h-4 text-blue-400 shrink-0" />
                   <span>10-Year Financial & Profit Growth Record</span>
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-xs">
                   <div className="p-3 bg-slate-950 rounded-xl border border-slate-800">
                     <span className="text-slate-500 uppercase text-[10px] block font-bold">Sales CAGR Track Record</span>
                     <span className="text-slate-200 font-bold mt-1 block">{growth.sales_growth_cagr_10y || '14.5% 5Y CAGR'}</span>
@@ -882,15 +881,15 @@ export const AIResearch: React.FC = () => {
 
               {/* Charlie Munger Pre-Mortem Kill-Thesis Card */}
               {killThesis.length > 0 && (
-                <div className="p-6 bg-slate-900 border border-rose-900/50 rounded-3xl space-y-3">
+                <div className="p-4 sm:p-6 bg-slate-900 border border-rose-900/50 rounded-2xl sm:rounded-3xl space-y-3">
                   <h3 className="text-sm font-bold text-rose-300 flex items-center space-x-2">
-                    <Skull className="w-4 h-4 text-rose-400" />
+                    <Skull className="w-4 h-4 text-rose-400 shrink-0" />
                     <span>Charlie Munger Pre-Mortem Kill-Thesis (5 Failure Modes)</span>
                   </h3>
                   <div className="space-y-2">
                     {killThesis.map((kt: string, idx: number) => (
                       <div key={idx} className="text-xs text-slate-300 flex items-start space-x-2">
-                        <span className="text-rose-400 font-bold">•</span>
+                        <span className="text-rose-400 font-bold shrink-0">•</span>
                         <span>{kt}</span>
                       </div>
                     ))}
@@ -902,17 +901,17 @@ export const AIResearch: React.FC = () => {
         </div>
       ) : (
         /* AI Chat Feed */
-        <div className="h-[calc(100vh-12rem)] flex flex-col bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-          <div className="flex-1 p-6 overflow-y-auto space-y-4">
+        <div className="h-[calc(100vh-14rem)] sm:h-[calc(100vh-12rem)] flex flex-col bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+          <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-3 sm:space-y-4">
             {messages.map((m, i) => (
-              <div key={i} className={`flex items-start space-x-3 ${m.sender === 'user' ? 'justify-end' : ''}`}>
+              <div key={i} className={`flex items-start space-x-2 sm:space-x-3 ${m.sender === 'user' ? 'justify-end' : ''}`}>
                 {m.sender === 'ai' && (
-                  <div className="w-8 h-8 rounded-full bg-blue-600/20 border border-blue-500/30 text-blue-400 flex items-center justify-center flex-shrink-0 mt-1">
-                    <Bot className="w-4 h-4" />
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-600/20 border border-blue-500/30 text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </div>
                 )}
                 <div
-                  className={`p-4 rounded-2xl max-w-xl text-xs leading-relaxed whitespace-pre-wrap ${
+                  className={`p-3 sm:p-4 rounded-2xl max-w-[85%] sm:max-w-xl text-xs leading-relaxed whitespace-pre-wrap ${
                     m.sender === 'user'
                       ? 'bg-blue-600 text-white rounded-tr-none shadow-md font-medium'
                       : 'bg-slate-950/90 border border-slate-800 text-slate-200 rounded-tl-none shadow-sm font-sans'
@@ -924,19 +923,19 @@ export const AIResearch: React.FC = () => {
             ))}
           </div>
 
-          <div className="p-4 bg-slate-950/80 border-t border-slate-800 flex items-center space-x-3">
+          <div className="p-3 sm:p-4 bg-slate-950/80 border-t border-slate-800 flex items-center space-x-2 sm:space-x-3">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendChat()}
-              placeholder="Ask about seasonality, management contracts, tie-ups, or investors..."
-              className="flex-1 bg-slate-900 text-slate-200 text-xs px-4 py-3 rounded-xl border border-slate-800 focus:outline-none focus:border-blue-500"
+              placeholder="Ask about seasonality, management contracts, tie-ups, or valuation..."
+              className="flex-1 bg-slate-900 text-slate-200 text-xs px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border border-slate-800 focus:outline-none focus:border-blue-500"
             />
             <button
               onClick={() => handleSendChat()}
               disabled={loading || !input.trim()}
-              className="p-3 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white transition-colors shadow-lg shadow-blue-600/30"
+              className="p-2.5 sm:p-3 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white transition-colors shadow-lg shadow-blue-600/30 shrink-0"
             >
               <Send className="w-4 h-4" />
             </button>

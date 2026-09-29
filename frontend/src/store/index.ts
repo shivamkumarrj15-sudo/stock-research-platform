@@ -101,11 +101,17 @@ export const useAlertsStore = create<AlertsState>()((set) => ({
 interface UIState {
   sidebarOpen: boolean;
   sidebarCollapsed: boolean;
+  mobileMenuOpen: boolean;
   toggleSidebar: () => void;
+  setMobileMenuOpen: (open: boolean) => void;
+  toggleMobileMenu: () => void;
 }
 
 export const useUIStore = create<UIState>()((set, get) => ({
   sidebarOpen: true,
   sidebarCollapsed: false,
+  mobileMenuOpen: false,
   toggleSidebar: () => set({ sidebarCollapsed: !get().sidebarCollapsed, sidebarOpen: get().sidebarCollapsed }),
+  setMobileMenuOpen: (open: boolean) => set({ mobileMenuOpen: open }),
+  toggleMobileMenu: () => set({ mobileMenuOpen: !get().mobileMenuOpen }),
 }));
