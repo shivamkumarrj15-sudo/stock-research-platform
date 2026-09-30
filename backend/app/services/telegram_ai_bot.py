@@ -124,18 +124,22 @@ class StockIQTelegramBot:
         session = self.get_session(chat_id)
         logger.info(f"Received message from {user_name} ({chat_id}): {text}")
 
-        # Command 1: /start or /help
+        # Command 1: /start with deep link or /help
+        if text.lower().startswith("/start research_"):
+            raw_ticker = text.split("research_", 1)[1].strip().upper()
+            text = f"/research {raw_ticker}"
+
         if text.lower() in ("/start", "/help"):
             welcome_msg = (
                 f"👋 *Namaste {user_name}! Main aapka StockIQ AI Financial & Research Copilot hoon.*\n\n"
-                f"Main aapke liye Warren Buffett & Charlie Munger ke institutional framework par kisi bhi company ka A-Z analysis karta hoon aur aapke sabhi doubts solve karta hoon.\n\n"
+                f"Main aapke liye Warren Buffett & Charlie Munger ke institutional framework par kisi bhi company ka A-Z analysis karta hoon aur **Single Master 14-Pillar PDF** generate karke bhejta hoon.\n\n"
                 f"📌 *Main kya kar sakta hoon:*\n"
-                f"1️⃣ `/research <STOCK>` — 2-Volume PDF Memos (Business Model + Forensics & Valuation) generate karke Telegram par bhejunga.\n"
+                f"1️⃣ `/research <STOCK>` — 1 Complete Master 14-Pillar PDF (Business Model + 10Y Balance Sheet + Full EPS Suite + 7-Model Valuation + Competitor Warfare) generate karke Telegram par bhejunga.\n"
                 f"   _Example:_ `/research WEBELSOLAR` ya `/research TATAMOTORS`\n\n"
                 f"2️⃣ `/buffett <STOCK>` — Warren Buffett 5-Gate Buy/Reject Checklist check karega.\n"
                 f"   _Example:_ `/buffett TCS`\n\n"
                 f"3️⃣ 💬 *Interactive AI Q&A:* Researched stock ke bare mein koi bhi sawal poochein:\n"
-                f"   • _Is company ka raw material kahan se aata hai?_\n"
+                f"   • _Is company ka cash EPS aur reported EPS kitna hai?_\n"
                 f"   • _Iska business model simple language mein samjhao._\n"
                 f"   • _Kya ispe debt zyada hai?_\n"
                 f"   • _Warren Buffett isko kyu buy ya reject karega?_\n"
@@ -157,7 +161,7 @@ class StockIQTelegramBot:
             await self.send_text(
                 chat_id,
                 f"🔍 *{ticker}* ka 20-Stage Buffett & Forensic Research shuru ho raha hai...\n"
-                f"📊 _10-Yr statements, DuPont analysis, 3-scenario DCF aur 2-Volume PDFs generate ho rahe hain (15-20 seconds)..._"
+                f"📊 _10-Yr statements, EPS suite, 7-Model Valuation aur Single Master 14-Pillar PDF generate ho rahi hai (10-15 seconds)..._"
             )
             
             try:
@@ -166,29 +170,22 @@ class StockIQTelegramBot:
                 session.last_company_name = result.get("company_name", ticker)
                 session.last_research_data = result
 
-                v1_bytes = None
-                v2_bytes = None
-                v3_bytes = None
-                if os.path.exists(result.get("pdf_volume1_path", "")):
-                    with open(result["pdf_volume1_path"], "rb") as f1:
-                        v1_bytes = f1.read()
-                if os.path.exists(result.get("pdf_volume2_path", "")):
-                    with open(result["pdf_volume2_path"], "rb") as f2:
-                        v2_bytes = f2.read()
-                if os.path.exists(result.get("pdf_volume3_path", "")):
-                    with open(result["pdf_volume3_path"], "rb") as f3:
-                        v3_bytes = f3.read()
+                master_bytes = None
+                master_path = result.get("pdf_master_path", "") or f"{ticker}_Master_Institutional_Equity_Research.pdf"
+                if os.path.exists(master_path):
+                    with open(master_path, "rb") as fm:
+                        master_bytes = fm.read()
 
-                if v1_bytes and v2_bytes:
+                if master_bytes:
                     self.telegram_service.send_research_to_telegram(
                         ticker=ticker,
                         company_name=result.get("company_name", ticker),
-                        vol1_bytes=v1_bytes,
-                        vol2_bytes=v2_bytes,
-                        vol3_bytes=v3_bytes,
+                        master_bytes=master_bytes,
                         exec_summary=result.get("ai_research", {}).get("executive_summary", ""),
                         dcf_summary=result.get("forensics", {}).get("dcf", {}),
                         buffett_verdict=result.get("buffett_verdict", {}),
+                        eps_analytics=result.get("forensics", {}).get("eps_analytics", {}),
+                        comprehensive_valuation=result.get("forensics", {}).get("comprehensive_valuation", {}),
                         chat_id=str(chat_id)
                     )
                 else:
@@ -198,7 +195,7 @@ class StockIQTelegramBot:
                 await self.send_text(
                     chat_id,
                     f"💡 *Aap {session.last_company_name} ke bare mein koi bhi question pooch sakte hain!*\n"
-                    f"_Jaise: 'Competitors ko kaise beat kar raha hai?', 'Kya aage nikal payega?', 'Raw material kahan se aata hai?'_"
+                    f"_Jaise: 'Iska Cash EPS kitna hai?', 'Competitors ko kaise beat kar raha hai?', 'Raw material kahan se aata hai?'_"
                 )
             except Exception as e:
                 logger.error(f"Research error: {e}", exc_info=True)

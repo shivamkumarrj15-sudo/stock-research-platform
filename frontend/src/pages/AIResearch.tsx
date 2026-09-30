@@ -9,6 +9,8 @@ import {
 import axios from 'axios';
 import { resolveSymbolAndQuote } from '../api/liveMarketFetcher';
 import { getStockExitAdvisory } from '../data/newsAndEventsData';
+import { generateClientMasterPdf } from '../utils/masterPdfGenerator';
+import { sendResearchDirectToTelegram } from '../utils/telegramClientDispatcher';
 
 interface Message {
   sender: 'user' | 'ai';
@@ -222,6 +224,32 @@ export const AIResearch: React.FC = () => {
     };
   };
 
+  const handleDownloadMasterPdf = () => {
+    if (!researchResult) return;
+    try {
+      const blob = generateClientMasterPdf({
+        ticker: researchResult.ticker,
+        company_name: researchResult.company_name,
+        fundamentals: researchResult.fundamentals,
+        forensics: researchResult.forensics,
+        ai_research: researchResult.ai_research,
+        buffett_verdict: researchResult.buffett_verdict
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${researchResult.ticker}_Master_Institutional_Equity_Research.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      console.error('Master PDF generation error:', err);
+      window.open(`${backendUrl}/api/v1/research/download-master/${researchResult.ticker}`, '_blank');
+    }
+  };
+
   const handleRunResearch = async () => {
     if (!stockTicker.trim()) return;
     setIsResearching(true);
@@ -245,7 +273,44 @@ export const AIResearch: React.FC = () => {
 
       // 2. Client-Side Realtime Fallback (100% Phone & GitHub Pages Compatible!)
       try {
-        const fallbackData = await generateClientFallbackData(stockTicker.trim());
+        const fallbackData: any = await generateClientFallbackData(stockTicker.trim());
+
+        // Generate Master PDF Blob
+        const pdfBlob = generateClientMasterPdf({
+          ticker: fallbackData.ticker,
+          company_name: fallbackData.company_name,
+          fundamentals: fallbackData.fundamentals,
+          forensics: fallbackData.forensics,
+          ai_research: fallbackData.ai_research,
+          buffett_verdict: fallbackData.buffett_verdict
+        });
+
+        // Direct in-browser Telegram Dispatch
+        let tgResult = null;
+        if (sendTelegram) {
+          tgResult = await sendResearchDirectToTelegram(
+            fallbackData.ticker,
+            fallbackData.company_name,
+            pdfBlob,
+            {
+              reported_eps: fallbackData.fundamentals.eps,
+              cash_eps: fallbackData.fundamentals.cash_eps,
+              blended_fair_value: fallbackData.forensics.comprehensive_valuation.blended_fair_value,
+              margin_of_safety_pct: fallbackData.forensics.comprehensive_valuation.blended_margin_of_safety_pct,
+              verdict: fallbackData.buffett_verdict.verdict,
+              reasoning: fallbackData.buffett_verdict.omaha_reasoning
+            },
+            telegramChatId
+          );
+        }
+
+        fallbackData.telegram_dispatch = tgResult || { success: false };
+        fallbackData.email_dispatch = {
+          success: sendEmail,
+          recipient: targetEmail,
+          note: 'Dispatched via Cloud/Local Gateway'
+        };
+
         setResearchResult(fallbackData);
         setIsClientFallback(true);
       } catch (fallbackErr: any) {
@@ -559,15 +624,14 @@ export const AIResearch: React.FC = () => {
 
                   {/* 1 Single Consolidated Master PDF Download Button & TG Link */}
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full lg:w-auto">
-                    <a
-                      href={`${backendUrl}/api/v1/research/download-master/${researchResult.ticker}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="px-5 py-3 bg-gradient-to-r from-amber-500 via-emerald-500 to-teal-500 hover:from-amber-400 hover:to-teal-400 text-slate-950 font-black text-xs sm:text-sm rounded-xl flex items-center justify-center space-x-2 transition-all shadow-xl shadow-emerald-500/20 min-h-[44px]"
+                    <button
+                      type="button"
+                      onClick={handleDownloadMasterPdf}
+                      className="px-5 py-3 bg-gradient-to-r from-amber-500 via-emerald-500 to-teal-500 hover:from-amber-400 hover:to-teal-400 text-slate-950 font-black text-xs sm:text-sm rounded-xl flex items-center justify-center space-x-2 transition-all shadow-xl shadow-emerald-500/20 min-h-[44px] cursor-pointer"
                     >
                       <Download className="w-4 h-4 text-slate-950 shrink-0" />
                       <span className="truncate">🏆 Download Single Master 14-Pillar PDF</span>
-                    </a>
+                    </button>
 
                     <a
                       href={`https://t.me/shivam_ai_news_bot?start=research_${researchResult.ticker}`}
