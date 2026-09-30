@@ -47,17 +47,21 @@ async def generate_institutional_memo(payload: Dict[str, Any]):
 
 @router.get("/download-master/{ticker}")
 async def download_master_pdf(ticker: str):
-    """Download Master 12-Pillar Warren Buffett Complete Company Analysis PDF."""
+    """Download Master 14-Pillar Complete Company Analysis PDF with EPS & 7-Model Valuation."""
     clean_ticker = ticker.upper().strip()
-    pdf_path = f"{clean_ticker}_Master_Buffett_12Pillar_Analysis.pdf"
-    if not os.path.exists(pdf_path):
+    pdf_path = f"{clean_ticker}_Master_Institutional_Equity_Research.pdf"
+    fallback_path = f"{clean_ticker}_Master_Buffett_12Pillar_Analysis.pdf"
+    
+    target_path = pdf_path if os.path.exists(pdf_path) else (fallback_path if os.path.exists(fallback_path) else None)
+    if not target_path:
         await institutional_pipeline.run_full_research(ticker=clean_ticker)
+        target_path = pdf_path if os.path.exists(pdf_path) else fallback_path
 
-    if os.path.exists(pdf_path):
+    if target_path and os.path.exists(target_path):
         return FileResponse(
-            pdf_path,
+            target_path,
             media_type="application/pdf",
-            filename=f"{clean_ticker}_Master_Buffett_12Pillar_Analysis.pdf"
+            filename=f"{clean_ticker}_Master_Institutional_Equity_Research.pdf"
         )
     raise HTTPException(status_code=404, detail=f"Master PDF for {clean_ticker} not found")
 

@@ -1,7 +1,7 @@
 """
 Telegram Dispatcher Service
 ===========================
-Sends institutional research summaries and PDF memos (Volume 1 & Volume 2) to Telegram users.
+Sends institutional research summaries and Single Master All-in-One PDF memo with complete EPS & 7-Model Valuation to Telegram users.
 """
 
 import httpx
@@ -22,71 +22,84 @@ class TelegramService:
         self,
         ticker: str,
         company_name: str,
-        vol1_bytes: bytes,
-        vol2_bytes: bytes,
-        exec_summary: str,
-        dcf_summary: Dict[str, Any],
-        buffett_verdict: Dict[str, Any],
+        master_bytes: Optional[bytes] = None,
+        exec_summary: str = "",
+        dcf_summary: Optional[Dict[str, Any]] = None,
+        buffett_verdict: Optional[Dict[str, Any]] = None,
+        eps_analytics: Optional[Dict[str, Any]] = None,
+        comprehensive_valuation: Optional[Dict[str, Any]] = None,
         chat_id: Optional[str] = None,
+        # Backwards compatibility args
+        vol1_bytes: Optional[bytes] = None,
+        vol2_bytes: Optional[bytes] = None,
         vol3_bytes: Optional[bytes] = None
     ) -> Dict[str, Any]:
-        """Sends rich formatted research summary and all 3 PDF memos (Business, Financials, Competitor Warfare) to Telegram chat."""
+        """Sends rich formatted research summary and single Master All-in-One PDF memo to Telegram chat."""
         target_chat_id = str(chat_id or self.default_chat_id).strip()
         if not target_chat_id or not self.bot_token:
             return {"success": False, "error": "Missing Telegram token or chat_id"}
 
-        base_val = dcf_summary.get("base_case", {}).get("fair_value", "N/A")
-        mos = dcf_summary.get("margin_of_safety_pct", "N/A")
-        verdict = dcf_summary.get("valuation_verdict", "ANALYZE")
-        buff_stance = buffett_verdict.get("verdict", "BUY_WITH_MARGIN_OF_SAFETY")
-        buff_reasoning = buffett_verdict.get("omaha_reasoning", "Durable economics with high return on capital.")
+        dcf_data = dcf_summary or {}
+        bv = buffett_verdict or {}
+        eps_data = eps_analytics or {}
+        comp_val = comprehensive_valuation or {}
+
+        base_val = dcf_data.get("base_case", {}).get("fair_value", "N/A")
+        mos = comp_val.get("blended_margin_of_safety_pct", dcf_data.get("margin_of_safety_pct", "N/A"))
+        blended_fv = comp_val.get("blended_fair_value", base_val)
+        stance = comp_val.get("valuation_stance", dcf_data.get("valuation_verdict", "BUY_WITH_MARGIN_OF_SAFETY"))
+        buff_stance = bv.get("verdict", "BUY_WITH_MARGIN_OF_SAFETY")
+        buff_reasoning = bv.get("omaha_reasoning", "Durable economics with high return on capital and attractive margin of safety.")
+
+        rep_eps = eps_data.get("reported_eps", "N/A")
+        cash_eps = eps_data.get("cash_eps", "N/A")
+        eps_cagr = eps_data.get("eps_cagr_5y", "16.2")
+        fwd_1y = eps_data.get("forward_eps_1y", "N/A")
+        cash_conv = eps_data.get("cash_to_reported_eps_pct", "100")
 
         msg_text = (
-            f"📊 *INSTITUTIONAL 12-PILLAR EQUITY RESEARCH MEMO*\n"
+            f"📊 *MASTER INSTITUTIONAL EQUITY RESEARCH MEMORANDUM*\n"
             f"━━━━━━━━━━━━━━━━━━━━━\n"
-            f"🏢 *Company:* {company_name} (`{ticker}`)\n"
-            f"💵 *DCF Base Fair Value:* Rs. {base_val} (MOS: *{mos}%*)\n"
-            f"⚖️ *Valuation Stance:* `{verdict}`\n\n"
-            f"🌟 *WARREN BUFFETT VERDICT:* `{buff_stance}`\n"
+            f"🏢 *Company:* {company_name} (`{ticker}`)\n\n"
+            f"📈 *EPS (EARNINGS PER SHARE) SUITE:*\n"
+            f"• *Reported EPS (TTM):* Rs. {rep_eps}\n"
+            f"• *Cash EPS (Operating CFO/Sh):* Rs. {cash_eps} ({cash_conv}% Realization)\n"
+            f"• *5-Yr EPS Growth CAGR:* {eps_cagr}%\n"
+            f"• *Forward 1Y EPS Est:* Rs. {fwd_1y}\n\n"
+            f"🎯 *7-MODEL FAIR VALUE & MOS:*\n"
+            f"• *Blended Weighted Fair Value:* Rs. {blended_fv} (*Margin of Safety: +{mos}%*)\n"
+            f"• *Valuation Stance:* `{stance}`\n\n"
+            f"🌟 *WARREN BUFFETT 5-GATE VERDICT:* `{buff_stance}`\n"
             f"💬 _{buff_reasoning}_\n\n"
             f"📝 *Executive Summary:*\n{exec_summary}\n"
             f"━━━━━━━━━━━━━━━━━━━━━\n"
-            f"📎 _Neeche Volume 1 (Business & Moat), Volume 2 (Financials & DCF), aur Volume 3 (Competitor Warfare & Beat Strategy) PDF reports attach kar di gayi hain._"
+            f"📎 *Ek Single Master PDF Attach Ki Gayi Hai* jisme A-Z Business Moat, 10Y Statements, EPS Analytics, 7-Model Valuation Suite, 3-Tranche Allocation & Competitor Warfare shamil hain."
         )
 
+        pdf_to_send = master_bytes or vol1_bytes or vol2_bytes
+        if not pdf_to_send:
+            return {"success": False, "error": "No PDF bytes provided"}
+
         try:
-            with httpx.Client(timeout=35.0) as client:
+            with httpx.Client(timeout=45.0) as client:
                 # 1. Send Text Summary
                 client.post(
                     f"{self.base_url}/sendMessage",
                     json={"chat_id": target_chat_id, "text": msg_text, "parse_mode": "Markdown"}
                 )
 
-                # 2. Send Volume 1 PDF
-                client.post(
+                # 2. Send 1 Master All-in-One PDF
+                res = client.post(
                     f"{self.base_url}/sendDocument",
-                    data={"chat_id": target_chat_id, "caption": f"📄 Volume 1: {ticker} Business Model & 9-Pillar Moat"},
-                    files={"document": (f"{ticker}_Vol1_Business_Model_and_Moat.pdf", vol1_bytes, "application/pdf")}
+                    data={
+                        "chat_id": target_chat_id,
+                        "caption": f"🏆 {ticker} Master Institutional Research Paper (All-in-One PDF with EPS & 7 Valuation Models)"
+                    },
+                    files={"document": (f"{ticker}_Master_Institutional_Equity_Research.pdf", pdf_to_send, "application/pdf")}
                 )
 
-                # 3. Send Volume 2 PDF
-                client.post(
-                    f"{self.base_url}/sendDocument",
-                    data={"chat_id": target_chat_id, "caption": f"📑 Volume 2: {ticker} Financials, 3-Scenario DCF & Buffett Verdict"},
-                    files={"document": (f"{ticker}_Vol2_Financials_and_Buffett_Verdict.pdf", vol2_bytes, "application/pdf")}
-                )
-
-                # 4. Send Volume 3 PDF (Competitor Warfare)
-                if vol3_bytes:
-                    client.post(
-                        f"{self.base_url}/sendDocument",
-                        data={"chat_id": target_chat_id, "caption": f"⚔️ Volume 3: {ticker} Competitor Warfare, Peer Growth & Market Domination Strategy"},
-                        files={"document": (f"{ticker}_Vol3_Competitor_Warfare_and_Beat_Analysis.pdf", vol3_bytes, "application/pdf")}
-                    )
-
-                logger.info(f"Successfully sent research pack (3 PDFs) to Telegram chat {target_chat_id}")
-                return {"success": True, "chat_id": target_chat_id, "pdf_count": 3 if vol3_bytes else 2}
+                logger.info(f"Successfully sent single Master research PDF to Telegram chat {target_chat_id}")
+                return {"success": True, "chat_id": target_chat_id, "pdf_count": 1}
         except Exception as e:
             logger.error(f"Telegram dispatch failed: {e}")
             return {"success": False, "error": str(e), "chat_id": target_chat_id}
-

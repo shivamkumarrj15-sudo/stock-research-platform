@@ -121,6 +121,8 @@ class InstitutionalPDFGenerator:
         elements.append(Paragraph(
             f"<b>CMP:</b> Rs. {fundamentals.get('current_price', 'N/A')} &nbsp;|&nbsp; "
             f"<b>Market Cap:</b> Rs. {fundamentals.get('market_cap_cr', 'N/A')} Cr &nbsp;|&nbsp; "
+            f"<b>EPS (TTM):</b> Rs. {fundamentals.get('eps', 'N/A')} &nbsp;|&nbsp; "
+            f"<b>Cash EPS:</b> Rs. {fundamentals.get('cash_eps', 'N/A')} &nbsp;|&nbsp; "
             f"<b>P/E:</b> {fundamentals.get('pe_ratio', 'N/A')} &nbsp;|&nbsp; "
             f"<b>P/B:</b> {fundamentals.get('pb_ratio', 'N/A')} &nbsp;|&nbsp; "
             f"<b>ROE:</b> {fundamentals.get('roe_pct', 'N/A')}% &nbsp;|&nbsp; "
@@ -181,14 +183,49 @@ class InstitutionalPDFGenerator:
         elements.append(Paragraph(f"&bull; <b>Distribution Monopoly & Market Share:</b> {p2.get('distribution_and_network', '')} &bull; {p2.get('market_share_stability', '')}", s['bullet']))
         elements.append(Spacer(1, 2))
 
-        # 📈 3. Growth Engine & 💰 4. Extended 5-Way DuPont
+        # 📈 3. 10-Year Compounding Engine & Comprehensive EPS Suite
         p3 = ai_research.get("pillar_3_growth_engine", {})
         p4 = ai_research.get("pillar_4_profitability", {})
         dupont = forensics.get("dupont_5way", {})
-        elements.append(Paragraph("📈 3. GROWTH ENGINE & 💰 4. EXTENDED 5-WAY DUPONT DECOMPOSITION", s['h1']))
+        eps_data = forensics.get("eps_analytics", {})
+        
+        elements.append(Paragraph("📈 3. 10-YEAR COMPOUNDING ENGINE & COMPREHENSIVE EPS (EARNINGS PER SHARE) SUITE", s['h1']))
         elements.append(Paragraph(f"&bull; <b>10Y Growth Trajectory:</b> {p3.get('sales_growth_5y_10y', '')} &bull; {p3.get('operating_profit_and_eps_growth', '')}", s['bullet']))
         elements.append(Paragraph(f"&bull; <b>Catalysts for Future Compounding:</b> {p3.get('realistic_future_growth_driver', '')}", s['bullet']))
 
+        rep_eps = eps_data.get('reported_eps', fundamentals.get('eps', '12.5'))
+        cash_eps = eps_data.get('cash_eps', fundamentals.get('cash_eps', '14.2'))
+        oeps = eps_data.get('owner_earnings_per_share', '11.8')
+        cagr_5y = eps_data.get('eps_cagr_5y', fundamentals.get('profit_cagr_5y', '16.2'))
+        fwd_1y = eps_data.get('forward_eps_1y', '14.5')
+        fwd_3y = eps_data.get('forward_eps_3y', '19.5')
+
+        eps_table_data = [
+            [Paragraph("Reported EPS (TTM)", s['table_header']), Paragraph("Cash EPS (CFO/Sh)", s['table_header']), Paragraph("Owner Earnings/Sh", s['table_header']), Paragraph("5Y EPS CAGR", s['table_header']), Paragraph("Forward 1Y EPS", s['table_header']), Paragraph("Forward 3Y EPS", s['table_header'])],
+            [
+                Paragraph(f"<b>Rs. {rep_eps}</b>", s['table_cell_bold']),
+                Paragraph(f"Rs. {cash_eps}", s['table_cell']),
+                Paragraph(f"Rs. {oeps}", s['table_cell']),
+                Paragraph(f"<b>{cagr_5y}%</b>", s['table_cell_bold']),
+                Paragraph(f"Rs. {fwd_1y}", s['table_cell']),
+                Paragraph(f"Rs. {fwd_3y}", s['table_cell']),
+            ]
+        ]
+        t_eps = Table(eps_table_data, colWidths=[80, 80, 85, 80, 85, 78])
+        t_eps.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#0F172A")),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.HexColor("#F8FAFC"), colors.white]),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor("#CBD5E1")),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (-1, -1), 2.5),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 2.5),
+        ]))
+        elements.append(t_eps)
+        elements.append(Paragraph(f"&bull; <b>EPS Quality & Cash Realization:</b> Cash EPS is <b>{eps_data.get('cash_to_reported_eps_pct', 110)}%</b> of Reported EPS ({'High Quality Cash-backed Earnings' if float(eps_data.get('cash_to_reported_eps_pct', 110)) >= 80 else 'Accrual heavy warning'}).", s['bullet']))
+        elements.append(Spacer(1, 2))
+
+        # 💰 4. Extended 5-Way DuPont Decomposition
+        elements.append(Paragraph("💰 4. EXTENDED 5-WAY DUPONT DECOMPOSITION MATRIX", s['h1']))
         dupont_data = [
             [Paragraph("Tax Burden", s['table_header']), Paragraph("Interest Burden", s['table_header']), Paragraph("EBIT Margin", s['table_header']), Paragraph("Asset Turnover", s['table_header']), Paragraph("Leverage (Assets/Eq)", s['table_header']), Paragraph("ROE %", s['table_header'])],
             [

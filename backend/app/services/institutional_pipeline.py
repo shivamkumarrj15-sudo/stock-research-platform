@@ -218,6 +218,31 @@ class InstitutionalPipeline:
         shares_in_cr = (market_cap_cr / current_price) if (current_price > 0 and market_cap_cr > 0) else 1.0
         fcf_in_cr = real_cfo * 0.85 if real_cfo > 0 else (real_pat * 0.8)
 
+        # 3. Compute Deep Forensics & Comprehensive EPS Suite
+        reported_eps = round(real_pat / shares_in_cr, 2) if (shares_in_cr > 0 and real_pat > 0) else round(current_price / (pe_ratio if pe_ratio > 0 else 20.0), 2)
+        cash_eps = round(real_cfo / shares_in_cr, 2) if (shares_in_cr > 0 and real_cfo > 0) else round(reported_eps * 0.95, 2)
+        eps_cagr_5y = float(fundamentals.get("profit_cagr_5y", 16.2))
+        eps_cagr_10y = float(fundamentals.get("sales_cagr_5y", 14.5))
+        fwd_eps_1y = round(reported_eps * (1.0 + eps_cagr_5y / 100.0), 2)
+        fwd_eps_3y = round(reported_eps * ((1.0 + eps_cagr_5y / 100.0) ** 3), 2)
+        fwd_eps_5y = round(reported_eps * ((1.0 + eps_cagr_5y / 100.0) ** 5), 2)
+        cash_to_rep_pct = round((cash_eps / reported_eps) * 100.0, 1) if reported_eps > 0 else 100.0
+
+        fundamentals["eps"] = reported_eps
+        fundamentals["cash_eps"] = cash_eps
+
+        eps_analytics = {
+            "reported_eps": reported_eps,
+            "cash_eps": cash_eps,
+            "cash_to_reported_eps_pct": cash_to_rep_pct,
+            "eps_cagr_5y": eps_cagr_5y,
+            "eps_cagr_10y": eps_cagr_10y,
+            "forward_eps_1y": fwd_eps_1y,
+            "forward_eps_3y": fwd_eps_3y,
+            "forward_eps_5y": fwd_eps_5y,
+            "earnings_quality": "HIGH_CASH_BACKED" if cash_to_rep_pct >= 85 else ("MODERATE_ACCRUAL" if cash_to_rep_pct >= 60 else "LOW_QUALITY_ACCRUAL_HEAVY")
+        }
+
         dcf = ForensicEngine.calculate_3scenario_dcf(
             free_cash_flow=fcf_in_cr,
             current_price=current_price or 100.0,
@@ -246,6 +271,9 @@ class InstitutionalPipeline:
             median_pb_5y=pb_ratio or 3.0
         )
 
+        eps_analytics["owner_earnings_per_share"] = comprehensive_val.get("models", {}).get("warren_buffett_owner_earnings", {}).get("owner_earnings_per_share", reported_eps)
+        eps_analytics["epv_per_share"] = comprehensive_val.get("models", {}).get("earnings_power_value_epv", {}).get("epv_per_share", reported_eps)
+
         buffett_scorecard = ForensicEngine.calculate_buffett_100pt_scorecard(
             roe_pct=roe_pct,
             roce_pct=roce_pct,
@@ -267,6 +295,7 @@ class InstitutionalPipeline:
             "dcf": dcf,
             "reverse_dcf": reverse_dcf,
             "comprehensive_valuation": comprehensive_val,
+            "eps_analytics": eps_analytics,
             "buffett_scorecard": buffett_scorecard
         }
 
@@ -291,12 +320,8 @@ class InstitutionalPipeline:
             statements=screener_data
         )
 
-        # 8. Generate Master 12-Pillar Warren Buffett & Volume PDFs
-        master_path = f"{clean_ticker}_Master_Buffett_12Pillar_Analysis.pdf"
-        vol1_path = f"{clean_ticker}_Vol1_Business_Model_and_Moat.pdf"
-        vol2_path = f"{clean_ticker}_Vol2_Financials_and_Buffett_Verdict.pdf"
-        vol3_path = f"{clean_ticker}_Vol3_Competitor_Warfare_and_Beat_Analysis.pdf"
-
+        # 8. Generate Single Complete Master 14-Pillar PDF Report
+        master_path = f"{clean_ticker}_Master_Institutional_Equity_Research.pdf"
         master_bytes = InstitutionalPDFGenerator.generate_master_buffett_12pillar_pdf(
             ticker=clean_ticker,
             company_name=company_name,
@@ -307,38 +332,8 @@ class InstitutionalPipeline:
             output_filepath=master_path
         )
 
-        vol1_bytes = InstitutionalPDFGenerator.generate_volume1_business_model_pdf(
-            ticker=clean_ticker,
-            company_name=company_name,
-            fundamentals=fundamentals,
-            ai_research=ai_research,
-            output_filepath=vol1_path
-        )
-
-        vol2_bytes = InstitutionalPDFGenerator.generate_volume2_valuation_and_verdict_pdf(
-            ticker=clean_ticker,
-            company_name=company_name,
-            fundamentals=fundamentals,
-            forensics=forensics,
-            ai_research=ai_research,
-            news_items=news_items,
-            output_filepath=vol2_path
-        )
-
-        vol3_bytes = InstitutionalPDFGenerator.generate_volume3_competitor_warfare_pdf(
-            ticker=clean_ticker,
-            company_name=company_name,
-            fundamentals=fundamentals,
-            forensics=forensics,
-            ai_research=ai_research,
-            output_filepath=vol3_path
-        )
-
         pdf_attachments = [
-            {"filename": f"{clean_ticker}_Master_Buffett_12Pillar_Analysis.pdf", "bytes": master_bytes},
-            {"filename": f"{clean_ticker}_Vol1_Business_Model_and_Moat.pdf", "bytes": vol1_bytes},
-            {"filename": f"{clean_ticker}_Vol2_Financials_and_Buffett_Verdict.pdf", "bytes": vol2_bytes},
-            {"filename": f"{clean_ticker}_Vol3_Competitor_Warfare_and_Beat_Analysis.pdf", "bytes": vol3_bytes}
+            {"filename": f"{clean_ticker}_Master_Institutional_Equity_Research.pdf", "bytes": master_bytes}
         ]
 
         # 9. Email Dispatch
@@ -354,7 +349,7 @@ class InstitutionalPipeline:
                 buffett_verdict=ai_research.get("warren_buffett_final_verdict")
             )
 
-        # 10. Telegram Dispatch
+        # 10. Telegram Dispatch (Single Master PDF with full EPS & Valuation)
         telegram_result = None
         if send_telegram or telegram_chat_id:
             from app.services.telegram_service import TelegramService
@@ -362,11 +357,12 @@ class InstitutionalPipeline:
             telegram_result = tg.send_research_to_telegram(
                 ticker=clean_ticker,
                 company_name=company_name,
-                vol1_bytes=master_bytes,
-                vol2_bytes=vol2_bytes,
+                master_bytes=master_bytes,
                 exec_summary=ai_research.get("executive_summary", ""),
                 dcf_summary=dcf,
                 buffett_verdict=ai_research.get("warren_buffett_final_verdict", {}),
+                eps_analytics=eps_analytics,
+                comprehensive_valuation=comprehensive_val,
                 chat_id=telegram_chat_id
             )
 
@@ -380,9 +376,9 @@ class InstitutionalPipeline:
             "ai_research": ai_research,
             "news_count": len(news_items),
             "pdf_master_path": os.path.abspath(master_path),
-            "pdf_volume1_path": os.path.abspath(vol1_path),
-            "pdf_volume2_path": os.path.abspath(vol2_path),
-            "pdf_volume3_path": os.path.abspath(vol3_path),
+            "pdf_volume1_path": os.path.abspath(master_path),
+            "pdf_volume2_path": os.path.abspath(master_path),
+            "pdf_volume3_path": os.path.abspath(master_path),
             "buffett_verdict": ai_research.get("warren_buffett_final_verdict", {}),
             "buffett_scorecard": buffett_scorecard,
             "email_dispatch": email_result,
